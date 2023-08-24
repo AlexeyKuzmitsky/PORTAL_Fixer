@@ -1,0 +1,13 @@
+/logs
+/output
+/SKU_VP_1
+/SKU_VP_2
+/SVBU_1
+/SVBU_2
+/SVSU
+/venv
+/*.exe
+/.tmp.drivedownload
+/.tmp.driveupload
+/.idea
+/backup
