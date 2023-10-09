@@ -157,7 +157,6 @@ def video_frame_parsing(svg: str, name_system: str) -> List[AnchorPoint]:
         assigning_numbers_to_points(list_submodel=list_submodel)
 
     if path.isfile(path.join(name_system, 'screen', f'{svg[:-3]}jpg')):
-        # print('Файл найден')
         new_entry(list_submodel=list_submodel, img=img)
         try:
             img.save(path.join(name_system, 'screen_with_numbering', f'{svg[:-3]}jpg'))
@@ -166,13 +165,8 @@ def video_frame_parsing(svg: str, name_system: str) -> List[AnchorPoint]:
             img.save(path.join(name_system, 'screen_with_numbering', f'{svg[:-3]}jpg'))
     else:
         print('Файл', path.join(name_system, 'screen', f'{svg[:-3]}jpg'), 'не найден')
-    # for i_img in list_submodel:
-    #     i_img.print_info()
     return list_submodel
 
 
 if __name__ == "__main__":
     pass
-    # start = datetime.datetime.now()
-    # video_frame_parsing(svg="10DMA1113EJ502.svg")
-    # print(datetime.datetime.now() - start)

@@ -15,8 +15,8 @@ from config.generation_tcp_gate_file import start_program_generation_tcp_gate
 
 
 name_program = 'PORTAL_Fixer'
-version_program = '1.7.7'
-program_compilation_date = '2023.08.19'
+version_program = '1.7.8'
+program_compilation_date = '2023.10.09'
 
 
 def instruction() -> None:

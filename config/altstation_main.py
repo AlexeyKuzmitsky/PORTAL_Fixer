@@ -303,7 +303,7 @@ def out_vis_kks_nary(set_line_text: Set, id_kks: str, name_svg: str) -> None:
 def out_some_kks(set_line_text: Set, id_kks: str, name_svg: str) -> None:
     """
     Функция производящая поиск ккс в подмодели которая может содержать больше одного KKS.
-    :param set_line_text: Список сток с данными подмоделями.
+    :param set_line_text: Список строк с данными подмоделями.
     :param id_kks:  Имя параметра в котором ведется поиск KKS.
     :param name_svg: Имя видеокадра.
     :return: None
@@ -327,7 +327,7 @@ def out_some_kks(set_line_text: Set, id_kks: str, name_svg: str) -> None:
 def out_kks_with_te_vl(set_line_text: Set, id_kks: str, name_svg: str) -> None:
     """
     Функция производящая поиск ккс в подмодели с подстановкой окончания KKS TE и VL.
-    :param set_line_text: Список сток с данными подмоделями.
+    :param set_line_text: Список строк с данными подмоделями.
     :param id_kks:  Имя параметра в котором ведется поиск KKS.
     :param name_svg: Имя видеокадра.
     :return: None

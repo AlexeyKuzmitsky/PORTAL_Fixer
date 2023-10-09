@@ -36,7 +36,8 @@ class AnchorPoint:
     def get_full_description_of_the_submodel(self):
         return self.full_description_of_the_submodel
 
-    def check_existence_database(self, data_ana: Set[str], data_bin: Set[str], data_nary: Set[str]):
+    def check_existence_database(self, data_ana: Set[str], data_bin: Set[str], data_nary: Set[str],
+                                 set_suffix: Set[str] = None):
         """Проверяет есть ли в базе дынных KKS сигнала"""
         for i_point in self.signal_description:
             kks = i_point['KKS']
@@ -44,7 +45,13 @@ class AnchorPoint:
                 if kks in data_ana:
                     i_point['Type_signal'] = 'ANA'
                     i_point['Signal_in_database'] = True
-                    self.add_bin_signals_setting(data_bin=data_bin, kks=kks.split('_')[0])
+                    if set_suffix:
+                        self.add_bin_signals_setting(data_bin=data_bin,
+                                                     kks=kks.split('_')[0],
+                                                     add_list_suffix=set_suffix)
+                    else:
+                        self.add_bin_signals_setting(data_bin=data_bin,
+                                                     kks=kks.split('_')[0])
                     continue
                 elif kks in data_nary:
                     i_point['Type_signal'] = 'NARY'
@@ -56,9 +63,12 @@ class AnchorPoint:
                     continue
             i_point['Signal_in_database'] = False
 
-    def add_bin_signals_setting(self, data_bin, kks: str):
+    def add_bin_signals_setting(self, data_bin, kks: str, add_list_suffix: Set[str] = None):
         """Добавляет к аналоговым сигналам бинарные сигналы уставок"""
-        for i_suffix in ['XH03', 'XH05', 'XH54', 'XH56', 'XH43', 'XH45', 'XH94', 'XH96']:
+        list_suffix: Set[str] = {'XH03', 'XH05', 'XH54', 'XH56', 'XH43', 'XH45', 'XH94', 'XH96'}
+        if add_list_suffix:
+            list_suffix.update(add_list_suffix)
+        for i_suffix in list_suffix:
             new_kks = f'{kks}_{i_suffix}'
             if new_kks in data_bin:
                 self.signal_description.append({'KKS': new_kks, 'Type_signal': 'BIN', 'Signal_in_database': True})

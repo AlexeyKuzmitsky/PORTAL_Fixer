@@ -125,7 +125,10 @@ def compiling_list_of_kks(list_submodel: List[AnchorPoint],
                           data_ana: Set[str], data_bin: Set[str], data_nary: Set[str]):
     """Проверяет существование найденных KKS в базе данных"""
     for i_submodel in list_submodel:
-        i_submodel.check_existence_database(data_ana=data_ana, data_bin=data_bin, data_nary=data_nary)
+        i_submodel.check_existence_database(data_ana=data_ana,
+                                            data_bin=data_bin,
+                                            data_nary=data_nary,
+                                            set_suffix={'XH01', 'XH41', 'XH52', 'XH92'})
 
 
 @timer
