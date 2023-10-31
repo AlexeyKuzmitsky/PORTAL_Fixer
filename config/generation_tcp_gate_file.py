@@ -177,7 +177,7 @@ def generation_tcp_gate(name_system):
             list_submodel: List[AnchorPoint] = txt_file_parsing(name_txt_file=name_svg, name_system=name_system)
         else:
             if name_svg not in list_name_svg_system:
-                print(f'Файла {name_svg} нет в NPP_models')
+                print(f'Файла {name_svg} нет в {name_system}\\NPP_models и SVSU\\NPP_models')
             if not name_svg.endswith('.svg'):
                 print(f'Найден файл {name_svg} не являющийся svg файлом')
             continue
@@ -232,9 +232,9 @@ def removing_redundant_signals(data_ana: Set[str], data_bin: Set[str], data_nary
 
 
 def preparing_list_of_video_frames(name_system: str) -> List[str]:
-    """Подготовка списка видеокадров из файла list_kks_svg.txt"""
+    """Подготовка списка видеокадров из файла list_kks_svg_TcpGate.txt"""
     list_name_svg: List[str] = list()
-    with open(path.join(name_system, 'data', 'list_kks_svg.txt'), 'r', encoding='UTF') as file_list_name_svg:
+    with open(path.join(name_system, 'data', 'list_kks_svg_TcpGate.txt'), 'r', encoding='UTF') as file_list_name_svg:
         for i_line in file_list_name_svg:
             if i_line.endswith('\n'):
 

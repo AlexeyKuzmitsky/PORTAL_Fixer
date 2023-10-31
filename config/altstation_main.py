@@ -487,7 +487,7 @@ def add_kks(set_line_text: Set, name_svg: str) -> None:
                      name_svg=name_svg)
         return
     elif svg_constructor == 'spds_arrow.svg':
-        # Сигнал вбивается полностью (наверное). несколько сигналов:
+        # Сигнал вбивается полностью (наверное). Несколько сигналов:
         # arr_col - 1-й сигнал
         # arr_log - 2-й сигнал
         out_some_kks(set_line_text=set_line_text,

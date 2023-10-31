@@ -12,7 +12,7 @@ def check_directory(path_directory: str, name_directory: str) -> bool:
     Функция проверяет наличие директории по указанному адресу и при ее отсутствии создает ее.
     :param path_directory: Путь к директории.
     :param name_directory: Имя директории.
-    :return: None
+    :return: True - создана новая директория, False - новая директория не создавалась(уже существовала)
     """
     if path_directory == '':
         if not path.isdir(name_directory):
@@ -264,8 +264,8 @@ def new_data_ana_bin_nary(name_system: str) -> None:
 
 
 def database_loading_list_kks_ana_bin_nary(name_system: str):
-    """Функция Загружает из подготовленных файлов базу данных сигналов и возвращает 2 списка с аналоговыми сигналами
-    и бинарными"""
+    """Функция Загружает из подготовленных файлов базу данных сигналов и возвращает 3 списка(множества) с аналоговыми
+    сигналами, бинарными и много битовыми сигналами"""
     set_ana_signal: Set[str] = set()
     try:
         with open(path.join(name_system, 'data', 'ANA_list_kks.txt'), 'r', encoding='UTF-8') as file_ana_signals:
