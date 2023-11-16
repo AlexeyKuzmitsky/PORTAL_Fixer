@@ -15,8 +15,8 @@ from config.generation_tcp_gate_file import start_program_generation_tcp_gate
 
 
 name_program = 'PORTAL_Fixer'
-version_program = '1.7.9'
-program_compilation_date = '2023.10.30'
+version_program = '1.8.0'
+program_compilation_date = '2023.11.16'
 
 
 def instruction() -> None:
@@ -81,8 +81,7 @@ def main_menu_of_the_program() -> None:
         # except ZeroDivisionError as e:
         except Exception as e:
             print('Произошла критическая ошибка. Сообщите разработчику об этом и передайте файл logs/ERRORS.log')
-            print(e)
-            log_info.error('Критическая ошибка', exc_info=True)
+            log_info.error(f'Критическая ошибка:\n{e}', exc_info=True)
 
 
 if __name__ == '__main__':

@@ -29,6 +29,19 @@ def check_directory(path_directory: str, name_directory: str) -> bool:
     return False
 
 
+def check_file(path_directory: str, name_file: str) -> bool:
+    """
+    Функция проверяет наличие файла по указанному адресу.
+    :param path_directory: Путь к файлу.
+    :param name_file: Имя файла.
+    :return: True - файл есть, False - файла нет
+    """
+    if path.exists(path.join(path_directory, name_file)):
+        print(f'Есть старый файл: {path.join(path_directory, name_file)}')
+        return True
+    return False
+
+
 def program_execution_delay(pause_length_in_seconds: int):
     """Функция приостанавливает выполнение программы на n секунд"""
     for i in range(pause_length_in_seconds, 0, -1):
@@ -155,7 +168,7 @@ def add_data_file_bin_nary(name_system: str):
         dict_description: Dict[int, Dict[str, str]] = add_list_description(name_system=name_system)
     except FileNotFoundError:
         log_info_print.info('INFO Создание файла BIN_NARY_kks.json невозможно. '
-                            'Нет файла PLS_BIN_NARY_CONF.dmp в папке DbDumps')
+                            f'Нет файла PLS_BIN_NARY_CONF.dmp в папке {name_system}\\DbDumps')
         return
     with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
         new_text = reader(file, delimiter='|')

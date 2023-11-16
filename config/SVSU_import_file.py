@@ -1,8 +1,10 @@
 import re
+import shutil
 from typing import Dict, List, Set
-from os import listdir, path, system
+from os import listdir, path, system, rename
 from .point_description import AnchorPoint
-from .general_functions import check_directory, database_loading_list_kks_ana_bin_nary, new_data_ana_bin_nary
+from .general_functions import (check_directory, database_loading_list_kks_ana_bin_nary, new_data_ana_bin_nary,
+                                check_file)
 
 from .timer import timer
 from .get_logger import log_info_print
@@ -54,7 +56,6 @@ def update_signal_database() -> None:
             break
 
 
-@timer
 def start_svsu_import() -> None:
     """Функция подготовки файла SVSU_IMPORT.txt"""
     check_directory(path_directory='SVSU', name_directory='NPP_models')
@@ -63,6 +64,11 @@ def start_svsu_import() -> None:
     name_system = numbers_bloc()
     if name_system == '0':
         return
+
+    entered_text = input('Забэкапить старый файл SVSU_IMPORT? (1 - да, 0 - нет)\n [0]-> ')
+    if entered_text == '1':
+        renaming_old_file_svsu_import(name_system=name_system)
+
     data_ana, data_bin, data_nary = database_loading_list_kks_ana_bin_nary(name_system=name_system)
     print(f'ANA - {len(data_ana)}')
     print(f'BIN - {len(data_bin)}')
@@ -88,11 +94,55 @@ def start_svsu_import() -> None:
     print(f'ANA - {len(set_ana_signal)}')
     print(f'BIN - {len(set_bin_signal)}')
     print(f'NARY - {len(set_nary_signal)}')
+
     writing_signals_to_a_file(name_system=name_system,
                               set_ana_signal=set_ana_signal,
                               set_bin_signal=set_bin_signal,
                               set_nary_signal=set_nary_signal)
-    input('Завершено успешно.\nEnter для выхода')
+    if check_file(path_directory=name_system, name_file='SVSU_IMPORT_bck.txt'):
+        entered_text = input('Завершено успешно.\nEnter для выхода\n 1-Вывести изменения\n 0-Нет \n [0]-> ')
+    else:
+        input('Завершено успешно.\nEnter для выхода')
+        return
+    if entered_text == '1':
+        file_svsu_import_comparison(name_system=name_system)
+
+
+def file_svsu_import_comparison(name_system: str):
+    """Функция сравнения двух файлов SVSU_IMPORT.txt и SVSU_IMPORT_bck.txt и вывода отчета"""
+    list_kks_svsu_import: Set[str] = set()
+    list_kks_svsu_import_bck: Set[str] = set()
+    with open(path.join(name_system, 'SVSU_IMPORT.txt'), encoding='UTF-8') as file_svsu:
+        for i_line in file_svsu:
+            list_kks_svsu_import.add(i_line[:-1])
+    with open(path.join(name_system, 'SVSU_IMPORT_bck.txt'), encoding='UTF-8') as file_svsu_bck:
+        for i_line in file_svsu_bck:
+            list_kks_svsu_import_bck.add(i_line[:-1])
+
+    del_kks = list_kks_svsu_import_bck.difference(list_kks_svsu_import)
+    add_kks = list_kks_svsu_import.difference(list_kks_svsu_import_bck)
+
+    print(f'Удалены KKS в новом ({len(del_kks)} шт.):')
+    num = 1
+    for i_kks in sorted(del_kks):
+        print(f'{num}. {i_kks}')
+        num += 1
+    print()
+
+    print(f'Добавлены KKS в новом ({len(add_kks)} шт.):')
+    num = 1
+    for i_kks in sorted(add_kks):
+        print(f'{num}. {i_kks}')
+        num += 1
+    print()
+
+
+def renaming_old_file_svsu_import(name_system: str):
+    """Функция переименовывает файл SVSU_IMPORT.txt в SVSU_IMPORT_bck.txt"""
+    if check_file(path_directory=name_system, name_file='SVSU_IMPORT.txt'):
+        rename(path.join(name_system, 'SVSU_IMPORT.txt'), path.join(name_system, 'SVSU_IMPORT_bck.txt'))
+        log_info_print.info('Старый файл SVSU_IMPORT.txt переименован в SVSU_IMPORT_bck.txt')
+    return
 
 
 def writing_signals_to_a_file(name_system: str,
@@ -263,6 +313,27 @@ def bloc_button(svg: str, set_kks_name_svg: Set[str]) -> None:
     print('завершено')
 
 
+def actualizations_vk_svbu() -> None:
+    """Функция обновления видеокадров в папке SVBU_(1/2)/NPP_models из папки SVBU_(1/2)/NPP_models_new"""
+    bloc = numbers_bloc()
+    if bloc == '0':
+        return
+    set_vis: Set[str] = set(listdir(path.join(bloc, 'NPP_models')))
+    set_vis_new: Set[str] = set(listdir(path.join(bloc, 'NPP_models_new')))
+    numbers_vis = len(set_vis)
+    number = 1
+    for i_vis in set_vis:
+        if i_vis in set_vis_new:
+            shutil.copy2(path.join(bloc, 'NPP_models_new', i_vis), path.join(bloc, 'NPP_models', i_vis))
+            print(f'[{number}/{numbers_vis}]   +++{i_vis} видеокадр обновлен+++')
+        else:
+            print(f'[{number}/{numbers_vis}]   ---Видеокадра {i_vis} нет в {bloc}/NPP_models_new ---')
+        number += 1
+
+    log_info_print.info(f'Видеокадры обновлены успешно')
+    input('Enter для продолжения')
+
+
 @timer
 def actualizations_vk() -> None:
     bloc = numbers_bloc()
@@ -336,28 +407,34 @@ def actualizations_vk() -> None:
 def start_program_svsu_import() -> None:
     while True:
         number_procedure = input('Программа создания файла SVSU_import и обновления ВК SVSU\n'
-                                 '1.  Обновить видеокадры из списка самых актуальных\n'
-                                 '2.  Сделать неактивными кнопки на кадрах с несуществующими ссылками\n'
-                                 '3.  Обновление баз данных сигналов\n'
-                                 '4.  Создать файл SVSU_IMPORT.txt\n'
+                                 '1.  Обновить видеокадры SVBU\n'
+                                 '2.  Обновить видеокадры SVSU из самых актуальных видеокадров SVBU\n'
+                                 '3.  Сделать неактивными кнопки на кадрах с несуществующими ссылками\n'
+                                 '4.  Обновление баз данных сигналов\n'
+                                 '5.  Создать файл SVSU_IMPORT.txt\n'
                                  '[0].  Выход\n'
                                  '  -> ')
         if number_procedure == '1':
             system('cls')
-            log_info_print.info(f'Старт программы обновления видеокадров из списка самых актуальных')
+            log_info_print.info(f'Старт программы обновления видеокадров SVBU')
+            actualizations_vk_svbu()
+            system('cls')
+        if number_procedure == '2':
+            system('cls')
+            log_info_print.info(f'Старт программы обновления видеокадров SVSU из самых актуальных видеокадров SVBU')
             actualizations_vk()
             system('cls')
-        elif number_procedure == '2':
+        elif number_procedure == '3':
             system('cls')
             log_info_print.info(f'Старт программы блокировки неактивных кнопок вызова')
             start_bloc_button()
             system('cls')
-        elif number_procedure == '3':
+        elif number_procedure == '4':
             system('cls')
             log_info_print.info(f'Обновление базы данных сигналов')
             update_signal_database()
             system('cls')
-        elif number_procedure == '4':
+        elif number_procedure == '5':
             system('cls')
             start_svsu_import()
             system('cls')
