@@ -17,12 +17,12 @@ def check_directory(path_directory: str, name_directory: str) -> bool:
     if path_directory == '':
         if not path.isdir(name_directory):
             mkdir(name_directory)
-            print(f'Создана папка: {name_directory}')
+            # print(f'Создана папка: {name_directory}')
             # log.info(f'Создана папка: {name_directory}')
             return True
     else:
         if not path.isdir(path.join(path_directory, name_directory)):
-            print(f'Создана папка: {path.join(path_directory, name_directory)}')
+            # print(f'Создана папка: {path.join(path_directory, name_directory)}')
             # log.info(f'Создана папка: {path.join(path_directory, name_directory)}')
             mkdir(path.join(path_directory, name_directory))
             return True
@@ -37,7 +37,6 @@ def check_file(path_directory: str, name_file: str) -> bool:
     :return: True - файл есть, False - файла нет
     """
     if path.exists(path.join(path_directory, name_file)):
-        print(f'Есть старый файл: {path.join(path_directory, name_file)}')
         return True
     return False
 

@@ -1,7 +1,7 @@
 import re
 import shutil
 from typing import Dict, List, Set
-from os import listdir, path, system, rename
+from os import listdir, path, system, rename, remove
 from .point_description import AnchorPoint
 from .general_functions import (check_directory, database_loading_list_kks_ana_bin_nary, new_data_ana_bin_nary,
                                 check_file)
@@ -140,6 +140,8 @@ def file_svsu_import_comparison(name_system: str):
 def renaming_old_file_svsu_import(name_system: str):
     """Функция переименовывает файл SVSU_IMPORT.txt в SVSU_IMPORT_bck.txt"""
     if check_file(path_directory=name_system, name_file='SVSU_IMPORT.txt'):
+        if check_file(path_directory=name_system, name_file='SVSU_IMPORT_bck.txt'):
+            remove(path.join(name_system, 'SVSU_IMPORT_bck.txt'))
         rename(path.join(name_system, 'SVSU_IMPORT.txt'), path.join(name_system, 'SVSU_IMPORT_bck.txt'))
         log_info_print.info('Старый файл SVSU_IMPORT.txt переименован в SVSU_IMPORT_bck.txt')
     return
