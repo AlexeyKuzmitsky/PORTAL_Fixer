@@ -10,7 +10,7 @@ class Instruction(QMainWindow):
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'Инструкция {conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         self.setMinimumSize(QSize(800, 600))  # Устанавливаем минимальный размер окна 400(ширина) на 700(высота)
-        self.setWindowIcon(QIcon(path.join('imaje', 'atom.png')))
+        self.setWindowIcon(QIcon(path.join('image', 'atom.png')))
 
         layout = QVBoxLayout()
 

@@ -20,6 +20,7 @@ class SvsuImport(QMainWindow):
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         self.setMinimumSize(QSize(750, 350))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
+        self.setWindowIcon(QIcon(path.join('image', 'icon.png')))
 
         self.main_menu = main_menu
         font = QFont()
@@ -68,14 +69,17 @@ class SvsuImport(QMainWindow):
         layout.addWidget(self.btn_main_menu)  # добавить кнопку на подложку для виджетов
 
         self.name_system_vk_svbu = NameSystemWindow(func=self.actualizations_vk_svbu,
-                                                    text='Видеокадры какого блока обновить?')
+                                                    text='Видеокадры какого блока обновить?',
+                                                    set_name_system={'SVBU_1', 'SVBU_2'})
         self.name_system_vk_svsu = NameSystemWindow(func=self.actualizations_vk_svsu,
-                                                    text='Видеокадры какого блока обновить?')
+                                                    text='Видеокадры какого блока обновить?',
+                                                    set_name_system={'SVBU_1', 'SVBU_2'})
         self.update_data = NameSystemWindow(func=self.new_data_ana_bin_nary,
                                             text='Базу какой из систем обновить?',
                                             set_name_system={'SVBU_1', 'SVBU_2', 'SVSU'})
         self.name_system_svsu_import = NameSystemWindow(func=self.start_svsu_import,
-                                                        text='Для какого блока создать файл SVSU_IMPORT.txt?')
+                                                        text='Для какого блока создать файл SVSU_IMPORT.txt?',
+                                                        set_name_system={'SVBU_1', 'SVBU_2'})
 
         widget = QWidget()
         widget.setLayout(layout)

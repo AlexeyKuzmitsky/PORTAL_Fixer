@@ -5,6 +5,7 @@ import interface.conf as conf
 
 from threading import Thread
 from interface.window_svsu_import import SvsuImport
+from interface.window_parsing_svg import ParsingSvg
 from interface.window_instruction import Instruction
 from PyQt6.QtGui import QFont, QIcon
 from PyQt6.QtCore import QSize, Qt
@@ -17,11 +18,12 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
     def __init__(self):  # изменим начальные настройки
         super().__init__()  # получим доступ к изменениям настроек
         self.svsu_window = SvsuImport(main_menu=self)
+        self.parsing_svg = ParsingSvg(main_menu=self)
         self.instruction_window = Instruction()
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         # self.setFixedSize(QSize(400, 700))  # Фиксируем размер окна 400(ширина) на 700(высота)
         self.setMinimumSize(QSize(500, 300))  # Устанавливаем минимальный размер окна 400(ширина) на 700(высота)
-        self.setWindowIcon(QIcon(path.join('imaje', 'atom.png')))
+        self.setWindowIcon(QIcon(path.join('image', 'icon.png')))
 
         font = QFont()
         font.setFamily('MS Shell Dlg 2')
@@ -39,7 +41,7 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         self.btn_parsing_svg = QPushButton('Запуск программы поиска замечаний на видеокадрах')
         self.btn_parsing_svg.setMinimumHeight(50)
         self.btn_parsing_svg.setFont(font)
-        self.btn_parsing_svg.clicked.connect(self.the_button_was_clicked)  # задать действие при нажатии
+        self.btn_parsing_svg.clicked.connect(self.start_parsing_svg_window)  # задать действие при нажатии
         layout.addWidget(self.btn_parsing_svg)  # добавить кнопку на подложку для виджетов
 
         self.btn_alt_station = QPushButton('Запуск программы создания файла altSation')
@@ -79,6 +81,10 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         self.svsu_window.show()
         self.close()
 
+    def start_parsing_svg_window(self):
+        self.parsing_svg.show()
+        self.close()
+
     def the_button_was_clicked(self):
         # new_process = Process(target=fun_text, args=())
         # new_process.start()
@@ -105,4 +111,3 @@ try:
         app.exec()
 except Exception as e:
     print(e)
-
