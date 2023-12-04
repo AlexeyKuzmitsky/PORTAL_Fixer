@@ -36,6 +36,36 @@ class AnchorPoint:
     def get_full_description_of_the_submodel(self):
         return self.full_description_of_the_submodel
 
+    def check_error_kks_database(self, data_ana: Set[str], data_bin: Set[str], data_nary: Set[str]) -> Dict[str, str]:
+        """Проверяет есть ли в базе дынных KKS сигнала.
+        :param data_ana: База аналоговых сигналов.
+        :param data_bin: База бинарных сигналов.
+        :param data_nary: База много битовых сигналов.
+        :return множество сигналов, которых не нашлось в базе
+        """
+        dict_error_kks: Dict[str, str] = dict()
+        # set_error_kks: Set[str] = set()
+        for i_point in self.signal_description:
+            kks = i_point['KKS']
+            if kks:
+                if kks in data_ana:
+                    i_point['Type_signal'] = 'ANA'
+                    i_point['Signal_in_database'] = True
+                    continue
+                elif kks in data_nary:
+                    i_point['Type_signal'] = 'NARY'
+                    i_point['Signal_in_database'] = True
+                    continue
+                elif kks in data_bin:
+                    i_point['Type_signal'] = 'BIN'
+                    i_point['Signal_in_database'] = True
+                    continue
+                else:
+                    dict_error_kks[kks] = self.name_submodel
+                    # set_error_kks.add(kks)
+        return dict_error_kks
+        # return set_error_kks
+
     def check_existence_database(self, data_ana: Set[str], data_bin: Set[str], data_nary: Set[str],
                                  set_suffix: Set[str] = None):
         """Проверяет есть ли в базе дынных KKS сигнала"""
@@ -225,7 +255,7 @@ class AnchorPoint:
         print('^' * 20)
         print()
 
-    def search_kks_on_submodel(self):
+    def search_kks_on_submodel(self) -> None:
         if self.name_submodel in {'TNT_indic_tips.svg', 'ps_Blr_MotorStatistics.svg', 'DS_TPTS_Reg_degree.svg'}:
             pass
         elif self.name_submodel in {'ps_Len2_DS_ana.svg', 'DS_ana.svg', 'DS_ana_bar.svg', 'DS_ana_bar_h.svg',
@@ -245,7 +275,8 @@ class AnchorPoint:
             self.search_kks_in_ds_reg_degree()
         elif self.name_submodel in {'bin_mode_1o6.svg', 'bin_tablo.svg', 'obj_Button_trend.svg',
                                     'DS_TurbValve_control.svg', 'bin_tablo_OR3.svg', 'DS_ana_bar_AKNP.svg',
-                                    'DS_ana_ext_bounds.svg', 'ps_Len2_ana_AKNP.svg', 'ps_NVO_StepNumber.svg'}:
+                                    'DS_ana_ext_bounds.svg', 'ps_Len2_ana_AKNP.svg', 'ps_NVO_StepNumber.svg',
+                                    'bin_checkbox.svg'}:
             self.search_kks_in_bin_tablo()
         elif self.name_submodel == 'bitwise_tablo_4bits.svg':
             self.search_kks_in_bitwise_tablo_4bits()
@@ -325,10 +356,12 @@ class AnchorPoint:
             self.search_kks_in_ps_kz_trends()
         elif self.name_submodel == 'aux_RSD_UPPS.svg':
             self.search_kks_in_aux_psd_upps()
+        elif self.name_submodel == 'bool_checkbox.svg':
+            self.search_kks_in_bool_checkbox()
 
         else:
-            print(f'Нет обработки подмодели {self.name_submodel} ')
-            raise Exception
+            print(f'{self.name_svg} Нет обработки подмодели {self.name_submodel} ')
+            # raise Exception
         # print(f'{self.name_submodel} - {self.signal_description}')
 
     def static_element(self):
@@ -579,9 +612,9 @@ class AnchorPoint:
             if 'KKS' in i_line:
                 kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
                 if kks.endswith('TE0'):
-                    self.signal_description.append({'KKS': kks[:-3], 'text_kks': f'{kks}_Z0'})
+                    self.signal_description.append({'KKS': f'{kks}_Z0', 'text_kks': f'{kks}_Z0'})
                 else:
-                    self.signal_description.append({'KKS': kks, 'text_kks': f'{kks}TE0_Z0'})
+                    self.signal_description.append({'KKS': f'{kks}TE0_Z0', 'text_kks': f'{kks}TE0_Z0'})
                 break
         else:
             self.static_element()
@@ -857,11 +890,15 @@ class AnchorPoint:
 
     def search_kks_in_bin_tablo(self):
         """Поиск KKS на подмоделях bin_mode_1o6.svg, bin_tablo.svg, obj_Button_trend.svg, DS_TurbValve_control.svg,
-        bin_tablo_OR3.svg, DS_ana_bar_AKNP.svg, DS_ana_ext_bounds.svg, ps_Len2_ana_AKNP.svg, ps_NVO_StepNumber.svg"""
+        bin_tablo_OR3.svg, DS_ana_bar_AKNP.svg, DS_ana_ext_bounds.svg, ps_Len2_ana_AKNP.svg, ps_NVO_StepNumber.svg,
+        bin_checkbox.svg"""
         for i_line in self.full_description_of_the_submodel:
             if 'PointID' in i_line:
-                kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
-                self.signal_description.append({'KKS': kks, 'text_kks': kks})
+                kks = re.findall(r'value="&quot;(.*)&quot;', i_line)[0]
+                if kks == 'NOLL':
+                    continue
+                elif '_' in kks:
+                    self.signal_description.append({'KKS': kks, 'text_kks': kks})
 
     def search_kks_in_ds_reg_degree(self):
         """Поиск KKS на подмодели DS_Reg_degree.svg"""
@@ -913,6 +950,8 @@ class AnchorPoint:
             for i_line in self.full_description_of_the_submodel:
                 if 'SIG_' in i_line:
                     suffix = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
+                    if suffix == 'NULL':
+                        continue
                     if '_' in suffix:
                         self.signal_description.append({'KKS': suffix, 'text_kks': suffix})
                     else:
@@ -922,6 +961,9 @@ class AnchorPoint:
                 if 'KKS' in i_line:
                     try:
                         kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
+                        if kks == 'NULL':
+                            self.static_element()
+                            break
                         self.signal_description.append({'KKS': f'{kks}_Z0', 'text_kks': kks})
                         break
                     except IndexError:
@@ -932,6 +974,8 @@ class AnchorPoint:
                     kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
                     if '_' in kks:
                         self.signal_description.append({'KKS': kks, 'text_kks': kks.split('_')[0]})
+                    elif kks == 'NULL':
+                        continue
                     else:
                         self.signal_description.append({'KKS': f'{kks}_Z0', 'text_kks': kks})
                 elif 'SIG_' in i_line:
@@ -958,7 +1002,7 @@ class AnchorPoint:
         DS_ana_bar_usr.svg"""
         for i_line in self.full_description_of_the_submodel:
             if 'PointID' in i_line:
-                kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
+                kks = re.findall(r'value="&quot;([^&]*)&quot;"', i_line)[0]
                 break
         else:
             return
@@ -1003,11 +1047,18 @@ class AnchorPoint:
             else:
                 for i_line in self.full_description_of_the_submodel:
                     if 'Suffix' in i_line:
-                        suffix = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
+                        try:
+                            suffix = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
+                        except IndexError:
+                            suffix = re.findall(r'value="&apos;(.*)&apos;"', i_line)[0]
                         break
                 self.signal_description.append({'KKS': f'{kks}_{suffix}', 'text_kks': f'{kks}_{suffix}'})
         else:
             self.static_element()
+
+    def search_kks_in_bool_checkbox(self):
+        """Поиск KKS в подмодели bool_checkbox"""
+        ...
 
 
 if __name__ == '__main__':

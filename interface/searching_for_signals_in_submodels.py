@@ -4,6 +4,8 @@ from math import ceil
 from config.get_logger import log_info
 from config.general_functions import check_directory
 from os import path
+from config.point_description import AnchorPoint
+import json
 
 
 # set_kks_bin_date: Set[str] = set()  # список ккс сигналов BIN из базы
@@ -13,33 +15,129 @@ from os import path
 # dict_kks_ana_data: Dict = dict()  # список ккс сигналов с описанием ANA из базы
 
 
-def checking_kks_and_preparing_comment(kks_signal: str,
-                                       list_error_kks: Set[str],
-                                       name_submodel: str,
-                                       set_svg: Set[str],
-                                       set_kks_ana_data: Set[str],
-                                       set_kks_bin_data: Set[str],
-                                       dict_kks_ana_data: Dict[str, Dict[str, str]],
-                                       dict_kks_bin_data: Dict[str, Dict[str, str]]):
+# async def loading_data(self, directory: str = '') -> \
+#         (Set[str], Set[str], Dict[str, Dict[str, str]], Dict[str, Dict[str, str]]):
+#     """
+#     Функция считывающая базу сигналов.
+#     :return: 1-множество аналоговых сигналов, 2-множество бинарных сигналов,
+#     3-словарь аналоговых сигналов с описанием, 4-словарь бинарных сигналов с описанием
+#     """
+#     set_kks_bin_data: Set[str] = set()
+#     set_kks_ana_data: Set[str] = set()
+#     dict_kks_bin_data: Dict[str, Dict[str, str]] = dict()
+#     dict_kks_ana_data: Dict[str, Dict[str, str]] = dict()
+#
+#     await self.print_log(text=f'Загрузка БД {directory}')
+#     with open(path.join(directory, 'data', 'ANA_list_kks.txt')) as file:
+#         for i_line in file:
+#             set_kks_ana_data.add(i_line[:-1])
+#
+#     with open(path.join(directory, 'data', 'ANA_json_kks.json'), 'r', encoding='UTF-8') as json_file:
+#         dict_ana_kks = json.load(json_file)
+#         dict_kks_ana_data.update(dict_ana_kks)
+#
+#     with open(path.join(directory, 'data', 'BIN_list_kks.txt')) as file:
+#         for i_line in file:
+#             set_kks_bin_data.add(i_line[:-1])
+#
+#     with open(path.join(directory, 'data', 'BIN_json_kks.json'), 'r', encoding='UTF-8') as json_file:
+#         dict_bin_kks = json.load(json_file)
+#         dict_kks_bin_data.update(dict_bin_kks)
+#     return set_kks_bin_data, set_kks_ana_data, dict_kks_bin_data, dict_kks_ana_data
+
+
+async def creating_list_of_submodel(svg_file, name_svg: str) -> List[AnchorPoint]:
+    """
+    Функция составляющая список подмоделей на видеокадре.
+    :param svg_file: Файл svg проверяемого видеокадра.
+    :param name_svg: Название svg файла.
+    :return: Список найденных подмоделей.
+    """
+    list_submodel: List[AnchorPoint] = list()
+    list_constructor: List[str] = list()
+    flag_constructor = False
+
+    for i_line in svg_file:
+        if flag_constructor:
+            if '</image>' in i_line:
+                list_constructor.append(i_line)
+                await new_submodel(list_constructor=list_constructor,
+                                   list_submodel=list_submodel,
+                                   name_svg=name_svg)
+                flag_constructor = False
+                list_constructor.clear()
+            else:
+                list_constructor.append(i_line)
+        else:
+            if '<image' in i_line and '</image>' in i_line or '<image' in i_line and '/>' in i_line:
+                list_constructor.append(i_line)
+                await new_submodel(list_constructor=list_constructor,
+                                   list_submodel=list_submodel,
+                                   name_svg=name_svg)
+                list_constructor.clear()
+            elif '<image' in i_line:
+                flag_constructor = True
+                list_constructor.clear()
+                list_constructor.append(i_line)
+    return list_submodel
+
+
+async def new_submodel(list_constructor, list_submodel, name_svg: str) -> None:
+    """
+    Функция создания новой точки на видеокадре.
+    :param list_constructor: Характеристики подмодели.
+    :param list_submodel: Список точек уже найденных на видеокадре.
+    :param name_svg: Название svg файла на котором находится подмодель.
+    :return: None
+    """
+    submodel = AnchorPoint(full_description_of_the_submodel=list_constructor, name_svg=name_svg)
+    submodel.set_name_submodel()
+    if submodel.name_submodel:
+        # submodel.set_width_and_height()
+        # submodel.set_x_and_y()
+        # submodel.set_transform()
+        try:
+            submodel.search_kks_on_submodel()
+        except IndexError as e:
+            print(submodel.name_svg)
+            print(submodel.full_description_of_the_submodel)
+            print(e)
+        list_submodel.append(submodel)
+
+
+async def checking_kks_and_preparing_comment(kks_signal: str,
+                                             list_error_kks: Set[str],
+                                             name_submodel: str,
+                                             set_svg: Set[str],
+                                             set_kks_ana_data: Set[str],
+                                             set_kks_bin_data: Set[str],
+                                             set_kks_nary_data: Set[str],
+                                             dict_kks_ana_data: Dict[str, Dict[str, str]],
+                                             dict_kks_bin_data: Dict[str, Dict[str, str]],
+                                             dict_kks_nary_data: Dict[str, Dict[str, str]]):
     """Функция проверки наличия в базе KKS и подготовки сообщения с замечанием в случае отсутствия сигнала в базе"""
     if re.search('_', kks_signal):
         if kks_signal in set_kks_ana_data:
             return
         elif kks_signal in set_kks_bin_data:
             return
-        text_search_similar_kks = search_similar_kks(kks=kks_signal.split('_')[0],
-                                                     dict_kks_ana_data=dict_kks_ana_data,
-                                                     dict_kks_bin_data=dict_kks_bin_data)
+        elif kks_signal in set_kks_nary_data:
+            return
+        text_search_similar_kks = await search_similar_kks(kks=kks_signal.split('_')[0],
+                                                           dict_kks_ana_data=dict_kks_ana_data,
+                                                           dict_kks_bin_data=dict_kks_bin_data,
+                                                           dict_kks_nary_data=dict_kks_nary_data)
     else:
         if f'{kks_signal}.svg' in set_svg or f'{kks_signal}.SVG' in set_svg:
             return
         kks_1 = f'{kks_signal}_F0'
         kks_2 = f'{kks_signal}_XQ01'
-        if kks_1 in set_kks_bin_data or kks_2 in set_kks_ana_data:
+        if kks_1 in set_kks_nary_data or kks_2 in set_kks_ana_data:
             return
-        text_search_similar_kks = search_similar_kks(kks=kks_signal,
-                                                     dict_kks_ana_data=dict_kks_ana_data,
-                                                     dict_kks_bin_data=dict_kks_bin_data)
+        text_search_similar_kks = await search_similar_kks(kks=kks_signal,
+                                                           dict_kks_ana_data=dict_kks_ana_data,
+                                                           dict_kks_bin_data=dict_kks_bin_data,
+                                                           dict_kks_nary_data=dict_kks_nary_data)
     list_error_kks.add(record_comment(kks=kks_signal,
                                       svg_constructor=name_submodel,
                                       text_search_similar_kks=text_search_similar_kks))
@@ -80,14 +178,16 @@ def record_comment(kks: str, svg_constructor: str, text_search_similar_kks: str,
     return f'{kks}{number_tyb}{text}{svg_constructor}{text_search_similar_kks}'
 
 
-def search_similar_kks(kks: str,
-                       dict_kks_ana_data: Dict[str, Dict[str, str]],
-                       dict_kks_bin_data: Dict[str, Dict[str, str]]) -> str:
+async def search_similar_kks(kks: str,
+                             dict_kks_ana_data: Dict[str, Dict[str, str]],
+                             dict_kks_bin_data: Dict[str, Dict[str, str]],
+                             dict_kks_nary_data: Dict[str, Dict[str, str]]) -> str:
     """
     Функция находящая в базе данных сигналы схожие с найденным основанием.
     :param kks: KKS найденного сигнала, по которому ищутся похожие.
     :param dict_kks_ana_data: Словарь аналоговых сигналов с описанием поделенных по KKS
     :param dict_kks_bin_data: Словарь бинарных сигналов с описанием поделенных по KKS
+    :param dict_kks_nary_data: Словарь много битовых сигналов с описанием поделенных по KKS
     :return: Все найденные сигналы с описанием.
     """
     text = ''
@@ -97,6 +197,10 @@ def search_similar_kks(kks: str,
     if kks in dict_kks_bin_data:
         for i_kks in dict_kks_bin_data[kks]:
             text = f'{text}\n\t\tBIN: {i_kks} - {dict_kks_bin_data[kks][i_kks]}'
+    if kks in dict_kks_nary_data:
+        text = f'{text}\n\t\tNARY: {kks}'
+        for number_bit, description in dict_kks_nary_data[kks].items():
+            text = f'{text}\n\t\t\t {number_bit} - {description}'
     return text
 
 
@@ -191,6 +295,7 @@ def out_kks_nary(set_line_text: Set,
     :param flag_teo:  Флаг, указывающий на добавление в конце KKS окончание TE0
     :return: None
     """
+    переделать
     i_kks = ''
     for i_line in set_line_text:
         if re.search(f'{id_kks}', i_line):
@@ -204,16 +309,23 @@ def out_kks_nary(set_line_text: Set,
     if re.search(r'_', i_kks):
         dict_kks_svg[i_kks] = svg_constructor
 
-    elif i_kks == 'NULL' or i_kks == '':
-        for i_line in set_line_text:
-            if re.search(r'SIG_', i_line):
-                try:
-                    i_kks = re.findall(r'value="&quot;([^, ]*).*&quot;"', i_line)[0]
-                    dict_kks_svg[i_kks] = svg_constructor
-                except IndexError:
-                    pass
+    list_sig: Set[str] = set()
+    for i_line in set_line_text:
+        if re.search(r'SIG_', i_line):
+            try:
+                list_sig.add(re.findall(r'value="&quot;([^, ]*).*&quot;"', i_line)[0])
+            except IndexError:
+                pass
 
-    elif i_kks != 'NULL':
+    for i_sig in list_sig:
+        if '_' not in i_sig:
+            if i_sig != 'NULL':
+                dict_kks_svg[f'{i_kks}_{i_sig}'] = svg_constructor
+            break
+        else:
+            dict_kks_svg[i_sig] = svg_constructor
+
+    if i_kks != 'NULL' or i_kks != '':
         if flag_teo:
             if i_kks.endswith(end_kks):
                 dict_kks_svg[f'{i_kks}_Z0'] = svg_constructor
@@ -223,7 +335,6 @@ def out_kks_nary(set_line_text: Set,
             dict_kks_svg[f'{i_kks}_Z0'] = svg_constructor
     else:
         log_info.info(f'ERROR нет привязки на подмодели {svg_constructor}')
-
 ###############
     # elif i_kks != 'NULL':
     #     flag = False

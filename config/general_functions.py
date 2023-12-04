@@ -1,9 +1,11 @@
 import time
 from os import path, mkdir
+import os
 from typing import Set, Dict
 from .timer import timer
 from .get_logger import log_info_print
 import json
+import shutil
 from csv import reader
 
 
@@ -39,6 +41,83 @@ def check_file(path_directory: str, name_file: str) -> bool:
     if path.exists(path.join(path_directory, name_file)):
         return True
     return False
+
+
+async def loading_data_kks_ana(directory: str = '') -> Set[str]:
+    """
+    Функция считывающая базу аналоговых сигналов.
+    :return: Множество аналоговых сигналов
+    """
+    set_kks_ana_data: Set[str] = set()
+
+    with open(path.join(directory, 'data', 'ANA_list_kks.txt')) as file:
+        for i_line in file:
+            set_kks_ana_data.add(i_line[:-1])
+    return set_kks_ana_data
+
+
+async def loading_data_kks_bin(directory: str = '') -> Set[str]:
+    """
+    Функция считывающая базу бинарных сигналов.
+    :return: Множество бинарных сигналов
+    """
+    set_kks_bin_data: Set[str] = set()
+
+    with open(path.join(directory, 'data', 'BIN_list_kks.txt')) as file:
+        for i_line in file:
+            set_kks_bin_data.add(i_line[:-1])
+    return set_kks_bin_data
+
+
+async def loading_data_dict_kks_ana(directory: str = '') -> Dict[str, Dict[str, str]]:
+    """
+    Функция считывающая базу аналоговых сигналов с описанием сигналов.
+    :return: Словарь аналоговых сигналов с описанием
+    """
+    dict_kks_ana_data: Dict[str, Dict[str, str]] = dict()
+
+    with open(path.join(directory, 'data', 'ANA_json_kks.json'), 'r', encoding='UTF-8') as json_file:
+        dict_ana_kks = json.load(json_file)
+        dict_kks_ana_data.update(dict_ana_kks)
+    return dict_kks_ana_data
+
+
+async def loading_data_dict_kks_bin(directory: str = '') -> Dict[str, Dict[str, str]]:
+    """
+    Функция считывающая базу бинарных сигналов с описанием сигналов.
+    :return: Словарь бинарных сигналов с описанием
+    """
+    dict_kks_bin_data: Dict[str, Dict[str, str]] = dict()
+
+    with open(path.join(directory, 'data', 'BIN_json_kks.json'), 'r', encoding='UTF-8') as json_file:
+        dict_bin_kks = json.load(json_file)
+        dict_kks_bin_data.update(dict_bin_kks)
+    return dict_kks_bin_data
+
+
+async def loading_data_kks_nary(directory: str = '') -> Set[str]:
+    """
+    Функция считывающая базу бинарных сигналов.
+    :return: Множество бинарных сигналов
+    """
+    set_kks_nary_data: Set[str] = set()
+
+    with open(path.join(directory, 'data', 'NARY_list_kks.txt')) as file:
+        for i_line in file:
+            set_kks_nary_data.add(i_line[:-1])
+    return set_kks_nary_data
+
+
+async def loading_data_dict_kks_nary(directory: str = '') -> Dict[str, Dict[str, str]]:
+    """
+    Функция считывающая базу бинарных сигналов с описанием битов.
+    :return: Словарь бинарных сигналов с описанием
+    """
+    dict_kks_nary_data: Dict[str, Dict[str, str]] = dict()
+
+    with open(path.join(directory, 'data', 'BIN_NARY_kks.json'), 'r', encoding='UTF-8') as json_file:
+        dict_kks_nary_data = json.load(json_file)
+    return dict_kks_nary_data
 
 
 def program_execution_delay(pause_length_in_seconds: int):
@@ -216,6 +295,72 @@ def add_list_description(name_system: str) -> Dict[int, Dict[str, str]]:
                 ...
 
     return dict_description
+
+
+async def sort_files_into_groups(number_bloc: str, group_svg: dict):
+    """
+    Функция распределения замечаний по видеокадрам по соответствующим группам.
+    :param number_bloc: Номер блока (папка в которой будет работать программа).
+    :param group_svg: Словарь групп распределения видеокадров.
+    :return: None
+    """
+    print('Подождите...')
+    list_svg_file = os.listdir(path.join(number_bloc, 'Замечания по видеокадрам'))
+    for i_kks in list_svg_file:
+        if i_kks.endswith('.txt'):
+            name_group = group_search_by_file_name(name_file=i_kks[:-4], dict_groups=group_svg)
+            check_directory(path_directory=number_bloc,
+                            name_directory='Замечания по видеокадрам')
+
+            check_directory(path_directory=path.join(number_bloc, 'Замечания по видеокадрам'),
+                            name_directory=name_group)
+
+            file_copy(start_path=path.join(number_bloc, 'Замечания по видеокадрам'),
+                      end_path=path.join(number_bloc, 'Замечания по видеокадрам', name_group),
+                      name_file=i_kks)
+
+
+def group_search_by_file_name(name_file: str, dict_groups: dict) -> str:
+    """
+    Функция принимающая имя файла и словарь с именами видеокадров распределенных по группам. Производит поиск
+    принадлежности файла к определенной группе и возвращающей имя этой группы. Если в группах KKS видеокадра не
+    был найден возвращает 'No_group'.
+    :param name_file: Имя файла.
+    :param dict_groups: Словарь групп с KKS видеокадров.
+    :return: Имя группы
+    """
+    for i_type in dict_groups:
+        for i_name_type in dict_groups[i_type]:
+            if name_file in dict_groups[i_type][i_name_type]:
+                return i_name_type
+    else:
+        return 'No_group'
+
+
+def file_copy(start_path: str, end_path: str, name_file: str) -> None:
+    """
+    Функция получающая начальный и конечный путь файла копирует его и удаляет его из изначального пути.
+    :param start_path: Начальная директория хранения файла.
+    :param end_path: Путь к конечной директории (куда копируется файл).
+    :param name_file: Имя копируемого файла.
+    :return: None
+    """
+    try:
+        shutil.copyfile(path.join(start_path, name_file), path.join(end_path, name_file))
+        del_file(path_file=start_path, name_file=name_file)
+    except PermissionError:
+        pass
+
+
+def del_file(path_file: str, name_file: str) -> None:
+    """
+    Проверяет наличие файла в заданной директории и при его наличии удаляет.
+    :param path_file: Путь по которому проверяется файл.
+    :param name_file: Имя проверяемого файла.
+    :return: None
+    """
+    if path.isfile(path.join(path_file, name_file)):
+        os.remove(path.join(path_file, name_file))
 
 
 @timer
