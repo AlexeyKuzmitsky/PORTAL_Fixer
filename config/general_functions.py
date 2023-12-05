@@ -3,7 +3,7 @@ from os import path, mkdir
 import os
 from typing import Set, Dict
 from .timer import timer
-from .get_logger import log_info_print
+from .get_logger import log_info_print, log_info
 import json
 import shutil
 from csv import reader
@@ -19,13 +19,11 @@ def check_directory(path_directory: str, name_directory: str) -> bool:
     if path_directory == '':
         if not path.isdir(name_directory):
             mkdir(name_directory)
-            # print(f'Создана папка: {name_directory}')
-            # log.info(f'Создана папка: {name_directory}')
+            log_info.info(f'Создана папка: {name_directory}')
             return True
     else:
         if not path.isdir(path.join(path_directory, name_directory)):
-            # print(f'Создана папка: {path.join(path_directory, name_directory)}')
-            # log.info(f'Создана папка: {path.join(path_directory, name_directory)}')
+            log_info.info(f'Создана папка: {path.join(path_directory, name_directory)}')
             mkdir(path.join(path_directory, name_directory))
             return True
     return False
@@ -106,18 +104,6 @@ async def loading_data_kks_nary(directory: str = '') -> Set[str]:
         for i_line in file:
             set_kks_nary_data.add(i_line[:-1])
     return set_kks_nary_data
-
-
-async def loading_data_dict_kks_nary(directory: str = '') -> Dict[str, Dict[str, str]]:
-    """
-    Функция считывающая базу бинарных сигналов с описанием битов.
-    :return: Словарь бинарных сигналов с описанием
-    """
-    dict_kks_nary_data: Dict[str, Dict[str, str]] = dict()
-
-    with open(path.join(directory, 'data', 'BIN_NARY_kks.json'), 'r', encoding='UTF-8') as json_file:
-        dict_kks_nary_data = json.load(json_file)
-    return dict_kks_nary_data
 
 
 def program_execution_delay(pause_length_in_seconds: int):
@@ -304,7 +290,6 @@ async def sort_files_into_groups(number_bloc: str, group_svg: dict):
     :param group_svg: Словарь групп распределения видеокадров.
     :return: None
     """
-    print('Подождите...')
     list_svg_file = os.listdir(path.join(number_bloc, 'Замечания по видеокадрам'))
     for i_kks in list_svg_file:
         if i_kks.endswith('.txt'):

@@ -7,6 +7,7 @@ from threading import Thread
 from interface.window_svsu_import import SvsuImport
 from interface.window_parsing_svg import ParsingSvg
 from interface.window_instruction import Instruction
+from interface.window_generation_tcp_gate import GenerationTcpGate
 from PyQt6.QtGui import QFont, QIcon
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget
@@ -19,6 +20,8 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         super().__init__()  # получим доступ к изменениям настроек
         self.svsu_window = SvsuImport(main_menu=self)
         self.parsing_svg = ParsingSvg(main_menu=self)
+        self.generation_tcp_gate = GenerationTcpGate(main_menu=self)
+
         self.instruction_window = Instruction()
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         # self.setFixedSize(QSize(400, 700))  # Фиксируем размер окна 400(ширина) на 700(высота)
@@ -48,18 +51,20 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         self.btn_alt_station.setMinimumHeight(50)
         self.btn_alt_station.setFont(font)
         self.btn_alt_station.clicked.connect(self.the_button_was_clicked)  # задать действие при нажатии
+        self.btn_alt_station.setEnabled(False)
         layout.addWidget(self.btn_alt_station)  # добавить кнопку на подложку для виджетов
 
         self.btn_new_passport = QPushButton('Запуск программы создания новых паспортов для видеокадров')
         self.btn_new_passport.setMinimumHeight(50)
         self.btn_new_passport.setFont(font)
         self.btn_new_passport.clicked.connect(self.the_button_was_clicked)  # задать действие при нажатии
+        self.btn_new_passport.setEnabled(False)
         layout.addWidget(self.btn_new_passport)  # добавить кнопку на подложку для виджетов
 
         self.btn_tsp_gate = QPushButton('Запуск программы создания файлов для TcpGate')
         self.btn_tsp_gate.setMinimumHeight(50)
         self.btn_tsp_gate.setFont(font)
-        self.btn_tsp_gate.clicked.connect(self.the_button_was_clicked)  # задать действие при нажатии
+        self.btn_tsp_gate.clicked.connect(self.start_generation_tcp_gate_window)  # задать действие при нажатии
         layout.addWidget(self.btn_tsp_gate)  # добавить кнопку на подложку для виджетов
 
         self.btn_instruction = QPushButton('Открыть инструкцию ❗')
@@ -83,6 +88,10 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
 
     def start_parsing_svg_window(self):
         self.parsing_svg.show()
+        self.close()
+
+    def start_generation_tcp_gate_window(self):
+        self.generation_tcp_gate.show()
         self.close()
 
     def the_button_was_clicked(self):

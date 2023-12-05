@@ -44,27 +44,24 @@ class AnchorPoint:
         :return множество сигналов, которых не нашлось в базе
         """
         dict_error_kks: Dict[str, str] = dict()
-        # set_error_kks: Set[str] = set()
         for i_point in self.signal_description:
             kks = i_point['KKS']
             if kks:
                 if kks in data_ana:
                     i_point['Type_signal'] = 'ANA'
                     i_point['Signal_in_database'] = True
-                    continue
+                    return dict()
                 elif kks in data_nary:
                     i_point['Type_signal'] = 'NARY'
                     i_point['Signal_in_database'] = True
-                    continue
+                    return dict()
                 elif kks in data_bin:
                     i_point['Type_signal'] = 'BIN'
                     i_point['Signal_in_database'] = True
-                    continue
+                    return dict()
                 else:
                     dict_error_kks[kks] = self.name_submodel
-                    # set_error_kks.add(kks)
         return dict_error_kks
-        # return set_error_kks
 
     def check_existence_database(self, data_ana: Set[str], data_bin: Set[str], data_nary: Set[str],
                                  set_suffix: Set[str] = None):
@@ -358,11 +355,19 @@ class AnchorPoint:
             self.search_kks_in_aux_psd_upps()
         elif self.name_submodel == 'bool_checkbox.svg':
             self.search_kks_in_bool_checkbox()
+        elif self.name_submodel in {'obj_NodeSRV.svg', 'aux_Client.svg', 'aux_UPS.svg', 'aux_TimeSync.svg',
+                                    'obj_NodeWS.svg', 'scroll_bar_v.svg', 'spec_I_M_VHR_ShSO.svg',
+                                    'ShTK_PL_VHR.svg', 'spec_I_M_VHR_ShSB.svg'}:
+            self.fun_stub()
 
         else:
             print(f'{self.name_svg} Нет обработки подмодели {self.name_submodel} ')
             # raise Exception
         # print(f'{self.name_submodel} - {self.signal_description}')
+
+    def fun_stub(self):
+        """Заглушка для обработки подмоделей, которые не нужно обрабатывать"""
+        pass
 
     def static_element(self):
         """Поиск подписи в строке title"""
@@ -381,8 +386,11 @@ class AnchorPoint:
         """Поиск KKS в подмодели aux_RSD_UPPS.svg"""
         for i_line in self.full_description_of_the_submodel:
             if 'KKS' in i_line:
-                kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
-                self.signal_description.append({'KKS': f'{kks}E03_ZV01', 'text_kks': f'{kks}E03_ZV01'})
+                try:
+                    kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
+                    self.signal_description.append({'KKS': f'{kks}E03_ZV01', 'text_kks': f'{kks}E03_ZV01'})
+                except IndexError:
+                    pass
 
     def search_kks_in_ps_kz_trends(self):
         """Поиск KKS в подмодели ps_Kz_Trends.svg"""
@@ -632,8 +640,11 @@ class AnchorPoint:
         """Поиск KKS на подмоделях Arm_4_1_PL_VHR.svg, aux_MKB.svg"""
         for i_line in self.full_description_of_the_submodel:
             if 'KKS' in i_line:
-                kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
-                self.signal_description.append({'KKS': f'{kks}E02_XQ01', 'text_kks': f'{kks}E02_XQ01'})
+                try:
+                    kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
+                    self.signal_description.append({'KKS': f'{kks}E02_XQ01', 'text_kks': f'{kks}E02_XQ01'})
+                except IndexError:
+                    pass
 
     def search_kks_in_ds_tnt_dm_ext(self):
         """Поиск KKS на подмоделях DS_TNT_DM_EXT.svg"""
@@ -736,7 +747,6 @@ class AnchorPoint:
                 kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
                 break
         else:
-            print(f'На подмодели {self.name_submodel} нет привязки')
             return
         if '_' in kks:
             new_kks, suffix = kks.split(separator='_')
@@ -787,7 +797,7 @@ class AnchorPoint:
         else:
             self.static_element()
             return
-        if kks.endswith('TE0'):
+        if kks.endswith('TE0') or kks.endswith('VL0'):
             self.signal_description.append({'KKS': f'{kks}_Z0', 'text_kks': kks})
         else:
             self.signal_description.append({'KKS': f'{kks}TE0_Z0', 'text_kks': f'{kks}TE0'})
