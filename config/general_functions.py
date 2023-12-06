@@ -1,12 +1,130 @@
 import time
-from os import path, mkdir
-import os
-from typing import Set, Dict
-from .timer import timer
-from .get_logger import log_info_print, log_info
 import json
 import shutil
+import os
+
+from os import path, mkdir
+from typing import Set, Dict, List
+from .timer import timer
+from .get_logger import log_info_print, log_info
+from config.point_description import AnchorPoint
+
 from csv import reader
+
+
+async def creating_list_of_submodel(name_system: str, name_svg: str) -> List[AnchorPoint]:
+    """
+    Функция составляющая список подмоделей на видеокадре.
+    :param name_system: Файл svg проверяемого видеокадра.
+    :param name_svg: Название svg файла.
+    :return: Список найденных подмоделей.
+    """
+    with open(path.join(name_system, 'NPP_models', name_svg), 'r', encoding='windows-1251') as svg_file:
+        list_submodel: List[AnchorPoint] = list()
+        list_constructor: List[str] = list()
+        flag_constructor = False
+
+        for i_line in svg_file:
+            if flag_constructor:
+                if '</image>' in i_line:
+                    list_constructor.append(i_line)
+                    await new_submodel(list_constructor=list_constructor,
+                                       list_submodel=list_submodel,
+                                       name_svg=name_svg)
+                    flag_constructor = False
+                    list_constructor.clear()
+                else:
+                    list_constructor.append(i_line)
+            else:
+                if '<image' in i_line and '</image>' in i_line or '<image' in i_line and '/>' in i_line:
+                    list_constructor.append(i_line)
+                    await new_submodel(list_constructor=list_constructor,
+                                       list_submodel=list_submodel,
+                                       name_svg=name_svg)
+                    list_constructor.clear()
+                elif '<image' in i_line:
+                    flag_constructor = True
+                    list_constructor.clear()
+                    list_constructor.append(i_line)
+    return list_submodel
+
+
+async def new_submodel(list_constructor, list_submodel, name_svg: str) -> None:
+    """
+    Функция создания новой точки на видеокадре.
+    :param list_constructor: Характеристики подмодели.
+    :param list_submodel: Список точек уже найденных на видеокадре.
+    :param name_svg: Название svg файла на котором находится подмодель.
+    :return: None
+    """
+    submodel = AnchorPoint(full_description_of_the_submodel=list_constructor, name_svg=name_svg)
+    submodel.set_name_submodel()
+    if submodel.name_submodel:
+        try:
+            submodel.search_kks_on_submodel()
+        except IndexError as e:
+            print(submodel.name_svg)
+            print(submodel.full_description_of_the_submodel)
+            print(e)
+        list_submodel.append(submodel)
+
+
+async def new_data_ana_bin_nary(print_log, name_system: str) -> None:
+    """
+    Функция обновления файлов со списком KKS сигналов. По завершению обновляются (создаются если не было) 3 файла:
+    BIN_list_kks.txt со списком бинарных сигналов
+    NARY_list_kks.txt со списком много битовых сигналов
+    ANA_list_kks.txt со списков аналоговых сигналов
+    :param print_log: функция вывода лога.
+    :param name_system: Папка в которой будут обновления.
+    :return: None
+    """
+    check_directory(path_directory=name_system, name_directory='DbDumps')
+    check_directory(path_directory=name_system, name_directory='data')
+
+    set_kks_bin_date = set()
+    set_kks_nary_date = set()
+    set_kks_ana_date = set()
+
+    await print_log(text='Сбор BIN сигналов')
+
+    with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
+        new_text = reader(file, delimiter='|')
+        for i_line in new_text:
+            try:
+                full_kks = i_line[42]
+                if i_line[14] == '-1':
+
+                    set_kks_bin_date.add(full_kks)
+                else:
+                    set_kks_nary_date.add(full_kks)
+            except IndexError:
+                ...
+
+    with open(path.join(name_system, 'data', 'BIN_list_kks.txt'), 'w', encoding='UTF-8') as file:
+        for i_kks in sorted(set_kks_bin_date):
+            file.write(f'{i_kks}\n')
+
+    with open(path.join(name_system, 'data', 'NARY_list_kks.txt'), 'w', encoding='UTF-8') as file:
+        for i_kks in sorted(set_kks_nary_date):
+            file.write(f'{i_kks}\n')
+
+    await print_log(text='Сигналы BIN собраны успешно', color='green')
+
+    await print_log(text='Сбор ANA сигналов')
+
+    with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
+        new_text = reader(file, delimiter='|', quotechar=' ')
+        for i_line in new_text:
+            try:
+                set_kks_ana_date.add(i_line[78])
+            except IndexError:
+                pass
+
+    with open(path.join(name_system, 'data', 'ANA_list_kks.txt'), 'w', encoding='UTF-8') as file:
+        for i_kks in sorted(set_kks_ana_date):
+            file.write(f'{i_kks}\n')
+    await print_log(text='Сигналы ANA собраны успешно', color='green')
 
 
 def check_directory(path_directory: str, name_directory: str) -> bool:

@@ -1,17 +1,18 @@
 from config.point_description import AnchorPoint
-from config.general_functions import (check_directory, check_file, sort_files_into_groups,
+from config.general_functions import (check_directory, sort_files_into_groups,
                                       loading_data_kks_ana, loading_data_kks_bin, loading_data_kks_nary,
-                                      loading_data_dict_kks_ana, loading_data_dict_kks_bin)
-import interface.searching_for_signals_in_submodels as submodels
+                                      loading_data_dict_kks_ana, loading_data_dict_kks_bin, creating_list_of_submodel)
+
+from config.func_parsing_svg import checking_kks_and_preparing_comment, recording_comments_to_a_file
 from interface.window_name_system import NameSystemWindow
 from csv import reader
 import json
 
 import interface.conf as conf
-from os import getcwd, path, listdir, rename, remove
+from os import path, listdir
 from PyQt6.QtGui import QFont, QIcon, QColor
 from PyQt6.QtCore import QSize
-from PyQt6.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QTextBrowser, QLabel, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QTextBrowser
 
 import shutil
 from typing import Set, Dict, List
@@ -210,9 +211,11 @@ class ParsingSvg(QMainWindow):
         for i_svg in sorted(svg):
             text_log = f'[{number}/{numbers}]\t Проверка {i_svg}'
             if i_svg.endswith('.svg') or i_svg.endswith('.SVG'):
-                with open(path.join(directory, 'NPP_models', i_svg), 'r', encoding='windows-1251') as svg_file:
-                    list_submodel: List[AnchorPoint] = await submodels.creating_list_of_submodel(svg_file=svg_file,
-                                                                                                 name_svg=i_svg)
+                list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system=directory,
+                                                                                   name_svg=i_svg)
+                # with open(path.join(directory, 'NPP_models', i_svg), 'r', encoding='windows-1251') as svg_file:
+                #     list_submodel: List[AnchorPoint] = await submodels.creating_list_of_submodel(svg_file=svg_file,
+                #                                                                                  name_svg=i_svg)
                 # list_errors: Set[str] = set()
                 dict_errors: Dict[str, str] = dict()
 
@@ -223,20 +226,20 @@ class ParsingSvg(QMainWindow):
 
                 list_error_kks: Set = set()  # список записей о замечаниях
                 for i_kks in dict_errors:
-                    await submodels.checking_kks_and_preparing_comment(kks_signal=i_kks,
-                                                                       list_error_kks=list_error_kks,
-                                                                       name_submodel=dict_errors[i_kks],
-                                                                       set_svg=svg,
-                                                                       set_kks_ana_data=set_kks_ana_data,
-                                                                       set_kks_bin_data=set_kks_bin_data,
-                                                                       set_kks_nary_data=set_kks_nary_data,
-                                                                       dict_kks_ana_data=dict_kks_ana_data,
-                                                                       dict_kks_bin_data=dict_kks_bin_data)
+                    await checking_kks_and_preparing_comment(kks_signal=i_kks,
+                                                             list_error_kks=list_error_kks,
+                                                             name_submodel=dict_errors[i_kks],
+                                                             set_svg=svg,
+                                                             set_kks_ana_data=set_kks_ana_data,
+                                                             set_kks_bin_data=set_kks_bin_data,
+                                                             set_kks_nary_data=set_kks_nary_data,
+                                                             dict_kks_ana_data=dict_kks_ana_data,
+                                                             dict_kks_bin_data=dict_kks_bin_data)
 
                 if len(list_error_kks):
-                    submodels.recording_comments_to_a_file(directory=directory,
-                                                           list_error_kks=list_error_kks,
-                                                           name_file=i_svg[:-4])
+                    recording_comments_to_a_file(directory=directory,
+                                                 list_error_kks=list_error_kks,
+                                                 name_file=i_svg[:-4])
                 text_log = f'{text_log:<55}Кривых KKS: {len(list_error_kks)}'
                 await self.print_log(text=text_log)
             else:

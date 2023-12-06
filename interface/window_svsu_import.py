@@ -1,14 +1,15 @@
 import re
-from config.general_functions import check_directory, check_file
+from config.general_functions import (check_directory, check_file, new_data_ana_bin_nary, creating_list_of_submodel,
+                                      loading_data_kks_ana, loading_data_kks_bin, loading_data_kks_nary)
+from config.func_svsu_import import compiling_list_of_kks, list_of_signals_on_video_frame, bloc_button
 from interface.window_name_system import NameSystemWindow
-from csv import reader
 
 import interface.conf as conf
 from config.point_description import AnchorPoint
 from os import getcwd, path, listdir, rename, remove
 from PyQt6.QtGui import QFont, QIcon, QColor
 from PyQt6.QtCore import QSize
-from PyQt6.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QTextBrowser, QLabel, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QTextBrowser, QMessageBox
 
 import shutil
 from typing import Set, Dict, List
@@ -74,7 +75,7 @@ class SvsuImport(QMainWindow):
         self.name_system_vk_svsu = NameSystemWindow(func=self.actualizations_vk_svsu,
                                                     text='Видеокадры какого блока обновить?',
                                                     set_name_system={'SVBU_1', 'SVBU_2'})
-        self.update_data = NameSystemWindow(func=self.new_data_ana_bin_nary,
+        self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
                                             text='Базу какой из систем обновить?',
                                             set_name_system={'SVBU_1', 'SVBU_2', 'SVSU'})
         self.name_system_svsu_import = NameSystemWindow(func=self.start_svsu_import,
@@ -214,7 +215,7 @@ class SvsuImport(QMainWindow):
         len_num = len(set_vis)
         for i_svg in sorted(set_vis):
             if i_svg.endswith('.svg'):
-                await self.bloc_button(svg=i_svg, set_kks_name_svg=set_kks_vis_npp_models)
+                await bloc_button(svg=i_svg, set_kks_name_svg=set_kks_vis_npp_models)
                 await self.print_log(text=f'[{num}/{len_num}] Проверен видеокадр {i_svg}')
             else:
                 await self.print_log(text=f'[{num}/{len_num}] Файл {i_svg} не является svg',
@@ -224,100 +225,10 @@ class SvsuImport(QMainWindow):
                              color='green')
 
     @asyncSlot()
-    async def bloc_button(self, svg: str, set_kks_name_svg: Set[str]) -> None:
-        """
-        Функция проверяющая видеокадр и анализирует есть ли вызываемые видеокадры в папке NPP_models. Если вызываемого
-        видеокадра нет, добавляет строку, которая делает неактивной кнопку вызова.
-        :param svg: Название файла видеокадра.
-        :param set_kks_name_svg: Список всех имеющихся видеокадров на которые может быть ссылка
-        :return: None
-        """
-        with open(path.join('SVSU', 'NPP_models', svg), 'r', encoding='windows-1251') as file_svg, \
-                open(path.join('SVSU', 'new_NPP_models_SVSU', svg), 'w', encoding='windows-1251') as new_file_svg:
-
-            flag_button = False
-
-            for i_line in file_svg:
-                if '<rt:dyn type="Disable" mode="constant" value="true"/>' in i_line:
-                    continue
-                if flag_button:
-                    if 'type="OnClick">LoadNew' in i_line:
-                        new_file_svg.write(i_line)
-
-                        try:
-                            result = re.findall(r'&quot;(.*)&quot;', i_line)[0]
-                        except IndexError:
-                            try:
-                                result = re.findall(r'\("(\d0.*\d+)"\)</', i_line)[0]
-                            except IndexError:
-                                result = '0'
-
-                        if result not in set_kks_name_svg or result != '0':
-                            new_file_svg.write(f'    <rt:dyn type="Disable" mode="constant" value="true"/>\n')
-                        flag_button = False
-                    else:
-                        new_file_svg.write(i_line)
-                else:
-                    if re.search(r'obj_Button.svg', i_line) or re.search(r'obj_Station_stat.svg', i_line):
-                        flag_button = True
-                    new_file_svg.write(i_line)
-
-    @asyncSlot()
-    async def new_data_ana_bin_nary(self, name_system: str) -> None:
-        """
-        Функция обновления файлов со списком KKS сигналов. По завершению обновляются (создаются если не было) 3 файла:
-        BIN_list_kks.txt со списком бинарных сигналов
-        NARY_list_kks.txt со списком много битовых сигналов
-        ANA_list_kks.txt со списков аналоговых сигналов
-        :param name_system: папка в которой будут обновления.
-        :return: None
-        """
-        check_directory(path_directory=name_system, name_directory='DbDumps')
-        check_directory(path_directory=name_system, name_directory='data')
-
-        set_kks_bin_date = set()
-        set_kks_nary_date = set()
-        set_kks_ana_date = set()
-
-        await self.print_log(text='Сбор BIN сигналов')
-
-        with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
-            new_text = reader(file, delimiter='|')
-            for i_line in new_text:
-                try:
-                    full_kks = i_line[42]
-                    if i_line[14] == '-1':
-
-                        set_kks_bin_date.add(full_kks)
-                    else:
-                        set_kks_nary_date.add(full_kks)
-                except IndexError:
-                    ...
-
-        with open(path.join(name_system, 'data', 'BIN_list_kks.txt'), 'w', encoding='UTF-8') as file:
-            for i_kks in set_kks_bin_date:
-                file.write(f'{i_kks}\n')
-
-        with open(path.join(name_system, 'data', 'NARY_list_kks.txt'), 'w', encoding='UTF-8') as file:
-            for i_kks in set_kks_nary_date:
-                file.write(f'{i_kks}\n')
-
-        await self.print_log(text='Сигналы BIN собраны успешно', color='green')
-
-        await self.print_log(text='Сбор ANA сигналов')
-
-        with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
-            new_text = reader(file, delimiter='|', quotechar=' ')
-            for i_line in new_text:
-                try:
-                    set_kks_ana_date.add(i_line[78])
-                except IndexError:
-                    pass
-
-        with open(path.join(name_system, 'data', 'ANA_list_kks.txt'), 'w', encoding='UTF-8') as file:
-            for i_kks in set_kks_ana_date:
-                file.write(f'{i_kks}\n')
-        await self.print_log(text='Сигналы ANA собраны успешно', color='green')
+    async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
+        """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
+        await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
+        await new_data_ana_bin_nary(print_log=self.print_log, name_system=name_system)
         await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n', color='green')
 
     @asyncSlot()
@@ -328,15 +239,19 @@ class SvsuImport(QMainWindow):
         list_name_svg_svsu = listdir(path.join('SVSU', 'NPP_models'))
 
         msg = QMessageBox.question(self, 'Сохранение старого файла SVSU_IMPORT?',
-                                   'Забэкапить старый файл SVSU_IMPORT?\n'
-                                   '(файл SVSU_IMPORT.txt будет переименован в SVSU_IMPORT_bck.txt)')
+                                         'Забэкапить старый файл SVSU_IMPORT?\n'
+                                         '(файл SVSU_IMPORT.txt будет переименован в SVSU_IMPORT_bck.txt)')
 
         if msg == QMessageBox.StandardButton.Yes:
             await self.renaming_old_file_svsu_import(name_system=name_system)
 
         if not await self.check_all_files(name_system=name_system):
             return
-        data_ana, data_bin, data_nary = await self.database_loading_list_kks_ana_bin_nary(name_system=name_system)
+
+        data_ana = await loading_data_kks_ana(directory=name_system)
+        data_bin = await loading_data_kks_bin(directory=name_system)
+        data_nary = await loading_data_kks_nary(directory=name_system)
+
         set_ana_signal: Set[str] = set()
         set_bin_signal: Set[str] = set()
         set_nary_signal: Set[str] = set()
@@ -345,12 +260,17 @@ class SvsuImport(QMainWindow):
         number_name_svg = len(list_name_svg_svsu)
         for name_svg in list_name_svg_svsu:
             if name_svg.endswith('.svg'):
-                list_submodel: List[AnchorPoint] = await self.creating_list_of_submodel(name_svg=name_svg)
-                await self.compiling_list_of_kks(list_submodel=list_submodel,
-                                                 data_ana=data_ana, data_bin=data_bin, data_nary=data_nary)
+                list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system=name_system,
+                                                                                   name_svg=name_svg)
+                await compiling_list_of_kks(list_submodel=list_submodel,
+                                            data_ana=data_ana, data_bin=data_bin, data_nary=data_nary)
 
-                set_ana, set_bin, set_nary = await self.creating_lists_of_found_signals_on_a_video_frame(
-                    list_submodel=list_submodel, num=num, number_name_svg=number_name_svg, name_svg=name_svg)
+                set_ana, set_bin, set_nary = await list_of_signals_on_video_frame(list_submodel=list_submodel)
+
+                await self.print_log(text=f'[{num: <4}/{number_name_svg: <4}] Проверка {name_svg: <25}\t\t'
+                                          f'Найдено KKS: ANA - {len(set_ana): <4}, BIN - {len(set_bin): <4}, '
+                                          f'NARY - {len(set_nary): <4}')
+
                 set_ana_signal.update(set_ana)
                 set_bin_signal.update(set_bin)
                 set_nary_signal.update(set_nary)
@@ -421,80 +341,6 @@ class SvsuImport(QMainWindow):
                 file_import.write(f'\tN\t{i_kks}\t\n')
             await self.print_log(text=f'NARY - {len(set_nary_signal)}')
 
-    async def creating_lists_of_found_signals_on_a_video_frame(self, list_submodel: List[AnchorPoint],
-                                                               num: int, number_name_svg: int, name_svg: str):
-        """Создает 3 множества сигналов найденных на видеокадре аналоговые сигналы, бинарные и много битовые"""
-        set_ana = set()
-        set_bin = set()
-        set_nary = set()
-        for i_submodel in list_submodel:
-            set_kks_ana, set_kks_bin, set_kks_nary = i_submodel.get_kks_ana_bin_nary()
-            set_ana.update(set_kks_ana)
-            set_bin.update(set_kks_bin)
-            set_nary.update(set_kks_nary)
-        await self.print_log(text=f'[{num: <4}/{number_name_svg: <4}] Проверка {name_svg: <25}\t\t'
-                                  f'Найдено KKS: ANA - {len(set_ana): <4}, BIN - {len(set_bin): <4}, '
-                                  f'NARY - {len(set_nary): <4}')
-        return set_ana, set_bin, set_nary
-
-    async def compiling_list_of_kks(self, list_submodel: List[AnchorPoint],
-                                    data_ana: Set[str], data_bin: Set[str], data_nary: Set[str]):
-        """Проверяет существование найденных KKS в базе данных"""
-        for i_submodel in list_submodel:
-            i_submodel.check_existence_database(data_ana=data_ana,
-                                                data_bin=data_bin,
-                                                data_nary=data_nary,
-                                                set_suffix={'XH01', 'XH41', 'XH52', 'XH92'})
-
-    async def creating_list_of_submodel(self, name_svg: str) -> List[AnchorPoint]:
-        """
-        Функция составляющая список подмоделей на видеокадре.
-        :param name_svg: Название svg файла.
-        :return: Список найденных подмоделей.
-        """
-        with open(path.join('SVSU', 'NPP_models', name_svg), 'r', encoding='windows-1251') as svg_file:
-            list_submodel: List[AnchorPoint] = list()
-            list_constructor: List[str] = list()
-            flag_constructor = False
-
-            for i_line in svg_file:
-                if flag_constructor:
-                    if '</image>' in i_line:
-                        list_constructor.append(i_line)
-                        await self.new_submodel(list_constructor=list_constructor,
-                                                list_submodel=list_submodel,
-                                                name_svg=name_svg)
-                        flag_constructor = False
-                        list_constructor.clear()
-                    else:
-                        list_constructor.append(i_line)
-                else:
-                    if '<image' in i_line and '</image>' in i_line or '<image' in i_line and '/>' in i_line:
-                        list_constructor.append(i_line)
-                        await self.new_submodel(list_constructor=list_constructor,
-                                                list_submodel=list_submodel,
-                                                name_svg=name_svg)
-                        list_constructor.clear()
-                    elif '<image' in i_line:
-                        flag_constructor = True
-                        list_constructor.clear()
-                        list_constructor.append(i_line)
-        return list_submodel
-
-    async def new_submodel(self, list_constructor: List[str], list_submodel: List[AnchorPoint], name_svg: str) -> None:
-        """
-        Функция создания новой точки на видеокадре.
-        :param list_constructor: Характеристики подмодели.
-        :param list_submodel: Список точек уже найденных на видеокадре.
-        :param name_svg: Название svg файла на котором находится подмодель.
-        :return: None
-        """
-        submodel = AnchorPoint(full_description_of_the_submodel=list_constructor, name_svg=name_svg)
-        submodel.set_name_submodel()
-        if submodel.name_submodel:
-            submodel.search_kks_on_submodel()
-            list_submodel.append(submodel)
-
     async def check_all_files(self, name_system: str):
         """Функция проверяет наличие всех файлов (ANA_list_kks.txt, BIN_list_kks.txt, NARY_list_kks.txt)
          для работы программы по созданию файла SVSU_IMPORT.txt"""
@@ -535,37 +381,6 @@ class SvsuImport(QMainWindow):
                                      color='red')
                 return False
         return True
-
-    async def database_loading_list_kks_ana_bin_nary(self, name_system: str):
-        """Функция Загружает из подготовленных файлов базу данных сигналов и возвращает 3 списка(множества)
-        с аналоговыми сигналами, бинарными и много битовыми сигналами"""
-        set_ana_signal: Set[str] = set()
-        try:
-            with open(path.join(name_system, 'data', 'ANA_list_kks.txt'), 'r', encoding='UTF-8') as file_ana_signals:
-                for i_line in file_ana_signals:
-                    set_ana_signal.add(i_line[:-1])
-            await self.print_log(text=f'ANA - {len(set_ana_signal)}')
-        except FileNotFoundError:
-            pass
-
-        set_bin_signal: Set[str] = set()
-        try:
-            with open(path.join(name_system, 'data', 'BIN_list_kks.txt'), 'r', encoding='UTF-8') as file_bin_signals:
-                for i_line in file_bin_signals:
-                    set_bin_signal.add(i_line[:-1])
-            await self.print_log(text=f'BIN - {len(set_bin_signal)}')
-        except FileNotFoundError:
-            pass
-
-        set_nary_signal: Set[str] = set()
-        try:
-            with open(path.join(name_system, 'data', 'NARY_list_kks.txt'), 'r', encoding='UTF-8') as file_bin_signals:
-                for i_line in file_bin_signals:
-                    set_nary_signal.add(i_line[:-1])
-            await self.print_log(text=f'NARY - {len(set_nary_signal)}')
-        except FileNotFoundError:
-            pass
-        return set_ana_signal, set_bin_signal, set_nary_signal
 
     async def renaming_old_file_svsu_import(self, name_system: str):
         """Функция переименовывает файл SVSU_IMPORT.txt в SVSU_IMPORT_bck.txt"""

@@ -1,65 +1,8 @@
-from typing import List, Set, Dict
+from typing import Set, Dict
 import re
 from math import ceil
 from config.general_functions import check_directory
 from os import path
-from config.point_description import AnchorPoint
-
-
-async def creating_list_of_submodel(svg_file, name_svg: str) -> List[AnchorPoint]:
-    """
-    Функция составляющая список подмоделей на видеокадре.
-    :param svg_file: Файл svg проверяемого видеокадра.
-    :param name_svg: Название svg файла.
-    :return: Список найденных подмоделей.
-    """
-    list_submodel: List[AnchorPoint] = list()
-    list_constructor: List[str] = list()
-    flag_constructor = False
-
-    for i_line in svg_file:
-        if flag_constructor:
-            if '</image>' in i_line:
-                list_constructor.append(i_line)
-                await new_submodel(list_constructor=list_constructor,
-                                   list_submodel=list_submodel,
-                                   name_svg=name_svg)
-                flag_constructor = False
-                list_constructor.clear()
-            else:
-                list_constructor.append(i_line)
-        else:
-            if '<image' in i_line and '</image>' in i_line or '<image' in i_line and '/>' in i_line:
-                list_constructor.append(i_line)
-                await new_submodel(list_constructor=list_constructor,
-                                   list_submodel=list_submodel,
-                                   name_svg=name_svg)
-                list_constructor.clear()
-            elif '<image' in i_line:
-                flag_constructor = True
-                list_constructor.clear()
-                list_constructor.append(i_line)
-    return list_submodel
-
-
-async def new_submodel(list_constructor, list_submodel, name_svg: str) -> None:
-    """
-    Функция создания новой точки на видеокадре.
-    :param list_constructor: Характеристики подмодели.
-    :param list_submodel: Список точек уже найденных на видеокадре.
-    :param name_svg: Название svg файла на котором находится подмодель.
-    :return: None
-    """
-    submodel = AnchorPoint(full_description_of_the_submodel=list_constructor, name_svg=name_svg)
-    submodel.set_name_submodel()
-    if submodel.name_submodel:
-        try:
-            submodel.search_kks_on_submodel()
-        except IndexError as e:
-            print(submodel.name_svg)
-            print(submodel.full_description_of_the_submodel)
-            print(e)
-        list_submodel.append(submodel)
 
 
 async def checking_kks_and_preparing_comment(kks_signal: str,
