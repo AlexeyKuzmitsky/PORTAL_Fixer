@@ -1,18 +1,23 @@
 import sys
-import time
-from os import path
-import interface.conf as conf
+from os import path, mkdir
+import config.conf as conf
 
-from threading import Thread
+if not path.isdir('logs'):
+    mkdir('logs')
+
+
 from interface.window_svsu_import import SvsuImport
 from interface.window_parsing_svg import ParsingSvg
 from interface.window_instruction import Instruction
 from interface.window_generation_tcp_gate import GenerationTcpGate
 from PyQt6.QtGui import QFont, QIcon
-from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget
+from PyQt6.QtCore import QSize
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QMessageBox, QHBoxLayout
 import asyncio
-from qasync import QEventLoop, asyncSlot
+from qasync import QEventLoop
+
+
+from config.checking_all_directories import checking_the_program_operating_environment
 
 
 class MainWindow(QMainWindow):  # создаем класс на основе стандартного класса окна
@@ -50,15 +55,15 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         self.btn_alt_station = QPushButton('Запуск программы создания файла altSation')
         self.btn_alt_station.setMinimumHeight(50)
         self.btn_alt_station.setFont(font)
-        self.btn_alt_station.clicked.connect(self.the_button_was_clicked)  # задать действие при нажатии
-        self.btn_alt_station.setEnabled(False)
+        self.btn_alt_station.clicked.connect(self.development_warning)  # задать действие при нажатии
+        # self.btn_alt_station.setEnabled(False)
         layout.addWidget(self.btn_alt_station)  # добавить кнопку на подложку для виджетов
 
         self.btn_new_passport = QPushButton('Запуск программы создания новых паспортов для видеокадров')
         self.btn_new_passport.setMinimumHeight(50)
         self.btn_new_passport.setFont(font)
-        self.btn_new_passport.clicked.connect(self.the_button_was_clicked)  # задать действие при нажатии
-        self.btn_new_passport.setEnabled(False)
+        self.btn_new_passport.clicked.connect(self.development_warning)  # задать действие при нажатии
+        # self.btn_new_passport.setEnabled(False)
         layout.addWidget(self.btn_new_passport)  # добавить кнопку на подложку для виджетов
 
         self.btn_tsp_gate = QPushButton('Запуск программы создания файлов для TcpGate')
@@ -67,11 +72,20 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         self.btn_tsp_gate.clicked.connect(self.start_generation_tcp_gate_window)  # задать действие при нажатии
         layout.addWidget(self.btn_tsp_gate)  # добавить кнопку на подложку для виджетов
 
+        horizontal_layout = QHBoxLayout()
+
         self.btn_instruction = QPushButton('Открыть инструкцию ❗')
         self.btn_instruction.setMinimumHeight(50)
         self.btn_instruction.setFont(font)
         self.btn_instruction.clicked.connect(self.start_instruction_window)  # задать действие при нажатии
-        layout.addWidget(self.btn_instruction)  # добавить кнопку на подложку для виджетов
+        horizontal_layout.addWidget(self.btn_instruction)
+        self.btn_exit = QPushButton('Выйти из программы')
+        self.btn_exit.setMinimumHeight(50)
+        self.btn_exit.setFont(font)
+        self.btn_exit.clicked.connect(self.close_program)  # задать действие при нажатии
+        horizontal_layout.addWidget(self.btn_exit)
+
+        layout.addLayout(horizontal_layout)
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -94,22 +108,21 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         self.generation_tcp_gate.show()
         self.close()
 
-    def the_button_was_clicked(self):
-        # new_process = Process(target=fun_text, args=())
-        # new_process.start()
-        new_thread = Thread(target=self.fn)
-        new_thread.start()
+    def development_warning(self):
+        QMessageBox.warning(self, 'Программа в разработке',
+                            'На данный момент данная программа находится в разработке и не готова к выполнению '
+                            'каких либо функций.\n'
+                            'Следите за обновлениями, она скоро заработает!')
 
-    def fn(self):
-        self.btn_svsu_import_start.setText('Кто-то на меня нажал,\n Но больше не получится!')
-        self.btn_svsu_import_start.setEnabled(False)
-        time.sleep(5)
-        self.btn_svsu_import_start.setText('Ладно, нажимай!')
-        self.btn_svsu_import_start.setEnabled(True)
+    def close_program(self):
+        """Функция закрытия программы"""
+        self.instruction_window.close()
+        self.close()
 
 
 try:
     if __name__ == '__main__':
+        checking_the_program_operating_environment(directory_map=conf.program_directory_map)
         app = QApplication(sys.argv)
 
         loop = QEventLoop(app)

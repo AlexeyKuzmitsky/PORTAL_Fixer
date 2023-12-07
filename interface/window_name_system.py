@@ -1,4 +1,4 @@
-import interface.conf as conf
+import config.conf as conf
 
 from os import path
 from PyQt6.QtGui import QFont, QIcon

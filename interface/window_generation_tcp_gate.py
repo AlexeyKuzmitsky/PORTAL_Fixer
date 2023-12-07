@@ -3,7 +3,7 @@ from config.func_generation_tcp_gate_file import generation_tcp_gate
 
 from interface.window_name_system import NameSystemWindow
 
-import interface.conf as conf
+import config.conf as conf
 from os import path
 from PyQt6.QtGui import QFont, QIcon, QColor
 from PyQt6.QtCore import QSize

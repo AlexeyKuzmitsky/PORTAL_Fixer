@@ -1,4 +1,4 @@
-import interface.conf as conf
+import config.conf as conf
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTextBrowser

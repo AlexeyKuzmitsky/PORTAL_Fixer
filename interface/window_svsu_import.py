@@ -1,10 +1,11 @@
 import re
-from config.general_functions import (check_directory, check_file, new_data_ana_bin_nary, creating_list_of_submodel,
+from config.general_functions import (check_directory, check_file, new_file_data_ana_bin_nary,
+                                      creating_list_of_submodel,
                                       loading_data_kks_ana, loading_data_kks_bin, loading_data_kks_nary)
 from config.func_svsu_import import compiling_list_of_kks, list_of_signals_on_video_frame, bloc_button
 from interface.window_name_system import NameSystemWindow
 
-import interface.conf as conf
+import config.conf as conf
 from config.point_description import AnchorPoint
 from os import getcwd, path, listdir, rename, remove
 from PyQt6.QtGui import QFont, QIcon, QColor
@@ -228,8 +229,8 @@ class SvsuImport(QMainWindow):
     async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
         """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
         await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
-        await new_data_ana_bin_nary(print_log=self.print_log, name_system=name_system)
-        await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n', color='green')
+        await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system)
+        await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
 
     @asyncSlot()
     async def start_svsu_import(self, name_system: str) -> None:

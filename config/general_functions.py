@@ -69,7 +69,7 @@ async def new_submodel(list_constructor, list_submodel, name_svg: str) -> None:
         list_submodel.append(submodel)
 
 
-async def new_data_ana_bin_nary(print_log, name_system: str) -> None:
+async def new_file_data_ana_bin_nary(print_log, name_system: str) -> None:
     """
     Функция обновления файлов со списком KKS сигналов. По завершению обновляются (создаются если не было) 3 файла:
     BIN_list_kks.txt со списком бинарных сигналов
@@ -88,43 +88,51 @@ async def new_data_ana_bin_nary(print_log, name_system: str) -> None:
 
     await print_log(text='Сбор BIN сигналов')
 
-    with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
-        new_text = reader(file, delimiter='|')
-        for i_line in new_text:
-            try:
-                full_kks = i_line[42]
-                if i_line[14] == '-1':
+    try:
+        with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
+            new_text = reader(file, delimiter='|')
+            for i_line in new_text:
+                try:
+                    full_kks = i_line[42]
+                    if i_line[14] == '-1':
 
-                    set_kks_bin_date.add(full_kks)
-                else:
-                    set_kks_nary_date.add(full_kks)
-            except IndexError:
-                ...
+                        set_kks_bin_date.add(full_kks)
+                    else:
+                        set_kks_nary_date.add(full_kks)
+                except IndexError:
+                    ...
 
-    with open(path.join(name_system, 'data', 'BIN_list_kks.txt'), 'w', encoding='UTF-8') as file:
-        for i_kks in sorted(set_kks_bin_date):
-            file.write(f'{i_kks}\n')
+        with open(path.join(name_system, 'data', 'BIN_list_kks.txt'), 'w', encoding='UTF-8') as file:
+            for i_kks in sorted(set_kks_bin_date):
+                file.write(f'{i_kks}\n')
 
-    with open(path.join(name_system, 'data', 'NARY_list_kks.txt'), 'w', encoding='UTF-8') as file:
-        for i_kks in sorted(set_kks_nary_date):
-            file.write(f'{i_kks}\n')
+        with open(path.join(name_system, 'data', 'NARY_list_kks.txt'), 'w', encoding='UTF-8') as file:
+            for i_kks in sorted(set_kks_nary_date):
+                file.write(f'{i_kks}\n')
 
-    await print_log(text='Сигналы BIN собраны успешно', color='green')
+        await print_log(text='Сигналы BIN собраны успешно', color='green')
 
-    await print_log(text='Сбор ANA сигналов')
+        await print_log(text='Сбор ANA сигналов')
+    except FileNotFoundError:
+        print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\DbDumps.\n'
+                  f'Сбор бинарных и много битовых сигналов невозможен', color='red')
 
-    with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
-        new_text = reader(file, delimiter='|', quotechar=' ')
-        for i_line in new_text:
-            try:
-                set_kks_ana_date.add(i_line[78])
-            except IndexError:
-                pass
+    try:
+        with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
+            new_text = reader(file, delimiter='|', quotechar=' ')
+            for i_line in new_text:
+                try:
+                    set_kks_ana_date.add(i_line[78])
+                except IndexError:
+                    pass
 
-    with open(path.join(name_system, 'data', 'ANA_list_kks.txt'), 'w', encoding='UTF-8') as file:
-        for i_kks in sorted(set_kks_ana_date):
-            file.write(f'{i_kks}\n')
-    await print_log(text='Сигналы ANA собраны успешно', color='green')
+        with open(path.join(name_system, 'data', 'ANA_list_kks.txt'), 'w', encoding='UTF-8') as file:
+            for i_kks in sorted(set_kks_ana_date):
+                file.write(f'{i_kks}\n')
+        await print_log(text='Сигналы ANA собраны успешно', color='green')
+    except FileNotFoundError:
+        print_log(f'Нет файла PLS_ANA_CONF.dmp в {name_system}\DbDumps.\n'
+                  f'Сбор аналоговых сигналов невозможен', color='red')
 
 
 def check_directory(path_directory: str, name_directory: str) -> bool:
