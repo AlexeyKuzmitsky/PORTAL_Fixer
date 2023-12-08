@@ -15,7 +15,7 @@ class ParsingSvg(QMainWindow):
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         self.setMinimumSize(QSize(750, 350))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
-        self.setWindowIcon(QIcon(path.join('image', 'icon.png')))
+        # self.setWindowIcon(QIcon(path.join('image', 'icon.png')))
 
         self.main_menu = main_menu
         font = QFont()

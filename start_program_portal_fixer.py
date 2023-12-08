@@ -1,11 +1,10 @@
 import sys
 from os import path, mkdir
-import config.conf as conf
 
 if not path.isdir('logs'):
     mkdir('logs')
 
-
+import config.conf as conf
 from interface.window_svsu_import import SvsuImport
 from interface.window_parsing_svg import ParsingSvg
 from interface.window_instruction import Instruction
@@ -43,18 +42,21 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         # self.btn_svsu_import_start.setMinimumSize(QSize(400, 50))
         self.btn_svsu_import_start.setMinimumHeight(50)
         self.btn_svsu_import_start.setFont(font)
+        self.btn_svsu_import_start.setStyleSheet(f'background: {conf.color_button};')
         self.btn_svsu_import_start.clicked.connect(self.start_svsu_import_window)  # задать действие при нажатии
         layout.addWidget(self.btn_svsu_import_start)  # добавить кнопку на подложку для виджетов
 
         self.btn_parsing_svg = QPushButton('Запуск программы поиска замечаний на видеокадрах')
         self.btn_parsing_svg.setMinimumHeight(50)
         self.btn_parsing_svg.setFont(font)
+        self.btn_parsing_svg.setStyleSheet(f'background: {conf.color_button};')
         self.btn_parsing_svg.clicked.connect(self.start_parsing_svg_window)  # задать действие при нажатии
         layout.addWidget(self.btn_parsing_svg)  # добавить кнопку на подложку для виджетов
 
         self.btn_alt_station = QPushButton('Запуск программы создания файла altSation')
         self.btn_alt_station.setMinimumHeight(50)
         self.btn_alt_station.setFont(font)
+        self.btn_alt_station.setStyleSheet(f'background: {conf.color_button};')
         self.btn_alt_station.clicked.connect(self.development_warning)  # задать действие при нажатии
         # self.btn_alt_station.setEnabled(False)
         layout.addWidget(self.btn_alt_station)  # добавить кнопку на подложку для виджетов
@@ -62,6 +64,7 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         self.btn_new_passport = QPushButton('Запуск программы создания новых паспортов для видеокадров')
         self.btn_new_passport.setMinimumHeight(50)
         self.btn_new_passport.setFont(font)
+        self.btn_new_passport.setStyleSheet(f'background: {conf.color_button};')
         self.btn_new_passport.clicked.connect(self.development_warning)  # задать действие при нажатии
         # self.btn_new_passport.setEnabled(False)
         layout.addWidget(self.btn_new_passport)  # добавить кнопку на подложку для виджетов
@@ -69,6 +72,7 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         self.btn_tsp_gate = QPushButton('Запуск программы создания файлов для TcpGate')
         self.btn_tsp_gate.setMinimumHeight(50)
         self.btn_tsp_gate.setFont(font)
+        self.btn_tsp_gate.setStyleSheet(f'background: {conf.color_button};')
         self.btn_tsp_gate.clicked.connect(self.start_generation_tcp_gate_window)  # задать действие при нажатии
         layout.addWidget(self.btn_tsp_gate)  # добавить кнопку на подложку для виджетов
 
@@ -77,17 +81,20 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         self.btn_instruction = QPushButton('Открыть инструкцию ❗')
         self.btn_instruction.setMinimumHeight(50)
         self.btn_instruction.setFont(font)
+        self.btn_instruction.setStyleSheet(f'background: {conf.color_button};')
         self.btn_instruction.clicked.connect(self.start_instruction_window)  # задать действие при нажатии
         horizontal_layout.addWidget(self.btn_instruction)
         self.btn_exit = QPushButton('Выйти из программы')
         self.btn_exit.setMinimumHeight(50)
         self.btn_exit.setFont(font)
+        self.btn_exit.setStyleSheet(f'background: {conf.color_button};')
         self.btn_exit.clicked.connect(self.close_program)  # задать действие при нажатии
         horizontal_layout.addWidget(self.btn_exit)
 
         layout.addLayout(horizontal_layout)
 
         widget = QWidget()
+        widget.setStyleSheet(f'background: {conf.color_background};')
         widget.setLayout(layout)
         self.setCentralWidget(widget)  # Разместим кнопку в окне
         # self.setCentralWidget(self.button)  # Разместим кнопку в окне

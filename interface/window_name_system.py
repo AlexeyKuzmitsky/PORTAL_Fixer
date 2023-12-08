@@ -13,7 +13,7 @@ class NameSystemWindow(QMainWindow):
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         self.setMinimumSize(QSize(400, 200))  # Устанавливаем минимальный размер окна 400(ширина) на 700(высота)
-        self.setWindowIcon(QIcon(path.join('image', 'icon.png')))
+        # self.setWindowIcon(QIcon(path.join('image', 'icon.png')))
 
         self.name_system = ''
         self.func = func

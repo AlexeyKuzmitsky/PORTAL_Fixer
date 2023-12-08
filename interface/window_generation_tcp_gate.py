@@ -17,7 +17,7 @@ class GenerationTcpGate(QMainWindow):
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         self.setMinimumSize(QSize(750, 350))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
-        self.setWindowIcon(QIcon(path.join('image', 'icon.png')))
+        # self.setWindowIcon(QIcon(path.join('image', 'icon.png')))
 
         self.main_menu = main_menu
         font = QFont()
@@ -56,6 +56,7 @@ class GenerationTcpGate(QMainWindow):
                                                      set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
 
         widget = QWidget()
+        # widget.colorCount(QColor(27, 91, 95))
         widget.setLayout(layout)
         self.setCentralWidget(widget)  # Разместим подложку в окне
 

@@ -114,8 +114,8 @@ async def new_file_data_ana_bin_nary(print_log, name_system: str) -> None:
 
         await print_log(text='Сбор ANA сигналов')
     except FileNotFoundError:
-        print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\DbDumps.\n'
-                  f'Сбор бинарных и много битовых сигналов невозможен', color='red')
+        await print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\DbDumps.\n'
+                        f'Сбор бинарных и много битовых сигналов невозможен', color='red')
 
     try:
         with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
@@ -131,8 +131,8 @@ async def new_file_data_ana_bin_nary(print_log, name_system: str) -> None:
                 file.write(f'{i_kks}\n')
         await print_log(text='Сигналы ANA собраны успешно', color='green')
     except FileNotFoundError:
-        print_log(f'Нет файла PLS_ANA_CONF.dmp в {name_system}\DbDumps.\n'
-                  f'Сбор аналоговых сигналов невозможен', color='red')
+        await print_log(f'Нет файла PLS_ANA_CONF.dmp в {name_system}\DbDumps.\n'
+                        f'Сбор аналоговых сигналов невозможен', color='red')
 
 
 def check_directory(path_directory: str, name_directory: str) -> bool:

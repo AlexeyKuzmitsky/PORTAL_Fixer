@@ -1,5 +1,5 @@
 name_program = 'PORTAL_Fixer'
-version_program = '2.0.1'
+version_program = '2.0.2a'
 program_compilation_date = '2023.12.08'
 
 program_directory_map = {
@@ -61,3 +61,6 @@ program_directory_map = {
         'Замечания по видеокадрам': None
     }
 }
+
+color_button = '#A0C49D'
+color_background = '#C4D7B2'
