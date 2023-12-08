@@ -1,8 +1,99 @@
 from config.point_description import AnchorPoint
-from typing import List, Set
-from os import path
+from typing import List, Set, Dict
+from os import path, listdir, remove, rename
+from config.general_functions import (check_file, loading_data_kks_ana, loading_data_kks_bin, loading_data_kks_nary,
+                                      creating_list_of_submodel, check_directory)
+from PyQt6.QtWidgets import QMainWindow, QMessageBox
 
+import shutil
 import re
+
+
+async def actualizations_vk_svbu(print_log, name_directory: str) -> None:
+    """Функция обновления видеокадров в папке SVBU_(1/2)/NPP_models из папки SVBU_(1/2)/NPP_models_new"""
+    set_vis: Set[str] = set(listdir(path.join(name_directory, 'NPP_models')))
+    set_vis_new: Set[str] = set(listdir(path.join(name_directory, 'NPP_models_new')))
+    numbers_vis = len(set_vis)
+    number = 1
+    for i_vis in sorted(set_vis):
+        if i_vis in set_vis_new:
+            shutil.copy2(path.join(name_directory, 'NPP_models_new', i_vis),
+                         path.join(name_directory, 'NPP_models', i_vis))
+            await print_log(text=f'[{number}/{numbers_vis}]   +++{i_vis} видеокадр обновлен+++')
+        else:
+            await print_log(text=f'[{number}/{numbers_vis}]   '
+                                      f'---Видеокадра {i_vis} нет в {name_directory}/NPP_models_new ---',
+                                 color='red')
+        number += 1
+
+
+async def actualizations_vk_svsu(print_log, name_directory: str) -> None:
+    """Функция обновления видеокадров в папке SVSU/NPP_models из папки SVBU_(1/2)/NPP_models"""
+    if name_directory == 'SVBU_1':
+        number = '1'
+    elif name_directory == 'SVBU_2':
+        number = '2'
+    else:
+        return
+
+    kks_dict_new: Dict[str, str] = {'MKA01': f'{number}0MKA01',
+                                    'MKA02': f'{number}0MKA02',
+                                    'MKA03': f'{number}0MKA03',
+                                    'mkc': f'{number}0mkc',
+                                    'ALL_STKTG': f'{number}0ALL_STKTG',
+                                    'AKNP_RD2': f'{number}0AKNP_RD2'}
+
+    renaming_kks: Dict[str, str] = {f'{number}0ALL_STKTG.svg': 'ALL_STKTG.svg',
+                                    f'{number}0MKA01.svg': 'MKA01.svg',
+                                    f'{number}0MKA02.svg': 'MKA02.svg',
+                                    f'{number}0MKA03.svg': 'MKA03.svg',
+                                    f'{number}0mkc.svg': 'mkc.svg',
+                                    f'{number}0AKNP_RD2.svg': 'AKNP_RD2.svg'}
+
+    set_vis: Set[str] = set(listdir(path.join('SVSU', 'NPP_models')))
+    set_vis.discard('diag_PPD.svg')
+    set_vis_bloc: Set[str] = set(listdir(path.join(name_directory, 'NPP_models')))
+    num = 1
+    numbers_vis = len(set_vis)
+
+    for i_vis in sorted(set_vis):
+        if i_vis == '10MKA03.svg':
+            pass
+        if i_vis in renaming_kks:
+            # тут пойдет замена файла
+            with (open(path.join(name_directory, 'NPP_models', renaming_kks[i_vis]), 'r',
+                       encoding='windows-1251') as file,
+                  open(path.join('SVSU', 'NPP_models', i_vis), 'w',
+                       encoding='windows-1251') as new_file):
+                for i_line in file:
+                    for vis in kks_dict_new:
+                        if f'&quot;{vis}' in i_line:
+                            result = re.split(fr'{vis}', i_line)
+                            result = f'{result[0]}{kks_dict_new[vis]}{result[1]}'
+                            new_file.write(result)
+                            break
+                    else:
+                        new_file.write(i_line)
+            await print_log(text=f'[{num}/{numbers_vis}]   +++{i_vis} видеокадр обновлен+++')
+        elif i_vis in set_vis_bloc:
+            # тут пойдет замена файла
+            with open(path.join(name_directory, 'NPP_models', i_vis), 'r', encoding='windows-1251') as file, \
+                    open(path.join('SVSU', 'NPP_models', i_vis), 'w', encoding='windows-1251') as new_file:
+                for i_line in file:
+                    for vis in kks_dict_new:
+                        if f'&quot;{vis}' in i_line:
+                            result = re.split(fr'{vis}', i_line)
+                            result = f'{result[0]}{kks_dict_new[vis]}{result[1]}'
+                            new_file.write(result)
+                            break
+                    else:
+                        new_file.write(i_line)
+            await print_log(text=f'[{num}/{numbers_vis}]   +++{i_vis} видеокадр обновлен+++')
+        else:
+            await print_log(text=f'[{num}/{numbers_vis}]   '
+                                      f'---Видеокадра {i_vis} нет в папке {name_directory}\\NPP_models---',
+                                 color='red')
+        num += 1
 
 
 async def compiling_list_of_kks(list_submodel: List[AnchorPoint],
@@ -13,6 +104,8 @@ async def compiling_list_of_kks(list_submodel: List[AnchorPoint],
                                             data_bin=data_bin,
                                             data_nary=data_nary,
                                             set_suffix={'XH01', 'XH41', 'XH52', 'XH92'})
+
+
 
 
 async def list_of_signals_on_video_frame(list_submodel: List[AnchorPoint]):
@@ -26,6 +119,29 @@ async def list_of_signals_on_video_frame(list_submodel: List[AnchorPoint]):
         set_bin.update(set_kks_bin)
         set_nary.update(set_kks_nary)
     return set_ana, set_bin, set_nary
+
+
+async def enumeration_of_svg(print_log) -> None:
+    """
+    Функция берущая из папки NPP_models видеокадры и запускает функцию bloc_button в которую передает по
+    оному видеокадру.
+    :return: None
+    """
+    set_vis = set(listdir(path.join('SVSU', 'NPP_models')))
+    set_kks_vis_npp_models = set()
+    for i_vis in set_vis:
+        if i_vis.endswith('.svg'):
+            set_kks_vis_npp_models.add(i_vis[:-4])
+    num = 1
+    len_num = len(set_vis)
+    for i_svg in sorted(set_vis):
+        if i_svg.endswith('.svg'):
+            await bloc_button(svg=i_svg, set_kks_name_svg=set_kks_vis_npp_models)
+            await print_log(text=f'[{num}/{len_num}] Проверен видеокадр {i_svg}')
+        else:
+            await print_log(text=f'[{num}/{len_num}] Файл {i_svg} не является svg',
+                                 color='red')
+        num += 1
 
 
 async def bloc_button(svg: str, set_kks_name_svg: Set[str]) -> None:
@@ -61,3 +177,164 @@ async def bloc_button(svg: str, set_kks_name_svg: Set[str]) -> None:
                 if re.search(r'obj_Button.svg', i_line) or re.search(r'obj_Station_stat.svg', i_line):
                     flag_button = True
                 new_file_svg.write(i_line)
+
+
+async def add_file_svsu_import(print_log, name_system: str) -> None:
+    """Функция подготовки файла SVSU_IMPORT.txt"""
+    check_directory(path_directory='SVSU', name_directory='NPP_models')
+    await save_old_file(print_log=print_log, name_system=name_system)
+    if not await check_all_files(print_log=print_log, name_system=name_system):
+        return
+
+    list_name_svg_svsu = listdir(path.join('SVSU', 'NPP_models'))
+
+    data_ana = await loading_data_kks_ana(directory=name_system)
+    data_bin = await loading_data_kks_bin(directory=name_system)
+    data_nary = await loading_data_kks_nary(directory=name_system)
+    set_ana_signal: Set[str] = set()
+    set_bin_signal: Set[str] = set()
+    set_nary_signal: Set[str] = set()
+    num = 1
+    number_name_svg = len(list_name_svg_svsu)
+    for name_svg in list_name_svg_svsu:
+        if name_svg.endswith('.svg'):
+            list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system=name_system,
+                                                                               name_svg=name_svg)
+            await compiling_list_of_kks(list_submodel=list_submodel,
+                                        data_ana=data_ana, data_bin=data_bin, data_nary=data_nary)
+            set_ana, set_bin, set_nary = await list_of_signals_on_video_frame(list_submodel=list_submodel)
+            await print_log(text=f'[{num: <4}/{number_name_svg: <4}] Проверка {name_svg: <25}\t\t'
+                                      f'Найдено KKS: ANA - {len(set_ana): <4}, BIN - {len(set_bin): <4}, '
+                                      f'NARY - {len(set_nary): <4}')
+            set_ana_signal.update(set_ana)
+            set_bin_signal.update(set_bin)
+            set_nary_signal.update(set_nary)
+        else:
+            await print_log(text=f'[{num: <4}/{number_name_svg: <4}] Файл {name_svg} не является svg',
+                                 color='red')
+        num += 1
+    await writing_signals_to_a_file(print_log=print_log,
+                                    name_system=name_system,
+                                    set_ana_signal=set_ana_signal,
+                                    set_bin_signal=set_bin_signal,
+                                    set_nary_signal=set_nary_signal)
+
+    await file_comparison(print_log=print_log, name_system=name_system)
+
+
+async def save_old_file(print_log, name_system: str):
+    """Спрашивает у пользователя нужно ил сохранить старый файл. Если пользователь дает положительный ответ,
+    запускает функцию переименования файла SVSU_IMPORT.txt"""
+    msg = QMessageBox.question(QMainWindow(), 'Сохранение старого файла SVSU_IMPORT?',
+                               'Забэкапить старый файл SVSU_IMPORT?\n'
+                               '(файл SVSU_IMPORT.txt будет переименован в SVSU_IMPORT_bck.txt)')
+    if msg == QMessageBox.StandardButton.Yes:
+        await renaming_old_file_svsu_import(print_log=print_log, name_system=name_system)
+
+async def check_all_files(print_log, name_system: str):
+    """Функция проверяет наличие всех файлов (ANA_list_kks.txt, BIN_list_kks.txt, NARY_list_kks.txt)
+     для работы программы по созданию файла SVSU_IMPORT.txt"""
+    if not check_file(path_directory=path.join(name_system, 'data'), name_file='ANA_list_kks.txt'):
+        msg = QMessageBox.question(QMainWindow(), 'Нет файла ANA_list_kks.txt',
+                                   f'Не найден файл {name_system}/data/ANA_list_kks.txt\n '
+                                   f'Для создания файла ANA_list_kks.txt выберите пункт "Обновление базы данных"'
+                                   f' и систему {name_system}.\n'
+                                   f'Продолжить выполнение программы без файла ANA_list_kks.txt?')
+        if msg == QMessageBox.StandardButton.No:
+            await print_log(text=f'Программа создания файла SVSU_IMPORT.txt прервана пользователем\n',
+                                 color='red')
+            return False
+
+    if not check_file(path_directory=path.join(name_system, 'data'), name_file='BIN_list_kks.txt'):
+        msg = QMessageBox.question(QMainWindow(), 'Нет файла BIN_list_kks.txt',
+                                   f'Не найден файл {name_system}/data/BIN_list_kks.txt\n '
+                                   f'Для создания файла BIN_list_kks.txt выберите пункт "Обновление базы данных"'
+                                   f' и систему {name_system}.\n'
+                                   f'Продолжить выполнение программы без файла BIN_list_kks.txt?')
+        if msg == QMessageBox.StandardButton.No:
+            await print_log(text=f'Программа создания файла SVSU_IMPORT.txt прервана пользователем\n',
+                                 color='red')
+            return False
+
+    if not check_file(path_directory=path.join(name_system, 'data'), name_file='NARY_list_kks.txt'):
+        msg = QMessageBox.question(QMainWindow(), 'Нет файла NARY_list_kks.txt',
+                                   f'Не найден файл {name_system}/data/NARY_list_kks.txt\n '
+                                   f'Для создания файла NARY_list_kks.txt выберите пункт "Обновление базы данных"'
+                                   f' и систему {name_system}.\n'
+                                   f'Продолжить выполнение программы без файла NARY_list_kks.txt?')
+        if msg == QMessageBox.StandardButton.No:
+            await print_log(text=f'Программа создания файла SVSU_IMPORT.txt прервана пользователем\n',
+                                 color='red')
+            return False
+    return True
+
+
+async def renaming_old_file_svsu_import(print_log, name_system: str):
+    """Функция переименовывает файл SVSU_IMPORT.txt в SVSU_IMPORT_bck.txt"""
+    if check_file(path_directory=name_system, name_file='SVSU_IMPORT.txt'):
+        if check_file(path_directory=name_system, name_file='SVSU_IMPORT_bck.txt'):
+            remove(path.join(name_system, 'SVSU_IMPORT_bck.txt'))
+        rename(path.join(name_system, 'SVSU_IMPORT.txt'), path.join(name_system, 'SVSU_IMPORT_bck.txt'))
+        await print_log(text=f'Файл {name_system}/SVSU_IMPORT.txt переименован в '
+                                  f'{name_system}/SVSU_IMPORT_bck.txt', color='green')
+    else:
+        await print_log(text=f'Файл {name_system}/SVSU_IMPORT.txt не найден', color='red')
+
+
+async def writing_signals_to_a_file(print_log, name_system: str,
+                                    set_ana_signal: Set[str],
+                                    set_bin_signal: Set[str],
+                                    set_nary_signal: Set[str]):
+    """Функция записывающая в файл SVSU_import.txt найденные сигналы"""
+    with open(path.join(name_system, 'SVSU_IMPORT.txt'), 'w', encoding='utf-8') as file_import:
+        file_import.write('signum\ttype\tfunction\tcycle\n')
+        await print_log(text=f'KKS записано в файл SVSU_IMPORT.txt:')
+        for i_kks in sorted(set_ana_signal):
+            file_import.write(f'\tA\t{i_kks}\t\n')
+        await print_log(text=f'ANA - {len(set_ana_signal)}')
+        for i_kks in sorted(set_bin_signal):
+            file_import.write(f'\tB\t{i_kks}\t\n')
+        await print_log(text=f'BIN - {len(set_bin_signal)}')
+        for i_kks in sorted(set_nary_signal):
+            file_import.write(f'\tN\t{i_kks}\t\n')
+        await print_log(text=f'NARY - {len(set_nary_signal)}')
+
+
+async def file_comparison(print_log, name_system: str) -> None:
+    """Функция спрашивает у пользователя сравнивать ли старый файл SVSU_IMPORT с новым. Если получает положительный
+    ответ, запускает функцию сравнения и вывода всех отличий пользователю"""
+    if check_file(path_directory=name_system, name_file='SVSU_IMPORT_bck.txt'):
+        msg = QMessageBox.question(QMainWindow(), 'Вывод внесенных изменений',
+                                   'Произвести сравнение старого файла SVSU_IMPORT с новым?')
+        if msg == QMessageBox.StandardButton.Yes:
+            await file_svsu_import_comparison(print_log=print_log, name_system=name_system)
+
+
+async def file_svsu_import_comparison(print_log, name_system: str):
+    """Функция сравнения двух файлов SVSU_IMPORT.txt и SVSU_IMPORT_bck.txt и вывода отчета"""
+    list_kks_svsu_import: Set[str] = set()
+    list_kks_svsu_import_bck: Set[str] = set()
+    with open(path.join(name_system, 'SVSU_IMPORT.txt'), encoding='UTF-8') as file_svsu:
+        for i_line in file_svsu:
+            list_kks_svsu_import.add(i_line[:-1])
+
+    with open(path.join(name_system, 'SVSU_IMPORT_bck.txt'), encoding='UTF-8') as file_svsu_bck:
+        for i_line in file_svsu_bck:
+            list_kks_svsu_import_bck.add(i_line[:-1])
+
+    del_kks = list_kks_svsu_import_bck.difference(list_kks_svsu_import)
+    add_kks = list_kks_svsu_import.difference(list_kks_svsu_import_bck)
+
+    await print_log(text=f'Удалены KKS в новом ({len(del_kks)} шт.):', color='red')
+    num = 1
+    for i_kks in sorted(del_kks):
+        await print_log(text=f'{num}. {i_kks}', color='red')
+        num += 1
+    await print_log(text='')
+
+    await print_log(text=f'Добавлены KKS в новом ({len(add_kks)} шт.):', color='green')
+    num = 1
+    for i_kks in sorted(add_kks):
+        await print_log(text=f'{num}. {i_kks}', color='green')
+        num += 1
+    await print_log(text='')

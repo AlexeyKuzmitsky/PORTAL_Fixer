@@ -1,21 +1,13 @@
-from config.point_description import AnchorPoint
-from config.general_functions import (sort_files_into_groups, new_file_data_ana_bin_nary,
-                                      loading_data_kks_ana, loading_data_kks_bin, loading_data_kks_nary,
-                                      loading_data_dict_kks_ana, loading_data_dict_kks_bin, creating_list_of_submodel)
-
-from config.func_parsing_svg import checking_kks_and_preparing_comment, recording_comments_to_a_file
+from config.general_functions import sort_files_into_groups, new_file_data_ana_bin_nary
+from config.func_parsing_svg import new_start_parsing_svg_files, dict_loading, actualizations_vk_svbu
 from interface.window_name_system import NameSystemWindow
-import json
-
-import config.conf as conf
 from os import path, listdir
 from PyQt6.QtGui import QFont, QIcon, QColor
 from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QTextBrowser
-
-import shutil
-from typing import Set, Dict, List
 from qasync import asyncSlot
+
+import config.conf as conf
 
 
 class ParsingSvg(QMainWindow):
@@ -65,7 +57,7 @@ class ParsingSvg(QMainWindow):
         self.btn_main_menu.clicked.connect(self.main_menu_window)  # задать действие при нажатии
         layout.addWidget(self.btn_main_menu)  # добавить кнопку на подложку для виджетов
 
-        self.name_system_vk = NameSystemWindow(func=self.actualizations_vk_svbu,
+        self.name_system_vk = NameSystemWindow(func=self.start_actualizations_vk_svbu,
                                                text='Видеокадры какого блока обновить?',
                                                set_name_system={'SVBU_1', 'SVBU_2'})
 
@@ -102,24 +94,12 @@ class ParsingSvg(QMainWindow):
         self.close()
 
     @asyncSlot()
-    async def actualizations_vk_svbu(self, name_directory: str) -> None:
-        """Функция обновления видеокадров в папке SVBU_(1/2)/NPP_models из папки SVBU_(1/2)/NPP_models_new"""
-        set_vis: Set[str] = set(listdir(path.join(name_directory, 'NPP_models')))
-        set_vis_new: Set[str] = set(listdir(path.join(name_directory, 'NPP_models_new')))
-        numbers_vis = len(set_vis)
-        number = 1
-        for i_vis in sorted(set_vis):
-            if i_vis in set_vis_new:
-                shutil.copy2(path.join(name_directory, 'NPP_models_new', i_vis),
-                             path.join(name_directory, 'NPP_models', i_vis))
-                await self.print_log(text=f'[{number}/{numbers_vis}]   +++{i_vis} видеокадр обновлен+++')
-            else:
-                await self.print_log(text=f'[{number}/{numbers_vis}]   '
-                                          f'---Видеокадра {i_vis} нет в {name_directory}/NPP_models_new ---',
-                                     color='red')
-            number += 1
-        await self.print_log(text=f'Выполнение программы обновления видеокадров {name_directory} завершено\n',
-                             color='green')
+    async def start_actualizations_vk_svbu(self, name_directory: str) -> None:
+        """Функция запускающая обновление видеокадров SVBU_(1/2)/NPP_models из папки SVBU_(1/2)/NPP_models_new"""
+        await self.print_log(text=f'Начато обновление видеокадров {name_directory}/NPP_models '
+                                  f'из папки {name_directory}/NPP_models_new')
+        await actualizations_vk_svbu(print_log=self.print_log, name_directory=name_directory)
+        await self.print_log(text=f'Выполнение программы обновления видеокадров {name_directory} завершено\n')
 
     @asyncSlot()
     async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
@@ -136,59 +116,8 @@ class ParsingSvg(QMainWindow):
         """
         set_svg = set(listdir(path.join(name_directory, 'NPP_models')))
         await self.print_log(text=f'Старт проверки видеокадров {name_directory}')
-        await self.new_start_parsing_svg_files(svg=set_svg, directory=name_directory)
+        await new_start_parsing_svg_files(print_log=self.print_log, svg=set_svg, directory=name_directory)
         await self.print_log(text='Поиск замечаний завершен\n', color='green')
-
-    async def new_start_parsing_svg_files(self, svg: Set[str], directory: str) -> None:
-        """
-        Функция производит поиск всех подмоделей на видеокадрах после чего находит на подмоделях привязки (KKS).
-        Проверяет наличие KKS в действующей базе и если не находит, подготавливает запись в файл замечаний.
-        :param svg: Список svg-файлов
-        :param directory: Название системы в которой ведется поиск замечаний
-        :return: None
-        """
-        set_kks_ana_data = await loading_data_kks_ana(directory=directory)
-        set_kks_bin_data = await loading_data_kks_bin(directory=directory)
-        set_kks_nary_data = await loading_data_kks_nary(directory=directory)
-        dict_kks_ana_data = await loading_data_dict_kks_ana(directory=directory)
-        dict_kks_bin_data = await loading_data_dict_kks_bin(directory=directory)
-
-        numbers = len(svg)
-        number = 1
-        for i_svg in sorted(svg):
-            text_log = f'[{number}/{numbers}]\t Проверка {i_svg}'
-            if i_svg.endswith('.svg') or i_svg.endswith('.SVG'):
-                list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system=directory,
-                                                                                   name_svg=i_svg)
-                dict_errors: Dict[str, str] = dict()
-
-                for i_submodel in list_submodel:
-                    dict_errors.update(i_submodel.check_error_kks_database(data_ana=set_kks_ana_data,
-                                                                           data_bin=set_kks_bin_data,
-                                                                           data_nary=set_kks_nary_data))
-
-                list_error_kks: Set = set()  # список записей о замечаниях
-                for i_kks in dict_errors:
-                    await checking_kks_and_preparing_comment(kks_signal=i_kks,
-                                                             list_error_kks=list_error_kks,
-                                                             name_submodel=dict_errors[i_kks],
-                                                             set_svg=svg,
-                                                             set_kks_ana_data=set_kks_ana_data,
-                                                             set_kks_bin_data=set_kks_bin_data,
-                                                             set_kks_nary_data=set_kks_nary_data,
-                                                             dict_kks_ana_data=dict_kks_ana_data,
-                                                             dict_kks_bin_data=dict_kks_bin_data)
-
-                if len(list_error_kks):
-                    recording_comments_to_a_file(directory=directory,
-                                                 list_error_kks=list_error_kks,
-                                                 name_file=i_svg[:-4])
-                text_log = f'{text_log:<55}Кривых KKS: {len(list_error_kks)}'
-                await self.print_log(text=text_log)
-            else:
-                text_log = f'{text_log:<55}Файл {i_svg} не svg!'
-                await self.print_log(text=text_log, color='red')
-            number += 1
 
     @asyncSlot()
     async def sorting_notes_files(self, name_directory: str) -> None:
@@ -199,30 +128,13 @@ class ParsingSvg(QMainWindow):
         if name_directory != '0':
             await self.print_log(f'Старт распределения файлов с замечаниями {name_directory} '
                                  f'согласно списку принадлежности к группе')
-            vis_groups = await self.dict_loading(number_bloc=name_directory)
+            vis_groups = await dict_loading(print_log=self.print_log, number_bloc=name_directory)
 
             if len(vis_groups):
                 await sort_files_into_groups(number_bloc=name_directory, group_svg=vis_groups)
                 await self.print_log(text='Распределено успешно!\n', color='green')
             else:
                 await self.print_log(text='Распределение невозможно!\n', color='red')
-
-    @asyncSlot()
-    async def dict_loading(self, number_bloc: str) -> Dict:
-        """
-        Функция принимает номер блока и в соответствующей папке находит json файл в котором распределены видеокадры
-        по группам.
-        :param number_bloc: Номер блока.
-        :return: Словарь, содержащий словарь с названием группы(ключ) и списком видеокадров относящихся к группе.
-        """
-        path_vis = path.join(number_bloc, 'data', 'kks_vis_groups.json')
-        try:
-            with open(path_vis, 'r', encoding='UTF-8') as file_json:
-                data = json.load(file_json)
-                return data
-        except FileNotFoundError:
-            await self.print_log(f'Нет файла "kks_vis_groups.json" в папке {path.join(number_bloc, "data")}')
-            return {}
 
     @asyncSlot()
     async def print_log(self, text: str, color: str = 'black') -> None:

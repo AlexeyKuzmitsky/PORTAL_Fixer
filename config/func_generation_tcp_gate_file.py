@@ -1,5 +1,5 @@
-from config.general_functions import check_directory, loading_data_kks_ana, loading_data_kks_bin, loading_data_kks_nary
-# from config.searching_for_signals_in_submodels import creating_list_of_submodel
+from config.general_functions import (check_directory, loading_data_kks_ana, loading_data_kks_bin,
+                                      loading_data_kks_nary, creating_list_of_submodel)
 from os import path, listdir
 from typing import Set, List, Dict
 from config.point_description import AnchorPoint
@@ -38,7 +38,8 @@ async def generation_tcp_gate(name_system, print_log):
         text_log = f'[{num}/{number_name_svg}] Проверка {name_svg}'
 
         if name_svg in list_name_svg_system:
-            list_submodel: List[AnchorPoint] = await video_frame_parsing(svg=name_svg, name_system=name_system)
+            list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system=name_system,
+                                                                               name_svg=name_svg)
         elif name_svg.endswith('.txt'):
             list_submodel: List[AnchorPoint] = txt_file_parsing(name_txt_file=name_svg, name_system=name_system)
         else:
@@ -98,23 +99,6 @@ async def preparing_list_of_video_frames(name_system: str) -> List[str]:
             else:
                 list_name_svg.append(f'{i_line}.svg')
     return list_name_svg
-
-
-async def video_frame_parsing(svg: str, name_system: str) -> List[AnchorPoint]:
-    """
-    Функция принимающая KKS видеокадра на котором построчно ведется поиск начала кода подмодели. При нахождении кода,
-    записывает его построчно в список list_constructor и запускает функцию add_kks с аргументом list_constructor.
-    :param svg: Имя видеокадра формата svg.
-    :param name_system: Имя папки системы для которой подготавливается паспорт.
-    :return: Список найденных подмоделей.
-    """
-    try:
-        with open(path.join(name_system, 'NPP_models', svg), 'r', encoding='windows-1251') as svg_file:
-            list_submodel = await creating_list_of_submodel(svg_file=svg_file, name_svg=svg)
-    except FileNotFoundError:
-        with open(path.join('SVSU', 'NPP_models', svg), 'r', encoding='windows-1251') as svg_file:
-            list_submodel = await creating_list_of_submodel(svg_file=svg_file, name_svg=svg)
-    return list_submodel
 
 
 def txt_file_parsing(name_txt_file: str, name_system: str) -> List[AnchorPoint]:
