@@ -1,0 +1,13 @@
+VCS -> Get from Version Control или Git -> Clone
+URL -> путь к проекту на GitHub
+Directory -> новая папка выбирается в которую будет скачен проект
+Если PyCharm спросит доверяете ли проекту, лучше удалить проект и начать с начала, т.к. он ен предложет выбрать интерпретатор python для проета
+
+python -m venv venv
+venv\Scripts\activate.bat
+python.exe -m pip install --upgrade pip
+pip install pyqt6
+pip install pyqt-tools
+
+
+pip install qasync

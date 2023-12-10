@@ -1,11 +1,14 @@
 from config.general_functions import sort_files_into_groups, new_file_data_ana_bin_nary
 from config.func_parsing_svg import new_start_parsing_svg_files, dict_loading, actualizations_vk_svbu
 from interface.window_name_system import NameSystemWindow
+from interface.window_instruction import Instruction
 from os import path, listdir
-from PyQt6.QtGui import QFont, QIcon, QColor
+from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QSize
-from PyQt6.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QTextBrowser
+from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTextBrowser, QHBoxLayout
+from modernization_objects.push_button import QPushButtonModified
 from qasync import asyncSlot
+from config.style import style_text_browser, style_widget
 
 import config.conf as conf
 
@@ -15,47 +18,33 @@ class ParsingSvg(QMainWindow):
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         self.setMinimumSize(QSize(750, 350))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
-        # self.setWindowIcon(QIcon(path.join('image', 'icon.png')))
-
+        self.instruction_window = Instruction()
         self.main_menu = main_menu
-        font = QFont()
-        font.setFamily('MS Shell Dlg 2')
-        font.setPointSize(12)
 
         layout = QVBoxLayout()
 
-        self.btn_update_vis_svbu = QPushButton('Обновить видеокадры SVBU')
-        self.btn_update_vis_svbu.setMinimumHeight(50)
-        self.btn_update_vis_svbu.setFont(font)
-        self.btn_update_vis_svbu.clicked.connect(self.update_vis_svbu)
-        layout.addWidget(self.btn_update_vis_svbu)  # добавить кнопку на подложку для виджетов
-
-        self.btn_update_data_sig = QPushButton('Обновление баз данных сигналов')
-        self.btn_update_data_sig.setMinimumHeight(50)
-        self.btn_update_data_sig.setFont(font)
-        self.btn_update_data_sig.clicked.connect(self.update_data_system)
-        layout.addWidget(self.btn_update_data_sig)  # добавить кнопку на подложку для виджетов
-
-        self.btn_parsing_svg = QPushButton('Поиск замечаний на видеокадрах')
-        self.btn_parsing_svg.setMinimumHeight(50)
-        self.btn_parsing_svg.setFont(font)
-        self.btn_parsing_svg.clicked.connect(self.start_parsing_svg)
-        layout.addWidget(self.btn_parsing_svg)  # добавить кнопку на подложку для виджетов
-
-        self.btn_sorting_comments = QPushButton('Сортировка найденных замечаний')
-        self.btn_sorting_comments.setMinimumHeight(50)
-        self.btn_sorting_comments.setFont(font)
-        self.btn_sorting_comments.clicked.connect(self.start_sorting_comments)
-        layout.addWidget(self.btn_sorting_comments)  # добавить кнопку на подложку для виджетов
+        layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVBU',
+                                             func_pressed=self.update_vis_svbu))
+        layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
+                                             func_pressed=self.update_data_system))
+        layout.addWidget(QPushButtonModified(text='Поиск замечаний на видеокадрах',
+                                             func_pressed=self.start_parsing_svg))
+        layout.addWidget(QPushButtonModified(text='Сортировка найденных замечаний',
+                                             func_pressed=self.start_sorting_comments))
 
         self.text_log = QTextBrowser()
+        self.text_log.setStyleSheet(style_text_browser)
         layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
-        self.btn_main_menu = QPushButton('Вернуться в главное меню')
-        self.btn_main_menu.setMinimumHeight(50)
-        self.btn_main_menu.setFont(font)
-        self.btn_main_menu.clicked.connect(self.main_menu_window)  # задать действие при нажатии
-        layout.addWidget(self.btn_main_menu)  # добавить кнопку на подложку для виджетов
+        horizontal_layout = QHBoxLayout()
+        horizontal_layout.addWidget(QPushButtonModified(text='Вернуться в главное меню',
+                                                        func_pressed=self.main_menu_window))
+        horizontal_layout.addWidget(QPushButtonModified(text='Открыть инструкцию ❗',
+                                                        func_pressed=self.start_instruction_window))
+        horizontal_layout.addWidget(QPushButtonModified(text='Выйти из программы',
+                                                        func_pressed=self.close_program))
+
+        layout.addLayout(horizontal_layout)
 
         self.name_system_vk = NameSystemWindow(func=self.start_actualizations_vk_svbu,
                                                text='Видеокадры какого блока обновить?',
@@ -74,6 +63,7 @@ class ParsingSvg(QMainWindow):
                                                              set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
 
         widget = QWidget()
+        widget.setStyleSheet(style_widget)
         widget.setLayout(layout)
         self.setCentralWidget(widget)  # Разместим подложку в окне
 
@@ -144,3 +134,12 @@ class ParsingSvg(QMainWindow):
                        'green': QColor(50, 155, 50)}
         self.text_log.setTextColor(dict_colors[color])
         self.text_log.append(text)
+
+    def start_instruction_window(self):
+        self.instruction_window.add_text_instruction()
+        self.instruction_window.show()
+
+    def close_program(self):
+        """Функция закрытия программы"""
+        self.instruction_window.close()
+        self.close()

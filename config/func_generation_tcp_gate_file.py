@@ -11,8 +11,25 @@ async def generation_tcp_gate(name_system, print_log):
     """Генерирует файл TcpGateConf для ZPUPD"""
     # создание базы сигналов соответствующей системы
     data_ana = await loading_data_kks_ana(directory=name_system)
+    if not data_ana:
+        await print_log(f'Нет файла ANA_list_kks.txt в {name_system}\\data.\n'
+                        f'Создание файла ZPUPD невозможно. \n'
+                        f'Для продолжения выполните пункт "обновления баз данных" для {name_system}\n', color='red')
+        return False
+
     data_bin = await loading_data_kks_bin(directory=name_system)
+    if not data_bin:
+        await print_log(f'Нет файла BIN_list_kks.txt в {name_system}\\data.\n'
+                        f'Создание файла ZPUPD невозможно. \n'
+                        f'Для продолжения выполните пункт "обновления баз данных" для {name_system}\n', color='red')
+        return False
+
     data_nary = await loading_data_kks_nary(directory=name_system)
+    if not data_nary:
+        await print_log(f'Нет файла NARY_list_kks.txt в {name_system}\\data.\n'
+                        f'Создание файла ZPUPD невозможно. \n'
+                        f'Для продолжения выполните пункт "обновления баз данных" для {name_system}\n', color='red')
+        return False
 
     check_directory(path_directory=name_system, name_directory='TcpGate')
     check_directory(path_directory=path.join(name_system, 'data'), name_directory='TcpGate')
@@ -27,6 +44,11 @@ async def generation_tcp_gate(name_system, print_log):
 
     # создаем список проверяемых svg файлов
     list_name_svg: List[str] = await preparing_list_of_video_frames(name_system=name_system)
+    if not list_name_svg:
+        await print_log(f'Нет файла list_kks_svg_TcpGate.txt в {name_system}\\data.\n'
+                        f'Создание файла ZPUPD невозможно. \n'
+                        f'Для продолжения поместите файл list_kks_svg_TcpGate.txt в {name_system}\\data\n', color='red')
+        return False
 
     # добавляем список видеокадров от цеха связи если есть
     list_name_txt = listdir(path.join(name_system, 'data', 'TcpGate'))
@@ -65,7 +87,12 @@ async def generation_tcp_gate(name_system, print_log):
         file_creation(set_ana=set_ana_signal, set_bin=set_bin_signal, name_system=name_system, name_file='ZPUPDAS.cfg')
     else:
         file_creation(set_ana=set_ana_signal, set_bin=set_bin_signal, name_system=name_system)
-    file_description_nary_signal(set_bin=set_bin_signal, name_system=name_system)
+    if not file_description_nary_signal(set_bin=set_bin_signal, name_system=name_system):
+        await print_log(f'Нет файла BIN_NARY_kks.json в {name_system}\\data.\n'
+                        f'Создание файла description_nary_signal.json  с описанием многобитовых сигналов невозможно.\n'
+                        f'Для создания данного файла, выполните пункт "обновления баз данных" для {name_system}\n',
+                        color='red')
+    return True
 
 
 async def removing_redundant_signals(data_ana: Set[str], data_bin: Set[str], data_nary: Set[str]):
@@ -91,13 +118,17 @@ async def removing_redundant_signals(data_ana: Set[str], data_bin: Set[str], dat
 async def preparing_list_of_video_frames(name_system: str) -> List[str]:
     """Подготовка списка видеокадров из файла list_kks_svg_TcpGate.txt"""
     list_name_svg: List[str] = list()
-    with open(path.join(name_system, 'data', 'list_kks_svg_TcpGate.txt'), 'r', encoding='UTF') as file_list_name_svg:
-        for i_line in file_list_name_svg:
-            if i_line.endswith('\n'):
+    try:
+        with open(path.join(name_system, 'data', 'list_kks_svg_TcpGate.txt'), 'r',
+                  encoding='UTF-8') as file_list_name_svg:
+            for i_line in file_list_name_svg:
+                if i_line.endswith('\n'):
 
-                list_name_svg.append(f'{i_line[:-1]}.svg')
-            else:
-                list_name_svg.append(f'{i_line}.svg')
+                    list_name_svg.append(f'{i_line[:-1]}.svg')
+                else:
+                    list_name_svg.append(f'{i_line}.svg')
+    except FileNotFoundError:
+        pass
     return list_name_svg
 
 
@@ -162,10 +193,14 @@ def file_creation(set_ana, set_bin, name_system, name_file: str = 'ZPUPD.cfg'):
         file_zpupd.write('#\n')
 
 
-def file_description_nary_signal(set_bin: Set[str], name_system: str, name_file: str = 'description_nary_signal.json'):
+def file_description_nary_signal(set_bin: Set[str], name_system: str,
+                                 name_file: str = 'description_nary_signal.json') -> bool:
     """Запись описания сигналов NARY в JSON файл"""
-    with open(path.join(name_system, 'data', 'BIN_NARY_kks.json'), 'r', encoding='UTF-8') as file_description:
-        dict_nary_signal = json.load(file_description)
+    try:
+        with open(path.join(name_system, 'data', 'BIN_NARY_kks.json'), 'r', encoding='UTF-8') as file_description:
+            dict_nary_signal = json.load(file_description)
+    except FileNotFoundError:
+        return False
     dict_nary_signal_to_file: Dict[str, Dict[str, str]] = dict()
     for i_kks in set_bin:
         if i_kks in dict_nary_signal:
@@ -174,3 +209,4 @@ def file_description_nary_signal(set_bin: Set[str], name_system: str, name_file:
 
     with open(path.join(name_system, 'TcpGate', name_file), 'w', encoding='UTF-8') as json_file:
         json.dump(dict_nary_signal_to_file, json_file, indent=2, ensure_ascii=False)
+    return True

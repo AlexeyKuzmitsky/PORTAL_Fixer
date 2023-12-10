@@ -174,9 +174,12 @@ async def loading_data_kks_ana(directory: str = '') -> Set[str]:
     """
     set_kks_ana_data: Set[str] = set()
 
-    with open(path.join(directory, 'data', 'ANA_list_kks.txt')) as file:
-        for i_line in file:
-            set_kks_ana_data.add(i_line[:-1])
+    try:
+        with open(path.join(directory, 'data', 'ANA_list_kks.txt')) as file:
+            for i_line in file:
+                set_kks_ana_data.add(i_line[:-1])
+    except FileNotFoundError:
+        pass
     return set_kks_ana_data
 
 
@@ -187,9 +190,12 @@ async def loading_data_kks_bin(directory: str = '') -> Set[str]:
     """
     set_kks_bin_data: Set[str] = set()
 
-    with open(path.join(directory, 'data', 'BIN_list_kks.txt')) as file:
-        for i_line in file:
-            set_kks_bin_data.add(i_line[:-1])
+    try:
+        with open(path.join(directory, 'data', 'BIN_list_kks.txt')) as file:
+            for i_line in file:
+                set_kks_bin_data.add(i_line[:-1])
+    except FileNotFoundError:
+        pass
     return set_kks_bin_data
 
 
@@ -226,9 +232,12 @@ async def loading_data_kks_nary(directory: str = '') -> Set[str]:
     """
     set_kks_nary_data: Set[str] = set()
 
-    with open(path.join(directory, 'data', 'NARY_list_kks.txt')) as file:
-        for i_line in file:
-            set_kks_nary_data.add(i_line[:-1])
+    try:
+        with open(path.join(directory, 'data', 'NARY_list_kks.txt')) as file:
+            for i_line in file:
+                set_kks_nary_data.add(i_line[:-1])
+    except FileNotFoundError:
+        pass
     return set_kks_nary_data
 
 

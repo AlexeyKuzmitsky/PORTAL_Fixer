@@ -1,51 +1,45 @@
-from config.general_functions import new_data_ana_bin_nary
+from config.general_functions import new_file_data_ana_bin_nary
 from config.func_generation_tcp_gate_file import generation_tcp_gate
-
 from interface.window_name_system import NameSystemWindow
+from interface.window_instruction import Instruction
+from PyQt6.QtGui import QColor
+from PyQt6.QtCore import QSize
+from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTextBrowser, QHBoxLayout
+from config.style import style_widget, style_text_browser
+from qasync import asyncSlot
+from modernization_objects.push_button import QPushButtonModified
 
 import config.conf as conf
-from os import path
-from PyQt6.QtGui import QFont, QIcon, QColor
-from PyQt6.QtCore import QSize
-from PyQt6.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QTextBrowser
-
-from qasync import asyncSlot
 
 
 class GenerationTcpGate(QMainWindow):
     def __init__(self, main_menu):  # изменим начальные настройки
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
-        self.setMinimumSize(QSize(750, 350))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
-        # self.setWindowIcon(QIcon(path.join('image', 'icon.png')))
+        self.setMinimumSize(QSize(750, 550))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
 
+        self.instruction_window = Instruction()
         self.main_menu = main_menu
-        font = QFont()
-        font.setFamily('MS Shell Dlg 2')
-        font.setPointSize(12)
 
         layout = QVBoxLayout()
-
-        self.btn_update_data_sig = QPushButton('Обновление баз данных сигналов')
-        self.btn_update_data_sig.setMinimumHeight(50)
-        self.btn_update_data_sig.setFont(font)
-        self.btn_update_data_sig.clicked.connect(self.update_data_system)
-        layout.addWidget(self.btn_update_data_sig)  # добавить кнопку на подложку для виджетов
-
-        self.btn_parsing_svg = QPushButton('Создание файла ZPUPD.cfg')
-        self.btn_parsing_svg.setMinimumHeight(50)
-        self.btn_parsing_svg.setFont(font)
-        self.btn_parsing_svg.clicked.connect(self.tcp_gate_system)
-        layout.addWidget(self.btn_parsing_svg)  # добавить кнопку на подложку для виджетов
+        layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
+                                             func_pressed=self.update_data_system))
+        layout.addWidget(QPushButtonModified(text='Создание файла ZPUPD.cfg',
+                                             func_pressed=self.tcp_gate_system))
 
         self.text_log = QTextBrowser()
+        self.text_log.setStyleSheet(style_text_browser)
         layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
-        self.btn_main_menu = QPushButton('Вернуться в главное меню')
-        self.btn_main_menu.setMinimumHeight(50)
-        self.btn_main_menu.setFont(font)
-        self.btn_main_menu.clicked.connect(self.main_menu_window)  # задать действие при нажатии
-        layout.addWidget(self.btn_main_menu)  # добавить кнопку на подложку для виджетов
+        horizontal_layout = QHBoxLayout()
+        horizontal_layout.addWidget(QPushButtonModified(text='Вернуться в главное меню',
+                                                        func_pressed=self.main_menu_window))
+        horizontal_layout.addWidget(QPushButtonModified(text='Открыть инструкцию ❗',
+                                                        func_pressed=self.start_instruction_window))
+        horizontal_layout.addWidget(QPushButtonModified(text='Выйти из программы',
+                                                        func_pressed=self.close_program))
+
+        layout.addLayout(horizontal_layout)
 
         self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
                                             text='Базу какой из систем обновить?',
@@ -56,8 +50,8 @@ class GenerationTcpGate(QMainWindow):
                                                      set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
 
         widget = QWidget()
-        # widget.colorCount(QColor(27, 91, 95))
         widget.setLayout(layout)
+        widget.setStyleSheet(style_widget)
         self.setCentralWidget(widget)  # Разместим подложку в окне
 
     def update_data_system(self):
@@ -77,15 +71,18 @@ class GenerationTcpGate(QMainWindow):
         :return: None
         """
         await self.print_log(text=f'Старт создания файла ZPUPD.cfg для {name_directory}')
-        await generation_tcp_gate(name_system=name_directory, print_log=self.print_log)
-        await self.print_log(text='Поиск файла ZPUPD.cfg завершено\n', color='green')
+        if await generation_tcp_gate(name_system=name_directory, print_log=self.print_log):
+            await self.print_log(text='Создание файла ZPUPD.cfg завершено\n')
+        else:
+            await self.print_log(text='Создание файла ZPUPD.cfg прекращено. Устраните все недочеты и повторите\n',
+                                 color='red')
 
     @asyncSlot()
     async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
         """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
         await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
-        await new_data_ana_bin_nary(print_log=self.print_log, name_system=name_system)
-        await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n', color='green')
+        await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system)
+        await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
 
     @asyncSlot()
     async def print_log(self, text: str, color: str = 'black') -> None:
@@ -95,3 +92,12 @@ class GenerationTcpGate(QMainWindow):
                        'green': QColor(50, 155, 50)}
         self.text_log.setTextColor(dict_colors[color])
         self.text_log.append(text)
+
+    def start_instruction_window(self):
+        self.instruction_window.add_text_instruction()
+        self.instruction_window.show()
+
+    def close_program(self):
+        """Функция закрытия программы"""
+        self.instruction_window.close()
+        self.close()

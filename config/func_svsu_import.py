@@ -22,7 +22,7 @@ async def actualizations_vk_svbu(print_log, name_directory: str) -> None:
             await print_log(text=f'[{number}/{numbers_vis}]   +++{i_vis} видеокадр обновлен+++')
         else:
             await print_log(text=f'[{number}/{numbers_vis}]   '
-                                      f'---Видеокадра {i_vis} нет в {name_directory}/NPP_models_new ---',
+                                 f'---Видеокадра {i_vis} нет в {name_directory}/NPP_models_new ---',
                                  color='red')
         number += 1
 
@@ -91,7 +91,7 @@ async def actualizations_vk_svsu(print_log, name_directory: str) -> None:
             await print_log(text=f'[{num}/{numbers_vis}]   +++{i_vis} видеокадр обновлен+++')
         else:
             await print_log(text=f'[{num}/{numbers_vis}]   '
-                                      f'---Видеокадра {i_vis} нет в папке {name_directory}\\NPP_models---',
+                                 f'---Видеокадра {i_vis} нет в папке {name_directory}\\NPP_models---',
                                  color='red')
         num += 1
 
@@ -104,8 +104,6 @@ async def compiling_list_of_kks(list_submodel: List[AnchorPoint],
                                             data_bin=data_bin,
                                             data_nary=data_nary,
                                             set_suffix={'XH01', 'XH41', 'XH52', 'XH92'})
-
-
 
 
 async def list_of_signals_on_video_frame(list_submodel: List[AnchorPoint]):
@@ -204,8 +202,8 @@ async def add_file_svsu_import(print_log, name_system: str) -> None:
                                         data_ana=data_ana, data_bin=data_bin, data_nary=data_nary)
             set_ana, set_bin, set_nary = await list_of_signals_on_video_frame(list_submodel=list_submodel)
             await print_log(text=f'[{num: <4}/{number_name_svg: <4}] Проверка {name_svg: <25}\t\t'
-                                      f'Найдено KKS: ANA - {len(set_ana): <4}, BIN - {len(set_bin): <4}, '
-                                      f'NARY - {len(set_nary): <4}')
+                                 f'Найдено KKS: ANA - {len(set_ana): <4}, BIN - {len(set_bin): <4}, '
+                                 f'NARY - {len(set_nary): <4}')
             set_ana_signal.update(set_ana)
             set_bin_signal.update(set_bin)
             set_nary_signal.update(set_nary)
@@ -230,6 +228,7 @@ async def save_old_file(print_log, name_system: str):
                                '(файл SVSU_IMPORT.txt будет переименован в SVSU_IMPORT_bck.txt)')
     if msg == QMessageBox.StandardButton.Yes:
         await renaming_old_file_svsu_import(print_log=print_log, name_system=name_system)
+
 
 async def check_all_files(print_log, name_system: str):
     """Функция проверяет наличие всех файлов (ANA_list_kks.txt, BIN_list_kks.txt, NARY_list_kks.txt)
@@ -276,7 +275,7 @@ async def renaming_old_file_svsu_import(print_log, name_system: str):
             remove(path.join(name_system, 'SVSU_IMPORT_bck.txt'))
         rename(path.join(name_system, 'SVSU_IMPORT.txt'), path.join(name_system, 'SVSU_IMPORT_bck.txt'))
         await print_log(text=f'Файл {name_system}/SVSU_IMPORT.txt переименован в '
-                                  f'{name_system}/SVSU_IMPORT_bck.txt', color='green')
+                             f'{name_system}/SVSU_IMPORT_bck.txt', color='green')
     else:
         await print_log(text=f'Файл {name_system}/SVSU_IMPORT.txt не найден', color='red')
 

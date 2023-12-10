@@ -35,7 +35,10 @@ def program_new_passport():
     check_directory(path_directory=name_system, name_directory='screen')
 
     list_name_svg = os.listdir(os.path.join(name_system, 'NPP_models'))
-    list_name_svg.remove('diag_WS.svg')
+    try:
+        list_name_svg.remove('diag_WS.svg')
+    except ValueError:
+        pass
     number_name_svg = len(list_name_svg)
     num = 1020
     for name_svg in list_name_svg[num:]:

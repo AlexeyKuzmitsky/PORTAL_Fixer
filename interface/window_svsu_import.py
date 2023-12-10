@@ -1,66 +1,61 @@
 from config.general_functions import new_file_data_ana_bin_nary
 from config.func_svsu_import import enumeration_of_svg, actualizations_vk_svbu, actualizations_vk_svsu
 from interface.window_name_system import NameSystemWindow
-from os import getcwd, path
-from PyQt6.QtGui import QFont, QIcon, QColor
+from interface.window_instruction import Instruction
+from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QSize
-from PyQt6.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QTextBrowser
+from PyQt6.QtWidgets import QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QTextBrowser, QProgressBar
 from qasync import asyncSlot
+from modernization_objects.push_button import QPushButtonModified
+from config.style import style_widget, style_text_browser
 
 import config.conf as conf
+
 
 class SvsuImport(QMainWindow):
     def __init__(self, main_menu):  # изменим начальные настройки
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         self.setMinimumSize(QSize(750, 350))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
-        # self.setWindowIcon(QIcon(path.join('image', 'icon.png')))
-
+        self.instruction_window = Instruction()
         self.main_menu = main_menu
-        font = QFont()
-        font.setFamily('MS Shell Dlg 2')
-        font.setPointSize(12)
 
         layout = QVBoxLayout()
 
-        self.btn_update_vis_svbu = QPushButton('Обновить видеокадры SVBU')
-        self.btn_update_vis_svbu.setMinimumHeight(50)
-        self.btn_update_vis_svbu.setFont(font)
-        self.btn_update_vis_svbu.clicked.connect(self.update_vis_svbu)
-        layout.addWidget(self.btn_update_vis_svbu)  # добавить кнопку на подложку для виджетов
+        layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVBU',
+                                             func_pressed=self.update_vis_svbu))
 
-        self.btn_update_vis_svsu = QPushButton('Обновить видеокадры SVSU из самых актуальных видеокадров SVBU')
-        self.btn_update_vis_svsu.setMinimumHeight(50)
-        self.btn_update_vis_svsu.setFont(font)
-        self.btn_update_vis_svsu.clicked.connect(self.update_vis_svsu)
-        layout.addWidget(self.btn_update_vis_svsu)  # добавить кнопку на подложку для виджетов
+        layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVSU из самых актуальных видеокадров SVBU',
+                                             func_pressed=self.update_vis_svsu))
 
-        self.btn_block_button_svg = QPushButton('Сделать неактивными кнопки на кадрах с несуществующими ссылками')
-        self.btn_block_button_svg.setMinimumHeight(50)
-        self.btn_block_button_svg.setFont(font)
-        self.btn_block_button_svg.clicked.connect(self.start_bloc_button)
-        layout.addWidget(self.btn_block_button_svg)  # добавить кнопку на подложку для виджетов
+        layout.addWidget(QPushButtonModified(text='Сделать неактивными кнопки на кадрах с несуществующими ссылками',
+                                             func_pressed=self.start_bloc_button))
 
-        self.btn_update_data_sig = QPushButton('Обновление баз данных сигналов')
-        self.btn_update_data_sig.setMinimumHeight(50)
-        self.btn_update_data_sig.setFont(font)
-        self.btn_update_data_sig.clicked.connect(self.update_data_system)
-        layout.addWidget(self.btn_update_data_sig)  # добавить кнопку на подложку для виджетов
+        layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
+                                             func_pressed=self.update_data_system))
 
-        self.btn_add_file_svsu_import = QPushButton('Создать файл SVSU_IMPORT.txt')
-        self.btn_add_file_svsu_import.setMinimumHeight(50)
-        self.btn_add_file_svsu_import.setFont(font)
-        self.btn_add_file_svsu_import.clicked.connect(self.update_file_svsu_import)
-        layout.addWidget(self.btn_add_file_svsu_import)  # добавить кнопку на подложку для виджетов
+        layout.addWidget(QPushButtonModified(text='Создать файл SVSU_IMPORT.txt',
+                                             func_pressed=self.update_file_svsu_import))
 
         self.text_log = QTextBrowser()
+        self.text_log.setStyleSheet(style_text_browser)
         layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
-        self.btn_main_menu = QPushButton('Вернуться в главное меню')
-        self.btn_main_menu.setMinimumHeight(50)
-        self.btn_main_menu.setFont(font)
-        self.btn_main_menu.clicked.connect(self.main_menu_window)  # задать действие при нажатии
-        layout.addWidget(self.btn_main_menu)  # добавить кнопку на подложку для виджетов
+        self.progress = QProgressBar()
+        layout.addWidget(self.progress)
+        # self.progress.setValue(41)
+        # self.progress.reset()
+        self.progress.setVisible(False)
+
+        horizontal_layout = QHBoxLayout()
+        horizontal_layout.addWidget(QPushButtonModified(text='Вернуться в главное меню',
+                                                        func_pressed=self.main_menu_window))
+        horizontal_layout.addWidget(QPushButtonModified(text='Открыть инструкцию ❗',
+                                                        func_pressed=self.start_instruction_window))
+        horizontal_layout.addWidget(QPushButtonModified(text='Выйти из программы',
+                                                        func_pressed=self.close_program))
+
+        layout.addLayout(horizontal_layout)
 
         self.name_system_vk_svbu = NameSystemWindow(func=self.start_actualizations_vk_svbu,
                                                     text='Видеокадры какого блока обновить?',
@@ -76,12 +71,9 @@ class SvsuImport(QMainWindow):
                                                         set_name_system={'SVBU_1', 'SVBU_2'})
 
         widget = QWidget()
+        widget.setStyleSheet(style_widget)
         widget.setLayout(layout)
         self.setCentralWidget(widget)  # Разместим подложку в окне
-
-    def add_text(self):
-        text = getcwd()
-        self.text_log.append(f'Нажата одна их кнопок {text}')
 
     def update_vis_svbu(self):
         self.name_system_vk_svbu.show()
@@ -103,7 +95,9 @@ class SvsuImport(QMainWindow):
     async def start_actualizations_vk_svbu(self, name_directory: str) -> None:
         """Функция запускающая обновление видеокадров SVBU"""
         await self.print_log(f'Начало обновления видеокадров {name_directory}')
+        self.progress.setVisible(True)
         await actualizations_vk_svbu(print_log=self.print_log, name_directory=name_directory)
+        self.progress.setVisible(False)
         await self.print_log(text=f'Обновление видеокадров {name_directory} завершено\n')
 
     @asyncSlot()
@@ -142,3 +136,12 @@ class SvsuImport(QMainWindow):
                        'green': QColor(50, 155, 50)}
         self.text_log.setTextColor(dict_colors[color])
         self.text_log.append(text)
+
+    def start_instruction_window(self):
+        self.instruction_window.add_text_instruction()
+        self.instruction_window.show()
+
+    def close_program(self):
+        """Функция закрытия программы"""
+        self.instruction_window.close()
+        self.close()

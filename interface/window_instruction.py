@@ -1,8 +1,8 @@
 import config.conf as conf
-from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTextBrowser
 from os import path
+from config.style import style_widget
 
 
 class Instruction(QMainWindow):
@@ -10,7 +10,6 @@ class Instruction(QMainWindow):
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'Инструкция {conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         self.setMinimumSize(QSize(800, 600))  # Устанавливаем минимальный размер окна 400(ширина) на 700(высота)
-        # self.setWindowIcon(QIcon(path.join('image', 'atom.png')))
 
         layout = QVBoxLayout()
 
@@ -18,6 +17,7 @@ class Instruction(QMainWindow):
 
         layout.addWidget(self.text_instruction)  # добавить QTextEdit на подложку для виджетов
         widget = QWidget()
+        widget.setStyleSheet(style_widget)
         widget.setLayout(layout)
         self.setCentralWidget(widget)  # Разместим подложку в окне
 
