@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "D:/Skillbox/PORTAL_Fixer_2/start_program_portal_fixer.py"
+   "value": "D:/Skillbox/PORTAL_Fixer_2/main_gui.py"
   },
   {
    "optionDest": "onefile",
@@ -19,7 +19,7 @@
   },
   {
    "optionDest": "name",
-   "value": "PORTAL_Fixer_2.0.2"
+   "value": "PORTAL_Fixer_2.0.3"
   },
   {
    "optionDest": "clean_build",
