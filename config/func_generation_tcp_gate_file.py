@@ -3,6 +3,8 @@ from config.general_functions import (check_directory, loading_data_kks_ana, loa
 from os import path, listdir
 from typing import Set, List, Dict
 from config.point_description import AnchorPoint
+from csv import reader
+from PyQt6.QtWidgets import QProgressBar
 
 import json
 
@@ -60,8 +62,12 @@ async def generation_tcp_gate(name_system, print_log):
         text_log = f'[{num}/{number_name_svg}] Проверка {name_svg}'
 
         if name_svg in list_name_svg_system:
-            list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system=name_system,
-                                                                               name_svg=name_svg)
+            try:
+                list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system=name_system,
+                                                                                   name_svg=name_svg)
+            except FileNotFoundError:
+                list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system='SVSU',
+                                                                                   name_svg=name_svg)
         elif name_svg.endswith('.txt'):
             list_submodel: List[AnchorPoint] = txt_file_parsing(name_txt_file=name_svg, name_system=name_system)
         else:
@@ -210,3 +216,69 @@ def file_description_nary_signal(set_bin: Set[str], name_system: str,
     with open(path.join(name_system, 'TcpGate', name_file), 'w', encoding='UTF-8') as json_file:
         json.dump(dict_nary_signal_to_file, json_file, indent=2, ensure_ascii=False)
     return True
+
+
+async def add_data_file_bin_nary(print_log, name_system: str,
+                                 progress: QProgressBar, min_progress: int=50, max_progress: int=100):
+    """Функция создает файл BIN_NARY_kks.json"""
+    check_directory(path_directory=name_system, name_directory='DbDumps')
+    check_directory(path_directory=name_system, name_directory='data')
+    dict_kks_bin_data: Dict = dict()
+
+    print_log('Сбор описания сигналов NARY')
+    progress.setValue(round((max_progress - min_progress) * 15 / 100 + min_progress))
+    try:
+        dict_description: Dict[int, Dict[str, str]] = add_list_description(name_system=name_system)
+    except FileNotFoundError:
+        print_log('INFO Создание файла BIN_NARY_kks.json невозможно. '
+                  f'Нет файла PLS_BIN_NARY_CONF.dmp в папке {name_system}\\DbDumps\n', color='red')
+        return
+    progress.setValue(round((max_progress - min_progress) * 45 / 100 + min_progress))
+    with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
+        new_text = reader(file, delimiter='|')
+        for i_line in new_text:
+            try:
+                full_kks = i_line[42]
+                number_description = i_line[14]
+                if number_description != '-1':
+                    dict_kks_bin_data[full_kks] = dict_description[int(number_description)]
+                else:
+                    dict_kks_bin_data[full_kks] = dict()
+            except IndexError:
+                ...
+            except ValueError:
+                ...
+            except KeyError:
+                ...
+    progress.setValue(round((max_progress - min_progress) * 65 / 100 + min_progress))
+    with open(path.join(name_system, 'data', 'BIN_NARY_kks.json'), 'w', encoding='UTF-8') as json_file:
+        json.dump(dict_kks_bin_data, json_file, indent=2, ensure_ascii=False)
+    print_log('Описания сигналов NARY собраны\n', color='green')
+    progress.setValue(round((max_progress - min_progress) + min_progress))
+
+
+def add_list_description(name_system: str) -> Dict[int, Dict[str, str]]:
+    """Функция подготавливает словарь, в котором ключ это номер описания, значение - список описаний битов"""
+    dict_description: Dict[int, Dict[str, str]] = dict()
+    with open(path.join(name_system, 'DbDumps', 'PLS_BIN_NARY_CONF.dmp'), 'r', encoding='windows-1251') as file_nary:
+        file_nary.readline()
+        file_nary.readline()
+        file_nary.readline()
+        list_name_descriptions = file_nary.readline()[:-1].split('|')[-16:]
+        new_text = reader(file_nary, delimiter='|')
+        for i_line in new_text:
+            try:
+                number_description = int(i_line[0])
+                dict_description[number_description] = dict()
+                num = -16
+                for i_name_description in list_name_descriptions:
+                    text = i_line[num]
+                    if text == '':
+                        num += 1
+                        continue
+                    dict_description[number_description][i_name_description] = text
+                    num += 1
+            except (IndexError, ValueError):
+                ...
+
+    return dict_description

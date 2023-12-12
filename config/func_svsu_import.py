@@ -3,19 +3,20 @@ from typing import List, Set, Dict
 from os import path, listdir, remove, rename
 from config.general_functions import (check_file, loading_data_kks_ana, loading_data_kks_bin, loading_data_kks_nary,
                                       creating_list_of_submodel, check_directory)
-from PyQt6.QtWidgets import QMainWindow, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QMessageBox, QProgressBar
 
 import shutil
 import re
 
 
-async def actualizations_vk_svbu(print_log, name_directory: str) -> None:
+async def actualizations_vk_svbu(print_log, name_directory: str, progress: QProgressBar) -> None:
     """Функция обновления видеокадров в папке SVBU_(1/2)/NPP_models из папки SVBU_(1/2)/NPP_models_new"""
     set_vis: Set[str] = set(listdir(path.join(name_directory, 'NPP_models')))
     set_vis_new: Set[str] = set(listdir(path.join(name_directory, 'NPP_models_new')))
     numbers_vis = len(set_vis)
     number = 1
     for i_vis in sorted(set_vis):
+        progress.setValue(round(number / numbers_vis * 100))
         if i_vis in set_vis_new:
             shutil.copy2(path.join(name_directory, 'NPP_models_new', i_vis),
                          path.join(name_directory, 'NPP_models', i_vis))
@@ -27,7 +28,7 @@ async def actualizations_vk_svbu(print_log, name_directory: str) -> None:
         number += 1
 
 
-async def actualizations_vk_svsu(print_log, name_directory: str) -> None:
+async def actualizations_vk_svsu(print_log, name_directory: str, progress: QProgressBar) -> None:
     """Функция обновления видеокадров в папке SVSU/NPP_models из папки SVBU_(1/2)/NPP_models"""
     if name_directory == 'SVBU_1':
         number = '1'
@@ -57,6 +58,7 @@ async def actualizations_vk_svsu(print_log, name_directory: str) -> None:
     numbers_vis = len(set_vis)
 
     for i_vis in sorted(set_vis):
+        progress.setValue(round(num / numbers_vis * 100))
         if i_vis == '10MKA03.svg':
             pass
         if i_vis in renaming_kks:
@@ -119,7 +121,7 @@ async def list_of_signals_on_video_frame(list_submodel: List[AnchorPoint]):
     return set_ana, set_bin, set_nary
 
 
-async def enumeration_of_svg(print_log) -> None:
+async def enumeration_of_svg(print_log, progress: QProgressBar) -> None:
     """
     Функция берущая из папки NPP_models видеокадры и запускает функцию bloc_button в которую передает по
     оному видеокадру.
@@ -133,6 +135,7 @@ async def enumeration_of_svg(print_log) -> None:
     num = 1
     len_num = len(set_vis)
     for i_svg in sorted(set_vis):
+        progress.setValue(round(num / len_num * 100))
         if i_svg.endswith('.svg'):
             await bloc_button(svg=i_svg, set_kks_name_svg=set_kks_vis_npp_models)
             await print_log(text=f'[{num}/{len_num}] Проверен видеокадр {i_svg}')
@@ -177,7 +180,7 @@ async def bloc_button(svg: str, set_kks_name_svg: Set[str]) -> None:
                 new_file_svg.write(i_line)
 
 
-async def add_file_svsu_import(print_log, name_system: str) -> None:
+async def add_file_svsu_import(print_log, name_system: str, progress: QProgressBar) -> None:
     """Функция подготовки файла SVSU_IMPORT.txt"""
     check_directory(path_directory='SVSU', name_directory='NPP_models')
     await save_old_file(print_log=print_log, name_system=name_system)
@@ -195,8 +198,9 @@ async def add_file_svsu_import(print_log, name_system: str) -> None:
     num = 1
     number_name_svg = len(list_name_svg_svsu)
     for name_svg in list_name_svg_svsu:
+        progress.setValue(round(num / number_name_svg * 100))
         if name_svg.endswith('.svg'):
-            list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system=name_system,
+            list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system='SVSU',
                                                                                name_svg=name_svg)
             await compiling_list_of_kks(list_submodel=list_submodel,
                                         data_ana=data_ana, data_bin=data_bin, data_nary=data_nary)

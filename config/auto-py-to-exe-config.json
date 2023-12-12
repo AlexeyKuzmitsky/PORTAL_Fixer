@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "D:/Skillbox/PORTAL_Fixer_2/main_gui.py"
+   "value": "E:/PycharmProjects/PORTAL_Fixer2/main_gui.py"
   },
   {
    "optionDest": "onefile",
@@ -18,8 +18,12 @@
    "value": false
   },
   {
+   "optionDest": "icon_file",
+   "value": "E:/PycharmProjects/PORTAL_Fixer2/image/icon.ico"
+  },
+  {
    "optionDest": "name",
-   "value": "PORTAL_Fixer_2.0.3"
+   "value": "PORTAL_Fixer_2.0.5"
   },
   {
    "optionDest": "clean_build",

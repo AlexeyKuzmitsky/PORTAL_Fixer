@@ -1,5 +1,5 @@
 name_program = 'PORTAL_Fixer'
-version_program = '2.0.4'
+version_program = '2.0.5'
 program_compilation_date = '2023.12.12'
 
 program_directory_map = {

@@ -5,7 +5,7 @@ from interface.window_instruction import Instruction
 from os import path, listdir
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QSize
-from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTextBrowser, QHBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTextBrowser, QHBoxLayout, QProgressBar
 from modernization_objects.push_button import QPushButtonModified
 from qasync import asyncSlot
 from config.style import style_text_browser, style_widget
@@ -17,7 +17,7 @@ class ParsingSvg(QMainWindow):
     def __init__(self, main_menu):  # изменим начальные настройки
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
-        self.setMinimumSize(QSize(750, 350))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
+        self.setMinimumSize(QSize(750, 650))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
         self.instruction_window = Instruction()
         self.main_menu = main_menu
 
@@ -35,6 +35,11 @@ class ParsingSvg(QMainWindow):
         self.text_log = QTextBrowser()
         self.text_log.setStyleSheet(style_text_browser)
         layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
+
+        self.progress = QProgressBar()
+        self.progress.setStyleSheet('text-align: center;')
+        layout.addWidget(self.progress)
+        self.progress.setVisible(False)
 
         horizontal_layout = QHBoxLayout()
         horizontal_layout.addWidget(QPushButtonModified(text='⏪ Вернуться в главное меню',
@@ -88,14 +93,18 @@ class ParsingSvg(QMainWindow):
         """Функция запускающая обновление видеокадров SVBU_(1/2)/NPP_models из папки SVBU_(1/2)/NPP_models_new"""
         await self.print_log(text=f'Начато обновление видеокадров {name_directory}/NPP_models '
                                   f'из папки {name_directory}/NPP_models_new')
-        await actualizations_vk_svbu(print_log=self.print_log, name_directory=name_directory)
+        self.progress.setVisible(True)
+        self.progress.reset()
+        await actualizations_vk_svbu(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
         await self.print_log(text=f'Выполнение программы обновления видеокадров {name_directory} завершено\n')
 
     @asyncSlot()
     async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
         """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
         await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
-        await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system)
+        self.progress.setVisible(True)
+        self.progress.reset()
+        await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress)
         await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
 
     @asyncSlot()
@@ -106,7 +115,10 @@ class ParsingSvg(QMainWindow):
         """
         set_svg = set(listdir(path.join(name_directory, 'NPP_models')))
         await self.print_log(text=f'Старт проверки видеокадров {name_directory}')
-        if await new_start_parsing_svg_files(print_log=self.print_log, svg=set_svg, directory=name_directory):
+        self.progress.setVisible(True)
+        self.progress.reset()
+        if await new_start_parsing_svg_files(print_log=self.print_log, svg=set_svg, directory=name_directory,
+                                             progress=self.progress):
             await self.print_log(text='Поиск замечаний завершен\n', color='green')
         else:
             await self.print_log(text='Выполнение поиска замечаний прервано пользователем\n', color='red')
@@ -117,16 +129,16 @@ class ParsingSvg(QMainWindow):
         Функция запускающая распределение файлов с замечаниями согласно списку принадлежности к группе.
         :return: None
         """
-        if name_directory != '0':
-            await self.print_log(f'Старт распределения файлов с замечаниями {name_directory} '
-                                 f'согласно списку принадлежности к группе')
-            vis_groups = await dict_loading(print_log=self.print_log, number_bloc=name_directory)
-
-            if len(vis_groups):
-                await sort_files_into_groups(number_bloc=name_directory, group_svg=vis_groups)
-                await self.print_log(text='Распределено успешно!\n', color='green')
-            else:
-                await self.print_log(text='Распределение невозможно!\n', color='red')
+        await self.print_log(f'Старт распределения файлов с замечаниями {name_directory} '
+                             f'согласно списку принадлежности к группе')
+        self.progress.setVisible(True)
+        self.progress.reset()
+        vis_groups = await dict_loading(print_log=self.print_log, number_bloc=name_directory)
+        if len(vis_groups):
+            await sort_files_into_groups(number_bloc=name_directory, group_svg=vis_groups, progress=self.progress)
+            await self.print_log(text='Распределено успешно!\n', color='green')
+        else:
+            await self.print_log(text='Распределение невозможно!\n', color='red')
 
     @asyncSlot()
     async def print_log(self, text: str, color: str = 'black') -> None:

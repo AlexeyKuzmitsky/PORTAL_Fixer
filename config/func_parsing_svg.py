@@ -5,20 +5,21 @@ import shutil
 from os import path, listdir
 from typing import Set, Dict, List
 from math import ceil
-from PyQt6.QtWidgets import QMainWindow, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QMessageBox, QProgressBar
 from config.point_description import AnchorPoint
 from config.general_functions import check_directory
 from config.general_functions import (loading_data_kks_ana, loading_data_kks_bin, loading_data_kks_nary,
                                       loading_data_dict_kks_ana, loading_data_dict_kks_bin, creating_list_of_submodel)
 
 
-async def actualizations_vk_svbu(print_log, name_directory: str) -> None:
+async def actualizations_vk_svbu(print_log, name_directory: str, progress: QProgressBar) -> None:
     """Функция обновления видеокадров в папке SVBU_(1/2)/NPP_models из папки SVBU_(1/2)/NPP_models_new"""
     set_vis: Set[str] = set(listdir(path.join(name_directory, 'NPP_models')))
     set_vis_new: Set[str] = set(listdir(path.join(name_directory, 'NPP_models_new')))
     numbers_vis = len(set_vis)
     number = 1
     for i_vis in sorted(set_vis):
+        progress.setValue(round(number / numbers_vis * 100))
         if i_vis in set_vis_new:
             shutil.copy2(path.join(name_directory, 'NPP_models_new', i_vis),
                          path.join(name_directory, 'NPP_models', i_vis))
@@ -30,13 +31,14 @@ async def actualizations_vk_svbu(print_log, name_directory: str) -> None:
         number += 1
 
 
-async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str) -> bool:
+async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str, progress: QProgressBar) -> bool:
     """
     Функция производит поиск всех подмоделей на видеокадрах после чего находит на подмоделях привязки (KKS).
     Проверяет наличие KKS в действующей базе и если не находит, подготавливает запись в файл замечаний.
     :param print_log: Функция записи лога в консоль
     :param svg: Список svg-файлов
     :param directory: Название системы в которой ведется поиск замечаний
+    :param progress: Прогресс выполнения программы
     :return: None
     """
     set_kks_ana_data = await loading_data_kks_ana(directory=directory)
@@ -57,6 +59,7 @@ async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str) 
     numbers = len(svg)
     number = 1
     for i_svg in sorted(svg):
+        progress.setValue(round(number / numbers * 100))
         text_log = f'[{number}/{numbers}]\t Проверка {i_svg}'
         if i_svg.endswith('.svg') or i_svg.endswith('.SVG'):
             list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system=directory,

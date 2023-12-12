@@ -8,6 +8,7 @@ from typing import Set, Dict, List
 from .timer import timer
 from .get_logger import log_info_print, log_info
 from config.point_description import AnchorPoint
+from PyQt6.QtWidgets import QProgressBar
 
 from csv import reader
 
@@ -69,7 +70,8 @@ async def new_submodel(list_constructor, list_submodel, name_svg: str) -> None:
         list_submodel.append(submodel)
 
 
-async def new_file_data_ana_bin_nary(print_log, name_system: str) -> None:
+async def new_file_data_ana_bin_nary(print_log, name_system: str,
+                                     progress: QProgressBar, min_progress: int=0, max_progress: int=100) -> None:
     """
     Функция обновления файлов со списком KKS сигналов. По завершению обновляются (создаются если не было) 3 файла:
     BIN_list_kks.txt со списком бинарных сигналов
@@ -77,6 +79,9 @@ async def new_file_data_ana_bin_nary(print_log, name_system: str) -> None:
     ANA_list_kks.txt со списков аналоговых сигналов
     :param print_log: функция вывода лога.
     :param name_system: Папка в которой будут обновления.
+    :param progress: Прогресс выполнения программы
+    :param min_progress: Минимальный процент прогресса
+    :param max_progress: Максимальный процент прогресса
     :return: None
     """
     check_directory(path_directory=name_system, name_directory='DbDumps')
@@ -86,26 +91,40 @@ async def new_file_data_ana_bin_nary(print_log, name_system: str) -> None:
     set_kks_nary_date = set()
     set_kks_ana_date = set()
 
-    await print_log(text='Сбор BIN сигналов')
+    dict_kks_bin_data = dict()
+    dict_kks_ana_data = dict()
 
+    await print_log(text='Сбор BIN сигналов')
+    progress.setValue(round((max_progress-min_progress) * 5 / 100 + min_progress))
     try:
         with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
             new_text = reader(file, delimiter='|')
             for i_line in new_text:
                 try:
                     full_kks = i_line[42]
-                    if i_line[14] == '-1':
+                    kks = full_kks.partition('_')[0]
+                    description = i_line[43]
 
+                    if i_line[14] == '-1':
                         set_kks_bin_date.add(full_kks)
                     else:
                         set_kks_nary_date.add(full_kks)
+
+                    if kks in dict_kks_bin_data:
+                        dict_kks_bin_data[kks][full_kks] = description
+                    else:
+                        dict_kks_bin_data[kks] = {full_kks: description}
+
                 except IndexError:
                     ...
-
+        progress.setValue(round((max_progress - min_progress) * 35 / 100 + min_progress))
+        with open(path.join(name_system, 'data', 'BIN_json_kks.json'), 'w', encoding='UTF-8') as json_file:
+            json.dump(dict_kks_bin_data, json_file, indent=4, ensure_ascii=False)
+        progress.setValue(round((max_progress - min_progress) * 40 / 100 + min_progress))
         with open(path.join(name_system, 'data', 'BIN_list_kks.txt'), 'w', encoding='UTF-8') as file:
             for i_kks in sorted(set_kks_bin_date):
                 file.write(f'{i_kks}\n')
-
+        progress.setValue(round((max_progress - min_progress) * 45 / 100 + min_progress))
         with open(path.join(name_system, 'data', 'NARY_list_kks.txt'), 'w', encoding='UTF-8') as file:
             for i_kks in sorted(set_kks_nary_date):
                 file.write(f'{i_kks}\n')
@@ -117,23 +136,35 @@ async def new_file_data_ana_bin_nary(print_log, name_system: str) -> None:
         await print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\\DbDumps.\n'
                         f'Сбор бинарных и много битовых сигналов невозможен',
                         color='red')
-
+    progress.setValue(round((max_progress - min_progress) * 50 / 100 + min_progress))
     try:
         with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
             new_text = reader(file, delimiter='|', quotechar=' ')
             for i_line in new_text:
                 try:
-                    set_kks_ana_date.add(i_line[78])
+                    full_kks = i_line[78]
+                    kks = full_kks.partition('_')[0]
+                    description = i_line[79]
+                    set_kks_ana_date.add(full_kks)
+                    if kks in dict_kks_ana_data:
+                        dict_kks_ana_data[kks][full_kks] = description
+                    else:
+                        dict_kks_ana_data[kks] = {full_kks: description}
                 except IndexError:
                     pass
-
+        progress.setValue(round((max_progress - min_progress) * 65 / 100 + min_progress))
+        with open(path.join(name_system, 'data', 'ANA_json_kks.json'), 'w', encoding='UTF-8') as json_file:
+            json.dump(dict_kks_ana_data, json_file, indent=4, ensure_ascii=False)
+        progress.setValue(round((max_progress - min_progress) * 80 / 100 + min_progress))
         with open(path.join(name_system, 'data', 'ANA_list_kks.txt'), 'w', encoding='UTF-8') as file:
             for i_kks in sorted(set_kks_ana_date):
                 file.write(f'{i_kks}\n')
         await print_log(text='Сигналы ANA собраны успешно', color='green')
+        progress.setValue(round((max_progress - min_progress) * 95 / 100 + min_progress))
     except FileNotFoundError:
         await print_log(f'Нет файла PLS_ANA_CONF.dmp в {name_system}\\DbDumps.\nСбор аналоговых сигналов невозможен',
                         color='red')
+    progress.setValue(round((max_progress - min_progress) + min_progress))
 
 
 def check_directory(path_directory: str, name_directory: str) -> bool:
@@ -423,15 +454,19 @@ def add_list_description(name_system: str) -> Dict[int, Dict[str, str]]:
     return dict_description
 
 
-async def sort_files_into_groups(number_bloc: str, group_svg: dict):
+async def sort_files_into_groups(number_bloc: str, group_svg: dict, progress: QProgressBar):
     """
     Функция распределения замечаний по видеокадрам по соответствующим группам.
     :param number_bloc: Номер блока (папка в которой будет работать программа).
     :param group_svg: Словарь групп распределения видеокадров.
+    :param progress: Прогресс выполнения программы
     :return: None
     """
     list_svg_file = os.listdir(path.join(number_bloc, 'Замечания по видеокадрам'))
+    number = 1
+    numbers = len(list_svg_file)
     for i_kks in list_svg_file:
+        progress.setValue(round(number / numbers * 100))
         if i_kks.endswith('.txt'):
             name_group = group_search_by_file_name(name_file=i_kks[:-4], dict_groups=group_svg)
             check_directory(path_directory=number_bloc,
@@ -443,6 +478,7 @@ async def sort_files_into_groups(number_bloc: str, group_svg: dict):
             file_copy(start_path=path.join(number_bloc, 'Замечания по видеокадрам'),
                       end_path=path.join(number_bloc, 'Замечания по видеокадрам', name_group),
                       name_file=i_kks)
+        number += 1
 
 
 def group_search_by_file_name(name_file: str, dict_groups: dict) -> str:

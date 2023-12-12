@@ -1,5 +1,6 @@
 from config.general_functions import new_file_data_ana_bin_nary
-from config.func_svsu_import import enumeration_of_svg, actualizations_vk_svbu, actualizations_vk_svsu
+from config.func_svsu_import import (enumeration_of_svg, actualizations_vk_svbu, actualizations_vk_svsu,
+                                     add_file_svsu_import)
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from PyQt6.QtGui import QColor
@@ -16,7 +17,7 @@ class SvsuImport(QMainWindow):
     def __init__(self, main_menu):  # изменим начальные настройки
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
-        self.setMinimumSize(QSize(750, 350))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
+        self.setMinimumSize(QSize(750, 650))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
         self.instruction_window = Instruction()
         self.main_menu = main_menu
 
@@ -42,9 +43,8 @@ class SvsuImport(QMainWindow):
         layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
         self.progress = QProgressBar()
+        self.progress.setStyleSheet('text-align: center;')
         layout.addWidget(self.progress)
-        # self.progress.setValue(41)
-        # self.progress.reset()
         self.progress.setVisible(False)
 
         horizontal_layout = QHBoxLayout()
@@ -96,36 +96,44 @@ class SvsuImport(QMainWindow):
         """Функция запускающая обновление видеокадров SVBU"""
         await self.print_log(f'Начало обновления видеокадров {name_directory}')
         self.progress.setVisible(True)
-        await actualizations_vk_svbu(print_log=self.print_log, name_directory=name_directory)
-        self.progress.setVisible(False)
+        self.progress.reset()
+        await actualizations_vk_svbu(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
         await self.print_log(text=f'Обновление видеокадров {name_directory} завершено\n')
 
     @asyncSlot()
     async def start_actualizations_vk_svsu(self, name_directory: str) -> None:
         """Функция запускающая обновление видеокадров SVSU"""
         await self.print_log(f'Начало обновления видеокадров SVSU из {name_directory}')
-        await actualizations_vk_svsu(print_log=self.print_log, name_directory=name_directory)
+        self.progress.setVisible(True)
+        self.progress.reset()
+        await actualizations_vk_svsu(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
         await self.print_log(text=f'Обновление видеокадров SVSU из {name_directory} завершено\n')
 
     @asyncSlot()
     async def start_bloc_button(self) -> None:
         """Функция запускающая блокировку кнопок на видеокадре которые не имеют файла для вызова"""
         await self.print_log('Начало блокировки кнопок вызова видеокадров SVSU')
-        await enumeration_of_svg(print_log=self.print_log)
+        self.progress.setVisible(True)
+        self.progress.reset()
+        await enumeration_of_svg(print_log=self.print_log, progress=self.progress)
         await self.print_log(text=f'Блокировка кнопок завершена\n')
 
     @asyncSlot()
     async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
         """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
         await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
-        await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system)
+        self.progress.setVisible(True)
+        self.progress.reset()
+        await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress)
         await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
 
     @asyncSlot()
     async def start_add_file_svsu_import(self, name_directory: str) -> None:
-        """Функция запускающая обновление видеокадров SVSU"""
+        """Функция запускающая создание файла SVSU_IMPORT.txt"""
         await self.print_log(f'Начало создания файла SVSU_IMPORT.txt для {name_directory}')
-        await actualizations_vk_svsu(print_log=self.print_log, name_directory=name_directory)
+        self.progress.setVisible(True)
+        self.progress.reset()
+        await add_file_svsu_import(print_log=self.print_log, name_system=name_directory, progress=self.progress)
         await self.print_log(text=f'Создание файла SVSU_IMPORT.txt для {name_directory} завершено\n')
 
     @asyncSlot()

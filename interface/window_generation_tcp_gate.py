@@ -1,10 +1,10 @@
 from config.general_functions import new_file_data_ana_bin_nary
-from config.func_generation_tcp_gate_file import generation_tcp_gate
+from config.func_generation_tcp_gate_file import generation_tcp_gate, add_data_file_bin_nary
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QSize
-from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTextBrowser, QHBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTextBrowser, QHBoxLayout, QProgressBar
 from config.style import style_widget, style_text_browser
 from qasync import asyncSlot
 from modernization_objects.push_button import QPushButtonModified
@@ -16,7 +16,7 @@ class GenerationTcpGate(QMainWindow):
     def __init__(self, main_menu):  # изменим начальные настройки
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
-        self.setMinimumSize(QSize(750, 550))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
+        self.setMinimumSize(QSize(750, 650))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
 
         self.instruction_window = Instruction()
         self.main_menu = main_menu
@@ -30,6 +30,11 @@ class GenerationTcpGate(QMainWindow):
         self.text_log = QTextBrowser()
         self.text_log.setStyleSheet(style_text_browser)
         layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
+
+        self.progress = QProgressBar()
+        self.progress.setStyleSheet('text-align: center;')
+        layout.addWidget(self.progress)
+        self.progress.setVisible(False)
 
         horizontal_layout = QHBoxLayout()
         horizontal_layout.addWidget(QPushButtonModified(text='⏪ Вернуться в главное меню',
@@ -72,7 +77,7 @@ class GenerationTcpGate(QMainWindow):
         """
         await self.print_log(text=f'Старт создания файла ZPUPD.cfg для {name_directory}')
         if await generation_tcp_gate(name_system=name_directory, print_log=self.print_log):
-            await self.print_log(text='Создание файла ZPUPD.cfg завершено\n')
+            await self.print_log(text='\nСоздание файла ZPUPD.cfg завершено успешно\n', color='green')
         else:
             await self.print_log(text='Создание файла ZPUPD.cfg прекращено. Устраните все недочеты и повторите\n',
                                  color='red')
@@ -81,7 +86,12 @@ class GenerationTcpGate(QMainWindow):
     async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
         """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
         await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
-        await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system)
+        self.progress.setVisible(True)
+        self.progress.reset()
+        await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress,
+                                         min_progress=0, max_progress=50)
+        await add_data_file_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress,
+                                     min_progress=50, max_progress=100)
         await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
 
     @asyncSlot()
