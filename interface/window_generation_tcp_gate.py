@@ -32,11 +32,11 @@ class GenerationTcpGate(QMainWindow):
         layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
         horizontal_layout = QHBoxLayout()
-        horizontal_layout.addWidget(QPushButtonModified(text='Вернуться в главное меню',
+        horizontal_layout.addWidget(QPushButtonModified(text='⏪ Вернуться в главное меню',
                                                         func_pressed=self.main_menu_window))
         horizontal_layout.addWidget(QPushButtonModified(text='Открыть инструкцию ❗',
                                                         func_pressed=self.start_instruction_window))
-        horizontal_layout.addWidget(QPushButtonModified(text='Выйти из программы',
+        horizontal_layout.addWidget(QPushButtonModified(text='Закрыть программу',
                                                         func_pressed=self.close_program))
 
         layout.addLayout(horizontal_layout)

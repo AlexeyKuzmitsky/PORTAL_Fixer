@@ -44,7 +44,7 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         horizontal_layout.addWidget(QPushButtonModified(text='Открыть инструкцию ❗',
                                                         func_pressed=self.start_instruction_window))
 
-        horizontal_layout.addWidget(QPushButtonModified(text='Выйти из программы',
+        horizontal_layout.addWidget(QPushButtonModified(text='Закрыть программу',
                                                         func_pressed=self.close_program))
 
         layout.addLayout(horizontal_layout)

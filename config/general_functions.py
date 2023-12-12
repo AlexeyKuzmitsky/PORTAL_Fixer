@@ -114,8 +114,9 @@ async def new_file_data_ana_bin_nary(print_log, name_system: str) -> None:
 
         await print_log(text='Сбор ANA сигналов')
     except FileNotFoundError:
-        await print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\DbDumps.\n'
-                        f'Сбор бинарных и много битовых сигналов невозможен', color='red')
+        await print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\\DbDumps.\n'
+                        f'Сбор бинарных и много битовых сигналов невозможен',
+                        color='red')
 
     try:
         with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
@@ -131,8 +132,8 @@ async def new_file_data_ana_bin_nary(print_log, name_system: str) -> None:
                 file.write(f'{i_kks}\n')
         await print_log(text='Сигналы ANA собраны успешно', color='green')
     except FileNotFoundError:
-        await print_log(f'Нет файла PLS_ANA_CONF.dmp в {name_system}\DbDumps.\n'
-                        f'Сбор аналоговых сигналов невозможен', color='red')
+        await print_log(f'Нет файла PLS_ANA_CONF.dmp в {name_system}\\DbDumps.\nСбор аналоговых сигналов невозможен',
+                        color='red')
 
 
 def check_directory(path_directory: str, name_directory: str) -> bool:
@@ -205,10 +206,12 @@ async def loading_data_dict_kks_ana(directory: str = '') -> Dict[str, Dict[str, 
     :return: Словарь аналоговых сигналов с описанием
     """
     dict_kks_ana_data: Dict[str, Dict[str, str]] = dict()
-
-    with open(path.join(directory, 'data', 'ANA_json_kks.json'), 'r', encoding='UTF-8') as json_file:
-        dict_ana_kks = json.load(json_file)
-        dict_kks_ana_data.update(dict_ana_kks)
+    try:
+        with open(path.join(directory, 'data', 'ANA_json_kks.json'), 'r', encoding='UTF-8') as json_file:
+            dict_ana_kks = json.load(json_file)
+            dict_kks_ana_data.update(dict_ana_kks)
+    except FileNotFoundError:
+        pass
     return dict_kks_ana_data
 
 
@@ -218,10 +221,12 @@ async def loading_data_dict_kks_bin(directory: str = '') -> Dict[str, Dict[str, 
     :return: Словарь бинарных сигналов с описанием
     """
     dict_kks_bin_data: Dict[str, Dict[str, str]] = dict()
-
-    with open(path.join(directory, 'data', 'BIN_json_kks.json'), 'r', encoding='UTF-8') as json_file:
-        dict_bin_kks = json.load(json_file)
-        dict_kks_bin_data.update(dict_bin_kks)
+    try:
+        with open(path.join(directory, 'data', 'BIN_json_kks.json'), 'r', encoding='UTF-8') as json_file:
+            dict_bin_kks = json.load(json_file)
+            dict_kks_bin_data.update(dict_bin_kks)
+    except FileNotFoundError:
+        pass
     return dict_kks_bin_data
 
 

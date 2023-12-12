@@ -1,6 +1,5 @@
 import config.conf as conf
 
-from PyQt6.QtGui import QFont
 from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QLabel
 from modernization_objects.push_button import QPushButtonModified
@@ -16,15 +15,11 @@ class NameSystemWindow(QMainWindow):
 
         self.name_system = ''
         self.func = func
-        font = QFont()
-        font.setFamily('MS Shell Dlg 2')
-        font.setPointSize(12)
 
         layout = QVBoxLayout()
 
         self.text_label = QLabel()
         self.text_label.setText(text)
-        self.text_label.setFont(font)
         layout.addWidget(self.text_label)  # добавить надпись на подложку для виджетов
 
         if 'SVSU' in set_name_system:

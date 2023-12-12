@@ -5,6 +5,7 @@ import shutil
 from os import path, listdir
 from typing import Set, Dict, List
 from math import ceil
+from PyQt6.QtWidgets import QMainWindow, QMessageBox
 from config.point_description import AnchorPoint
 from config.general_functions import check_directory
 from config.general_functions import (loading_data_kks_ana, loading_data_kks_bin, loading_data_kks_nary,
@@ -29,7 +30,7 @@ async def actualizations_vk_svbu(print_log, name_directory: str) -> None:
         number += 1
 
 
-async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str) -> None:
+async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str) -> bool:
     """
     Функция производит поиск всех подмоделей на видеокадрах после чего находит на подмоделях привязки (KKS).
     Проверяет наличие KKS в действующей базе и если не находит, подготавливает запись в файл замечаний.
@@ -43,6 +44,15 @@ async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str) 
     set_kks_nary_data = await loading_data_kks_nary(directory=directory)
     dict_kks_ana_data = await loading_data_dict_kks_ana(directory=directory)
     dict_kks_bin_data = await loading_data_dict_kks_bin(directory=directory)
+
+    if not await checking_data(print_log=print_log, name_system=directory,
+                               data_ana=set_kks_ana_data, data_bin=set_kks_bin_data, data_nary=set_kks_nary_data,
+                               dict_kks_ana_data=dict_kks_ana_data, dict_kks_bin_data=dict_kks_bin_data):
+        msg = QMessageBox.question(QMainWindow(), 'Не все файлы базы есть в наличии',
+                                   'Продолжить выполнение программы поиска замечаний, не смотря на то,'
+                                   'что не все файлы базы есть в наличии?')
+        if msg == QMessageBox.StandardButton.No:
+            return False
 
     numbers = len(svg)
     number = 1
@@ -80,6 +90,33 @@ async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str) 
             text_log = f'{text_log:<55}Файл {i_svg} не svg!'
             await print_log(text=text_log, color='red')
         number += 1
+    return True
+
+
+async def checking_data(print_log, name_system, data_ana, data_bin, data_nary, dict_kks_ana_data, dict_kks_bin_data):
+    """Функция проверяет наличие всех загруженных файлов"""
+    flag = True
+    if not data_ana:
+        await print_log(f'Нет файла ANA_list_kks.txt в {name_system}\\data.\n'
+                        f'Для его создания выполните пункт "обновления баз данных" для {name_system}\n', color='red')
+        flag = False
+    if not data_bin:
+        await print_log(f'Нет файла BIN_list_kks.txt в {name_system}\\data.\n'
+                        f'Для его создания выполните пункт "обновления баз данных" для {name_system}\n', color='red')
+        flag = False
+    if not data_nary:
+        await print_log(f'Нет файла NARY_list_kks.txt в {name_system}\\data.\n'
+                        f'Для его создания выполните пункт "обновления баз данных" для {name_system}\n', color='red')
+        flag = False
+    if not dict_kks_ana_data:
+        await print_log(f'Нет файла ANA_json_kks.json в {name_system}\\data.\n'
+                        f'Для его создания выполните пункт "обновления баз данных" для {name_system}\n', color='red')
+        flag = False
+    if not dict_kks_bin_data:
+        await print_log(f'Нет файла BIN_json_kks.json в {name_system}\\data.\n'
+                        f'Для его создания выполните пункт "обновления баз данных" для {name_system}\n', color='red')
+        flag = False
+    return flag
 
 
 async def checking_kks_and_preparing_comment(kks_signal: str,

@@ -37,11 +37,11 @@ class ParsingSvg(QMainWindow):
         layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
         horizontal_layout = QHBoxLayout()
-        horizontal_layout.addWidget(QPushButtonModified(text='Вернуться в главное меню',
+        horizontal_layout.addWidget(QPushButtonModified(text='⏪ Вернуться в главное меню',
                                                         func_pressed=self.main_menu_window))
         horizontal_layout.addWidget(QPushButtonModified(text='Открыть инструкцию ❗',
                                                         func_pressed=self.start_instruction_window))
-        horizontal_layout.addWidget(QPushButtonModified(text='Выйти из программы',
+        horizontal_layout.addWidget(QPushButtonModified(text='Закрыть программу',
                                                         func_pressed=self.close_program))
 
         layout.addLayout(horizontal_layout)
@@ -106,8 +106,10 @@ class ParsingSvg(QMainWindow):
         """
         set_svg = set(listdir(path.join(name_directory, 'NPP_models')))
         await self.print_log(text=f'Старт проверки видеокадров {name_directory}')
-        await new_start_parsing_svg_files(print_log=self.print_log, svg=set_svg, directory=name_directory)
-        await self.print_log(text='Поиск замечаний завершен\n', color='green')
+        if await new_start_parsing_svg_files(print_log=self.print_log, svg=set_svg, directory=name_directory):
+            await self.print_log(text='Поиск замечаний завершен\n', color='green')
+        else:
+            await self.print_log(text='Выполнение поиска замечаний прервано пользователем\n', color='red')
 
     @asyncSlot()
     async def sorting_notes_files(self, name_directory: str) -> None:

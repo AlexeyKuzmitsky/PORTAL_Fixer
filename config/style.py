@@ -10,4 +10,4 @@ style_widget = ('background: #C4D7B2;'
                 'border-radius: 10px;'
                 'font-size: 16px;')
 
-style_text_browser = 'background: #C4D7B2;border: 1px inset #50624e;border-radius: 5px;'
+style_text_browser = 'background: #C4D7B2;border: 1px inset #50624e;border-radius: 5px; font-size: 14px;'
