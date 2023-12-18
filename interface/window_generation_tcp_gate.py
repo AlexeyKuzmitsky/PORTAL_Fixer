@@ -2,11 +2,12 @@ from config.general_functions import new_file_data_ana_bin_nary
 from config.func_generation_tcp_gate_file import generation_tcp_gate, add_data_file_bin_nary
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QColor, QIcon
 from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTextBrowser, QHBoxLayout, QProgressBar
 from config.style import style_widget, style_text_browser
 from qasync import asyncSlot
+from os import path
 from modernization_objects.push_button import QPushButtonModified
 
 import config.conf as conf
@@ -17,6 +18,7 @@ class GenerationTcpGate(QMainWindow):
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         self.setMinimumSize(QSize(750, 650))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
+        self.setWindowIcon(QIcon(path.join('image', 'icon.ico')))
 
         self.instruction_window = Instruction()
         self.main_menu = main_menu

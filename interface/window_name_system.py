@@ -3,6 +3,8 @@ import config.conf as conf
 from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QLabel
 from modernization_objects.push_button import QPushButtonModified
+from PyQt6.QtGui import QIcon
+from os import path
 from typing import Set
 from config.style import style_widget
 
@@ -12,6 +14,7 @@ class NameSystemWindow(QMainWindow):
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         self.setMinimumSize(QSize(400, 200))  # Устанавливаем минимальный размер окна 400(ширина) на 700(высота)
+        self.setWindowIcon(QIcon(path.join('image', 'icon.ico')))
 
         self.name_system = ''
         self.func = func

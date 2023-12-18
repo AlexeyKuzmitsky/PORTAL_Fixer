@@ -4,7 +4,9 @@ from interface.window_svsu_import import SvsuImport
 from interface.window_parsing_svg import ParsingSvg
 from interface.window_instruction import Instruction
 from interface.window_generation_tcp_gate import GenerationTcpGate
+from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import QSize
+from os import path
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QMessageBox, QHBoxLayout
 from modernization_objects.push_button import QPushButtonModified
 from config.style import style_widget
@@ -20,7 +22,8 @@ class MainWindow(QMainWindow):  # создаем класс на основе с
         self.instruction_window = Instruction()
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         # self.setFixedSize(QSize(400, 700))  # Фиксируем размер окна 400(ширина) на 700(высота)
-        self.setMinimumSize(QSize(500, 300))  # Устанавливаем минимальный размер окна 400(ширина) на 700(высота)
+        self.setMinimumSize(QSize(500, 330))  # Устанавливаем минимальный размер окна 400(ширина) на 700(высота)
+        self.setWindowIcon(QIcon(path.join('image', 'icon.ico')))
 
         layout = QVBoxLayout()
 

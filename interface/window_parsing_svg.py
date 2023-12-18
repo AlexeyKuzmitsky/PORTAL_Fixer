@@ -3,7 +3,7 @@ from config.func_parsing_svg import new_start_parsing_svg_files, dict_loading, a
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from os import path, listdir
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QColor, QIcon
 from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTextBrowser, QHBoxLayout, QProgressBar
 from modernization_objects.push_button import QPushButtonModified
@@ -18,6 +18,7 @@ class ParsingSvg(QMainWindow):
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         self.setMinimumSize(QSize(750, 650))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
+        self.setWindowIcon(QIcon(path.join('image', 'icon.ico')))
         self.instruction_window = Instruction()
         self.main_menu = main_menu
 

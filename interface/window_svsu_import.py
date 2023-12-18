@@ -3,12 +3,13 @@ from config.func_svsu_import import (enumeration_of_svg, actualizations_vk_svbu,
                                      add_file_svsu_import)
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QColor, QIcon
 from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QTextBrowser, QProgressBar
 from qasync import asyncSlot
 from modernization_objects.push_button import QPushButtonModified
 from config.style import style_widget, style_text_browser
+from os import path
 
 import config.conf as conf
 
@@ -18,6 +19,7 @@ class SvsuImport(QMainWindow):
         super().__init__()  # получим доступ к изменениям настроек
         self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
         self.setMinimumSize(QSize(750, 650))  # Устанавливаем минимальный размер окна 750(ширина) на 350(высота)
+        self.setWindowIcon(QIcon(path.join('image', 'icon.ico')))
         self.instruction_window = Instruction()
         self.main_menu = main_menu
 
