@@ -1,29 +1,23 @@
-import config.conf as conf
-
 from interface.window_svsu_import import SvsuImport
 from interface.window_parsing_svg import ParsingSvg
 from interface.window_instruction import Instruction
 from interface.window_generation_tcp_gate import GenerationTcpGate
-from PyQt6.QtGui import QIcon
-from PyQt6.QtCore import QSize
-from os import path
-from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QMessageBox, QHBoxLayout
+from modernization_objects.main_window import MainWindowModified
+from PyQt6.QtWidgets import QVBoxLayout, QWidget, QMessageBox, QHBoxLayout
 from modernization_objects.push_button import QPushButtonModified
 from config.style import style_widget
 
 
-class MainWindow(QMainWindow):  # создаем класс на основе стандартного класса окна
+class MainWindow(MainWindowModified):  # создаем класс на основе стандартного класса окна
     def __init__(self):  # изменим начальные настройки
         super().__init__()  # получим доступ к изменениям настроек
+        self.setting_window_size(width=500, height=330)
         self.svsu_window = SvsuImport(main_menu=self)
         self.parsing_svg = ParsingSvg(main_menu=self)
         self.generation_tcp_gate = GenerationTcpGate(main_menu=self)
 
         self.instruction_window = Instruction()
-        self.setWindowTitle(f'{conf.name_program} - v.{conf.version_program}')  # изменим текст заглавия
-        # self.setFixedSize(QSize(400, 700))  # Фиксируем размер окна 400(ширина) на 700(высота)
-        self.setMinimumSize(QSize(500, 330))  # Устанавливаем минимальный размер окна 400(ширина) на 700(высота)
-        self.setWindowIcon(QIcon(path.join('image', 'icon.ico')))
+
 
         layout = QVBoxLayout()
 
