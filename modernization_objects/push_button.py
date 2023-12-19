@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QPushButton
 from PyQt6.QtGui import QFont
-# from config.style import style_button
+from config.style import style_button
 
 
 class QPushButtonModified(QPushButton):  # создаем класс на основе стандартного класса окна
@@ -13,8 +13,8 @@ class QPushButtonModified(QPushButton):  # создаем класс на осн
         self.setMinimumHeight(50)
         self.setFont(font)
         self.setText(text)
-        with open('config/style.css', 'r') as f:
-            self.setStyleSheet(f.read())
-        # self.setStyleSheet(style_button)
+        # with open('config/style.css', 'r') as f:
+        #     self.setStyleSheet(f.read())
+        self.setStyleSheet(style_button)
         if func_pressed:
             self.clicked.connect(func_pressed)
