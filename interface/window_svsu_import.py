@@ -9,6 +9,7 @@ from qasync import asyncSlot
 from modernization_objects.push_button import QPushButtonModified
 from modernization_objects.main_window import MainWindowModified
 from config.style import style_widget, style_text_browser
+from config.get_logger import log_info
 
 
 class SvsuImport(MainWindowModified):
@@ -91,7 +92,7 @@ class SvsuImport(MainWindowModified):
     @asyncSlot()
     async def start_actualizations_vk_svbu(self, name_directory: str) -> None:
         """Функция запускающая обновление видеокадров SVBU"""
-        await self.print_log(f'Начало обновления видеокадров {name_directory}')
+        await self.print_log(text=f'Начало обновления видеокадров {name_directory}')
         self.progress.setVisible(True)
         self.progress.reset()
         await actualizations_vk_svbu(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
@@ -134,13 +135,18 @@ class SvsuImport(MainWindowModified):
         await self.print_log(text=f'Создание файла SVSU_IMPORT.txt для {name_directory} завершено\n')
 
     @asyncSlot()
-    async def print_log(self, text: str, color: str = 'black') -> None:
+    # @log_entry
+    async def print_log(self, text: str, color: str = 'black', level: str = 'INFO') -> None:
         """Программа выводящая переданный текст в окно лога. Цвета можно использовать зеленый - green, красный - red"""
         dict_colors = {'black': QColor(0, 0, 0),
                        'red': QColor(255, 0, 0),
                        'green': QColor(50, 155, 50)}
         self.text_log.setTextColor(dict_colors[color])
         self.text_log.append(text)
+        if level == 'INFO':
+            log_info.info(text.replace('\n', ' '))
+        elif level == 'ERROR':
+            log_info.error(text.replace('\n', ' '))
 
     def start_instruction_window(self):
         self.instruction_window.add_text_instruction()

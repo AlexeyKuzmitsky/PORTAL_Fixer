@@ -10,6 +10,7 @@ from .get_logger import log_info_print, log_info
 from config.point_description import AnchorPoint
 from PyQt6.QtWidgets import QProgressBar
 
+
 from csv import reader
 
 
@@ -135,7 +136,7 @@ async def new_file_data_ana_bin_nary(print_log, name_system: str,
     except FileNotFoundError:
         await print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\\DbDumps.\n'
                         f'Сбор бинарных и много битовых сигналов невозможен',
-                        color='red')
+                        color='red', level='ERROR')
     progress.setValue(round((max_progress - min_progress) * 50 / 100 + min_progress))
     try:
         with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
@@ -163,7 +164,7 @@ async def new_file_data_ana_bin_nary(print_log, name_system: str,
         progress.setValue(round((max_progress - min_progress) * 95 / 100 + min_progress))
     except FileNotFoundError:
         await print_log(f'Нет файла PLS_ANA_CONF.dmp в {name_system}\\DbDumps.\nСбор аналоговых сигналов невозможен',
-                        color='red')
+                        color='red', level='ERROR')
     progress.setValue(round((max_progress - min_progress) + min_progress))
 
 
@@ -211,7 +212,7 @@ async def loading_data_kks_ana(directory: str = '') -> Set[str]:
             for i_line in file:
                 set_kks_ana_data.add(i_line[:-1])
     except FileNotFoundError:
-        pass
+        log_info.error(f'Нет файла {directory}/data/ANA_list_kks.txt')
     return set_kks_ana_data
 
 
@@ -227,7 +228,7 @@ async def loading_data_kks_bin(directory: str = '') -> Set[str]:
             for i_line in file:
                 set_kks_bin_data.add(i_line[:-1])
     except FileNotFoundError:
-        pass
+        log_info.error(f'Нет файла {directory}/data/BIN_list_kks.txt')
     return set_kks_bin_data
 
 
@@ -242,7 +243,7 @@ async def loading_data_dict_kks_ana(directory: str = '') -> Dict[str, Dict[str, 
             dict_ana_kks = json.load(json_file)
             dict_kks_ana_data.update(dict_ana_kks)
     except FileNotFoundError:
-        pass
+        log_info.error(f'Нет файла {directory}/data/ANA_json_kks.json')
     return dict_kks_ana_data
 
 
@@ -257,7 +258,7 @@ async def loading_data_dict_kks_bin(directory: str = '') -> Dict[str, Dict[str, 
             dict_bin_kks = json.load(json_file)
             dict_kks_bin_data.update(dict_bin_kks)
     except FileNotFoundError:
-        pass
+        log_info.error(f'Нет файла {directory}/data/BIN_json_kks.json')
     return dict_kks_bin_data
 
 
@@ -273,7 +274,7 @@ async def loading_data_kks_nary(directory: str = '') -> Set[str]:
             for i_line in file:
                 set_kks_nary_data.add(i_line[:-1])
     except FileNotFoundError:
-        pass
+        log_info.error(f'Нет файла {directory}/data/NARY_list_kks.txt')
     return set_kks_nary_data
 
 

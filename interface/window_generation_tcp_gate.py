@@ -8,6 +8,7 @@ from config.style import style_widget, style_text_browser
 from qasync import asyncSlot
 from modernization_objects.push_button import QPushButtonModified
 from modernization_objects.main_window import MainWindowModified
+from config.get_logger import log_info
 
 
 class GenerationTcpGate(MainWindowModified):
@@ -76,7 +77,8 @@ class GenerationTcpGate(MainWindowModified):
             await self.print_log(text='\nСоздание файла ZPUPD.cfg завершено успешно\n', color='green')
         else:
             await self.print_log(text='Создание файла ZPUPD.cfg прекращено. Устраните все недочеты и повторите\n',
-                                 color='red')
+                                 color='red', level='ERROR')
+        self.progress.setVisible(False)
 
     @asyncSlot()
     async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
@@ -89,15 +91,20 @@ class GenerationTcpGate(MainWindowModified):
         await add_data_file_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress,
                                      min_progress=50, max_progress=100)
         await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
+        self.progress.setVisible(False)
 
     @asyncSlot()
-    async def print_log(self, text: str, color: str = 'black') -> None:
+    async def print_log(self, text: str, color: str = 'black', level: str = 'INFO') -> None:
         """Программа выводящая переданный текст в окно лога. Цвета можно использовать зеленый - green, красный - red"""
         dict_colors = {'black': QColor(0, 0, 0),
                        'red': QColor(255, 0, 0),
                        'green': QColor(50, 155, 50)}
         self.text_log.setTextColor(dict_colors[color])
         self.text_log.append(text)
+        if level == 'INFO':
+            log_info.info(text.replace('\n', ' '))
+        elif level == 'ERROR':
+            log_info.error(text.replace('\n', ' '))
 
     def start_instruction_window(self):
         self.instruction_window.add_text_instruction()

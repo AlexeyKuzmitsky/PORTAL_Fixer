@@ -9,6 +9,7 @@ from modernization_objects.push_button import QPushButtonModified
 from modernization_objects.main_window import MainWindowModified
 from qasync import asyncSlot
 from config.style import style_text_browser, style_widget
+from config.get_logger import log_info
 
 
 class ParsingSvg(MainWindowModified):
@@ -94,6 +95,7 @@ class ParsingSvg(MainWindowModified):
         self.progress.reset()
         await actualizations_vk_svbu(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
         await self.print_log(text=f'Выполнение программы обновления видеокадров {name_directory} завершено\n')
+        self.progress.setVisible(False)
 
     @asyncSlot()
     async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
@@ -103,6 +105,7 @@ class ParsingSvg(MainWindowModified):
         self.progress.reset()
         await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress)
         await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
+        self.progress.setVisible(False)
 
     @asyncSlot()
     async def checking_svg_files(self, name_directory: str) -> None:
@@ -118,7 +121,9 @@ class ParsingSvg(MainWindowModified):
                                              progress=self.progress):
             await self.print_log(text='Поиск замечаний завершен\n', color='green')
         else:
-            await self.print_log(text='Выполнение поиска замечаний прервано пользователем\n', color='red')
+            await self.print_log(text='Выполнение поиска замечаний прервано пользователем\n',
+                                 color='red', level='ERROR')
+        self.progress.setVisible(False)
 
     @asyncSlot()
     async def sorting_notes_files(self, name_directory: str) -> None:
@@ -135,16 +140,21 @@ class ParsingSvg(MainWindowModified):
             await sort_files_into_groups(number_bloc=name_directory, group_svg=vis_groups, progress=self.progress)
             await self.print_log(text='Распределено успешно!\n', color='green')
         else:
-            await self.print_log(text='Распределение невозможно!\n', color='red')
+            await self.print_log(text='Распределение невозможно!\n', color='red', level='ERROR')
+        self.progress.setVisible(False)
 
     @asyncSlot()
-    async def print_log(self, text: str, color: str = 'black') -> None:
+    async def print_log(self, text: str, color: str = 'black', level: str = 'INFO') -> None:
         """Программа выводящая переданный текст в окно лога. Цвета можно использовать зеленый - green, красный - red"""
         dict_colors = {'black': QColor(0, 0, 0),
                        'red': QColor(255, 0, 0),
                        'green': QColor(50, 155, 50)}
         self.text_log.setTextColor(dict_colors[color])
         self.text_log.append(text)
+        if level == 'INFO':
+            log_info.info(text.replace('\n', ' '))
+        elif level == 'ERROR':
+            log_info.error(text.replace('\n', ' '))
 
     def start_instruction_window(self):
         self.instruction_window.add_text_instruction()

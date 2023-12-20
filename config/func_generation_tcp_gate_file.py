@@ -16,21 +16,24 @@ async def generation_tcp_gate(name_system, print_log):
     if not data_ana:
         await print_log(f'Нет файла ANA_list_kks.txt в {name_system}\\data.\n'
                         f'Создание файла ZPUPD невозможно. \n'
-                        f'Для продолжения выполните пункт "обновления баз данных" для {name_system}\n', color='red')
+                        f'Для продолжения выполните пункт "обновления баз данных" для {name_system}\n',
+                        color='red', level='ERROR')
         return False
 
     data_bin = await loading_data_kks_bin(directory=name_system)
     if not data_bin:
         await print_log(f'Нет файла BIN_list_kks.txt в {name_system}\\data.\n'
                         f'Создание файла ZPUPD невозможно. \n'
-                        f'Для продолжения выполните пункт "обновления баз данных" для {name_system}\n', color='red')
+                        f'Для продолжения выполните пункт "обновления баз данных" для {name_system}\n',
+                        color='red', level='ERROR')
         return False
 
     data_nary = await loading_data_kks_nary(directory=name_system)
     if not data_nary:
         await print_log(f'Нет файла NARY_list_kks.txt в {name_system}\\data.\n'
                         f'Создание файла ZPUPD невозможно. \n'
-                        f'Для продолжения выполните пункт "обновления баз данных" для {name_system}\n', color='red')
+                        f'Для продолжения выполните пункт "обновления баз данных" для {name_system}\n',
+                        color='red', level='ERROR')
         return False
 
     check_directory(path_directory=name_system, name_directory='TcpGate')
@@ -230,8 +233,8 @@ async def add_data_file_bin_nary(print_log, name_system: str,
     try:
         dict_description: Dict[int, Dict[str, str]] = add_list_description(name_system=name_system)
     except FileNotFoundError:
-        print_log('INFO Создание файла BIN_NARY_kks.json невозможно. '
-                  f'Нет файла PLS_BIN_NARY_CONF.dmp в папке {name_system}\\DbDumps\n', color='red')
+        print_log(f'Создание файла BIN_NARY_kks.json невозможно.\n'
+                  f'Нет файла PLS_BIN_NARY_CONF.dmp в папке {name_system}\\DbDumps\n', color='red', level='ERROR')
         return
     progress.setValue(round((max_progress - min_progress) * 45 / 100 + min_progress))
     with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
