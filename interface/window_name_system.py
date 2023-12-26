@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QVBoxLayout, QWidget, QLabel
 from modernization_objects.push_button import QPushButtonModified
 from modernization_objects.main_window import MainWindowModified
 from typing import Set
-from config.style import style_widget
+# from config.style import style_widget
 
 
 class NameSystemWindow(MainWindowModified):
@@ -38,7 +38,7 @@ class NameSystemWindow(MainWindowModified):
             layout.addWidget(self.btn_update_data_sku_vp_2)
 
         widget = QWidget()
-        widget.setStyleSheet(style_widget)
+        # widget.setStyleSheet(style_widget)
         widget.setLayout(layout)
         self.setCentralWidget(widget)  # Разместим кнопку в окне
 

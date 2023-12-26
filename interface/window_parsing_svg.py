@@ -3,12 +3,12 @@ from config.func_parsing_svg import new_start_parsing_svg_files, dict_loading, a
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from os import path, listdir
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QColor, QIcon
 from PyQt6.QtWidgets import QVBoxLayout, QWidget, QTextBrowser, QHBoxLayout, QProgressBar
-from modernization_objects.push_button import QPushButtonModified
+from modernization_objects.push_button import QPushButtonModified, QPushButtonMenu
 from modernization_objects.main_window import MainWindowModified
 from qasync import asyncSlot
-from config.style import style_text_browser, style_widget
+# from config.style import style_text_browser, style_widget
 from config.get_logger import log_info
 
 
@@ -31,7 +31,7 @@ class ParsingSvg(MainWindowModified):
                                              func_pressed=self.start_sorting_comments))
 
         self.text_log = QTextBrowser()
-        self.text_log.setStyleSheet(style_text_browser)
+        # self.text_log.setStyleSheet(style_text_browser)
         layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
         self.progress = QProgressBar()
@@ -40,8 +40,10 @@ class ParsingSvg(MainWindowModified):
         self.progress.setVisible(False)
 
         horizontal_layout = QHBoxLayout()
-        horizontal_layout.addWidget(QPushButtonModified(text='⏪ Вернуться в главное меню',
-                                                        func_pressed=self.main_menu_window))
+
+        # btn_menu = QPushButtonModified(text='Вернуться в главное меню', func_pressed=self.main_menu_window)
+        # btn_menu.setIcon(QIcon(path.join('icon', 'home.svg')))
+        horizontal_layout.addWidget(QPushButtonMenu(func_pressed=self.main_menu_window))
         horizontal_layout.addWidget(QPushButtonModified(text='Открыть инструкцию ❗',
                                                         func_pressed=self.start_instruction_window))
         horizontal_layout.addWidget(QPushButtonModified(text='Закрыть программу',
@@ -66,7 +68,7 @@ class ParsingSvg(MainWindowModified):
                                                              set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
 
         widget = QWidget()
-        widget.setStyleSheet(style_widget)
+        # widget.setStyleSheet(style_widget)
         widget.setLayout(layout)
         self.setCentralWidget(widget)  # Разместим подложку в окне
 

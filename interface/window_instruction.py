@@ -1,6 +1,5 @@
 from PyQt6.QtWidgets import QVBoxLayout, QWidget, QTextBrowser
 from os import path
-from config.style import style_widget
 from modernization_objects.main_window import MainWindowModified
 
 
@@ -14,7 +13,6 @@ class Instruction(MainWindowModified):
 
         layout.addWidget(self.text_instruction)  # добавить QTextEdit на подложку для виджетов
         widget = QWidget()
-        widget.setStyleSheet(style_widget)
         widget.setLayout(layout)
         self.setCentralWidget(widget)  # Разместим подложку в окне
 

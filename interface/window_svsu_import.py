@@ -8,7 +8,6 @@ from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QTextBrowser, QPr
 from qasync import asyncSlot
 from modernization_objects.push_button import QPushButtonModified
 from modernization_objects.main_window import MainWindowModified
-from config.style import style_widget, style_text_browser
 from config.get_logger import log_info
 
 
@@ -37,7 +36,6 @@ class SvsuImport(MainWindowModified):
                                              func_pressed=self.update_file_svsu_import))
 
         self.text_log = QTextBrowser()
-        self.text_log.setStyleSheet(style_text_browser)
         layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
         self.progress = QProgressBar()
@@ -69,7 +67,6 @@ class SvsuImport(MainWindowModified):
                                                         set_name_system={'SVBU_1', 'SVBU_2'})
 
         widget = QWidget()
-        widget.setStyleSheet(style_widget)
         widget.setLayout(layout)
         self.setCentralWidget(widget)  # Разместим подложку в окне
 

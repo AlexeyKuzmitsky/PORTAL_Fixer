@@ -4,7 +4,6 @@ from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QVBoxLayout, QWidget, QTextBrowser, QHBoxLayout, QProgressBar
-from config.style import style_widget, style_text_browser
 from qasync import asyncSlot
 from modernization_objects.push_button import QPushButtonModified
 from modernization_objects.main_window import MainWindowModified
@@ -25,7 +24,6 @@ class GenerationTcpGate(MainWindowModified):
                                              func_pressed=self.tcp_gate_system))
 
         self.text_log = QTextBrowser()
-        self.text_log.setStyleSheet(style_text_browser)
         layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
         self.progress = QProgressBar()
@@ -53,7 +51,6 @@ class GenerationTcpGate(MainWindowModified):
 
         widget = QWidget()
         widget.setLayout(layout)
-        widget.setStyleSheet(style_widget)
         self.setCentralWidget(widget)  # Разместим подложку в окне
 
     def update_data_system(self):
