@@ -1,20 +1,17 @@
-from PyQt6.QtWidgets import QVBoxLayout, QWidget, QTextBrowser
+from PyQt6.QtWidgets import QTextBrowser
 from os import path
-from modernization_objects.main_window import MainWindowModified
+from modernization_objects.q_widget import MainWindowModified
 
 
 class Instruction(MainWindowModified):
     def __init__(self):  # изменим начальные настройки
         super().__init__()  # получим доступ к изменениям настроек
         self.setting_window_size(width=800, height=600)
-        layout = QVBoxLayout()
 
         self.text_instruction = QTextBrowser()
 
-        layout.addWidget(self.text_instruction)  # добавить QTextEdit на подложку для виджетов
-        widget = QWidget()
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)  # Разместим подложку в окне
+        self.layout.addWidget(self.text_instruction)  # добавить QTextEdit на подложку для виджетов
+        self.setLayout(self.layout)
 
     def add_text_instruction(self):
         try:

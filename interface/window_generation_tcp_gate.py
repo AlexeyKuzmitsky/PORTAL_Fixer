@@ -3,10 +3,10 @@ from config.func_generation_tcp_gate_file import generation_tcp_gate, add_data_f
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import QVBoxLayout, QWidget, QTextBrowser, QHBoxLayout, QProgressBar
+from PyQt6.QtWidgets import QTextBrowser, QHBoxLayout, QProgressBar
 from qasync import asyncSlot
-from modernization_objects.push_button import QPushButtonModified
-from modernization_objects.main_window import MainWindowModified
+from modernization_objects.push_button import QPushButtonModified, QPushButtonInstruction, QPushButtonMenu
+from modernization_objects.q_widget import MainWindowModified
 from config.get_logger import log_info
 
 
@@ -17,29 +17,25 @@ class GenerationTcpGate(MainWindowModified):
         self.instruction_window = Instruction()
         self.main_menu = main_menu
 
-        layout = QVBoxLayout()
-        layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
+        self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
                                              func_pressed=self.update_data_system))
-        layout.addWidget(QPushButtonModified(text='Создание файла ZPUPD.cfg',
+        self.layout.addWidget(QPushButtonModified(text='Создание файла ZPUPD.cfg',
                                              func_pressed=self.tcp_gate_system))
 
         self.text_log = QTextBrowser()
-        layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
+        self.layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
         self.progress = QProgressBar()
         self.progress.setStyleSheet('text-align: center;')
-        layout.addWidget(self.progress)
+        self.layout.addWidget(self.progress)
         self.progress.setVisible(False)
 
         horizontal_layout = QHBoxLayout()
-        horizontal_layout.addWidget(QPushButtonModified(text='⏪ Вернуться в главное меню',
-                                                        func_pressed=self.main_menu_window))
-        horizontal_layout.addWidget(QPushButtonModified(text='Открыть инструкцию ❗',
-                                                        func_pressed=self.start_instruction_window))
-        horizontal_layout.addWidget(QPushButtonModified(text='Закрыть программу',
-                                                        func_pressed=self.close_program))
 
-        layout.addLayout(horizontal_layout)
+        horizontal_layout.addWidget(QPushButtonMenu(func_pressed=self.main_menu_window))
+        horizontal_layout.addWidget(QPushButtonInstruction(func_pressed=self.start_instruction_window))
+
+        self.layout.addLayout(horizontal_layout)
 
         self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
                                             text='Базу какой из систем обновить?',
@@ -48,10 +44,6 @@ class GenerationTcpGate(MainWindowModified):
         self.name_system_tcp_gate = NameSystemWindow(func=self.start_generation_tcp_gate,
                                                      text='Для какой системы создать файл ZPUPD.cfg?',
                                                      set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
-
-        widget = QWidget()
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)  # Разместим подложку в окне
 
     def update_data_system(self):
         self.update_data.show()

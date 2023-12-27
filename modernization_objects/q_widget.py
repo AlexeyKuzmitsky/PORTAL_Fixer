@@ -1,31 +1,12 @@
 from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import QSize, Qt, QEvent, QPoint
-from PyQt6.QtGui import QIcon, QPixmap, QColor
-from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QToolBar
+from PyQt6.QtCore import QSize, Qt, QPoint
+from PyQt6.QtGui import QIcon, QPixmap
+from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QToolBar, QFrame
 from modernization_objects.push_button import QPushButtonModified, QPushButtonExit
-from config.style import style_window, style_window_black
+from config.style import style_window_black
 from os import path
 
 import config.conf as conf
-
-
-class QWidgetModified(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle('test')
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setAttribute(Qt.WidgetAttribute.WA_TabletTracking)
-        print('Создан')
-
-    def mouse_press_event(self, event):
-        self.drag_pos = event.globalPosition().toPoint()
-        print('1')
-
-    def mouse_move_event(self, event):
-        self.move(self.pos() + event.globalPosition().toPoint() - self.drag_pos)
-        self.drag_pos = event.globalPosition().toPoint()
-        event.accept()
-        print('2')
 
 
 class MainWindowModified(QWidget):
@@ -65,11 +46,12 @@ class MainWindowModified(QWidget):
         title_bar.addWidget(QPushButtonExit(func_pressed=self.close_program))
 
         self.layout.addLayout(title_bar)
-        self.layout.addStretch()
+        self.layout.addWidget(QFrame())
         self.setStyleSheet(style_window_black)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)  # отключение титула
         # self.setAttribute(Qt.WidgetAttribute.WA_TabletTracking)
         self.layout.addWidget(toolbar)
+        self.setLayout(self.layout)
 
     def mouseDoubleClickEvent(self, event):
         """ Дважды щелкните строку заголовка

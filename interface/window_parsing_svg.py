@@ -3,53 +3,44 @@ from config.func_parsing_svg import new_start_parsing_svg_files, dict_loading, a
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from os import path, listdir
-from PyQt6.QtGui import QColor, QIcon
-from PyQt6.QtWidgets import QVBoxLayout, QWidget, QTextBrowser, QHBoxLayout, QProgressBar
-from modernization_objects.push_button import QPushButtonModified, QPushButtonMenu
-from modernization_objects.main_window import MainWindowModified
+from PyQt6.QtGui import QColor
+from PyQt6.QtWidgets import QTextBrowser, QHBoxLayout, QProgressBar
+from modernization_objects.push_button import QPushButtonModified, QPushButtonMenu, QPushButtonInstruction
+from modernization_objects.q_widget import MainWindowModified
 from qasync import asyncSlot
-# from config.style import style_text_browser, style_widget
 from config.get_logger import log_info
 
 
 class ParsingSvg(MainWindowModified):
     def __init__(self, main_menu):  # изменим начальные настройки
         super().__init__()  # получим доступ к изменениям настроек
-        self.setting_window_size(width=750, height=650)
+        self.setting_window_size(width=850, height=650)
         self.instruction_window = Instruction()
         self.main_menu = main_menu
 
-        layout = QVBoxLayout()
-
-        layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVBU',
+        self.layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVBU',
                                              func_pressed=self.update_vis_svbu))
-        layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
+        self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
                                              func_pressed=self.update_data_system))
-        layout.addWidget(QPushButtonModified(text='Поиск замечаний на видеокадрах',
+        self.layout.addWidget(QPushButtonModified(text='Поиск замечаний на видеокадрах',
                                              func_pressed=self.start_parsing_svg))
-        layout.addWidget(QPushButtonModified(text='Сортировка найденных замечаний',
+        self.layout.addWidget(QPushButtonModified(text='Сортировка найденных замечаний',
                                              func_pressed=self.start_sorting_comments))
 
         self.text_log = QTextBrowser()
-        # self.text_log.setStyleSheet(style_text_browser)
-        layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
+        self.layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
         self.progress = QProgressBar()
         self.progress.setStyleSheet('text-align: center;')
-        layout.addWidget(self.progress)
+        self.layout.addWidget(self.progress)
         self.progress.setVisible(False)
 
         horizontal_layout = QHBoxLayout()
 
-        # btn_menu = QPushButtonModified(text='Вернуться в главное меню', func_pressed=self.main_menu_window)
-        # btn_menu.setIcon(QIcon(path.join('icon', 'home.svg')))
         horizontal_layout.addWidget(QPushButtonMenu(func_pressed=self.main_menu_window))
-        horizontal_layout.addWidget(QPushButtonModified(text='Открыть инструкцию ❗',
-                                                        func_pressed=self.start_instruction_window))
-        horizontal_layout.addWidget(QPushButtonModified(text='Закрыть программу',
-                                                        func_pressed=self.close_program))
+        horizontal_layout.addWidget(QPushButtonInstruction(func_pressed=self.start_instruction_window))
 
-        layout.addLayout(horizontal_layout)
+        self.layout.addLayout(horizontal_layout)
 
         self.name_system_vk = NameSystemWindow(func=self.start_actualizations_vk_svbu,
                                                text='Видеокадры какого блока обновить?',
@@ -67,10 +58,7 @@ class ParsingSvg(MainWindowModified):
                                                              text='Для какой системы распределить замечания?',
                                                              set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
 
-        widget = QWidget()
-        # widget.setStyleSheet(style_widget)
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)  # Разместим подложку в окне
+        self.setLayout(self.layout)
 
     def update_vis_svbu(self):
         self.name_system_vk.show()
@@ -146,11 +134,13 @@ class ParsingSvg(MainWindowModified):
         self.progress.setVisible(False)
 
     @asyncSlot()
-    async def print_log(self, text: str, color: str = 'black', level: str = 'INFO') -> None:
+    async def print_log(self, text: str, color: str = 'white', level: str = 'INFO') -> None:
         """Программа выводящая переданный текст в окно лога. Цвета можно использовать зеленый - green, красный - red"""
-        dict_colors = {'black': QColor(0, 0, 0),
-                       'red': QColor(255, 0, 0),
-                       'green': QColor(50, 155, 50)}
+        dict_colors = {
+            'white': QColor(169,183,198),
+            'black': QColor(0, 0, 0),
+            'red': QColor(255, 0, 0),
+            'green': QColor(50, 155, 50)}
         self.text_log.setTextColor(dict_colors[color])
         self.text_log.append(text)
         if level == 'INFO':

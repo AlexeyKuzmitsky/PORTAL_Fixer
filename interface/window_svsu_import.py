@@ -4,10 +4,10 @@ from config.func_svsu_import import (enumeration_of_svg, actualizations_vk_svbu,
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QTextBrowser, QProgressBar
+from PyQt6.QtWidgets import QHBoxLayout, QTextBrowser, QProgressBar
 from qasync import asyncSlot
-from modernization_objects.push_button import QPushButtonModified
-from modernization_objects.main_window import MainWindowModified
+from modernization_objects.push_button import QPushButtonModified, QPushButtonInstruction, QPushButtonMenu
+from modernization_objects.q_widget import MainWindowModified
 from config.get_logger import log_info
 
 
@@ -18,40 +18,35 @@ class SvsuImport(MainWindowModified):
         self.instruction_window = Instruction()
         self.main_menu = main_menu
 
-        layout = QVBoxLayout()
-
-        layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVBU',
+        self.layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVBU',
                                              func_pressed=self.update_vis_svbu))
 
-        layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVSU из самых актуальных видеокадров SVBU',
+        self.layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVSU из самых актуальных видеокадров SVBU',
                                              func_pressed=self.update_vis_svsu))
 
-        layout.addWidget(QPushButtonModified(text='Сделать неактивными кнопки на кадрах с несуществующими ссылками',
+        self.layout.addWidget(QPushButtonModified(text='Сделать неактивными кнопки на кадрах с несуществующими ссылками',
                                              func_pressed=self.start_bloc_button))
 
-        layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
+        self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
                                              func_pressed=self.update_data_system))
 
-        layout.addWidget(QPushButtonModified(text='Создать файл SVSU_IMPORT.txt',
+        self.layout.addWidget(QPushButtonModified(text='Создать файл SVSU_IMPORT.txt',
                                              func_pressed=self.update_file_svsu_import))
 
         self.text_log = QTextBrowser()
-        layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
+        self.layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
         self.progress = QProgressBar()
         self.progress.setStyleSheet('text-align: center;')
-        layout.addWidget(self.progress)
+        self.layout.addWidget(self.progress)
         self.progress.setVisible(False)
 
         horizontal_layout = QHBoxLayout()
-        horizontal_layout.addWidget(QPushButtonModified(text='⏪ Вернуться в главное меню',
-                                                        func_pressed=self.main_menu_window))
-        horizontal_layout.addWidget(QPushButtonModified(text='Открыть инструкцию ❗',
-                                                        func_pressed=self.start_instruction_window))
-        horizontal_layout.addWidget(QPushButtonModified(text='Закрыть программу',
-                                                        func_pressed=self.close_program))
 
-        layout.addLayout(horizontal_layout)
+        horizontal_layout.addWidget(QPushButtonMenu(func_pressed=self.main_menu_window))
+        horizontal_layout.addWidget(QPushButtonInstruction(func_pressed=self.start_instruction_window))
+
+        self.layout.addLayout(horizontal_layout)
 
         self.name_system_vk_svbu = NameSystemWindow(func=self.start_actualizations_vk_svbu,
                                                     text='Видеокадры какого блока обновить?',
@@ -65,10 +60,6 @@ class SvsuImport(MainWindowModified):
         self.name_system_svsu_import = NameSystemWindow(func=self.start_add_file_svsu_import,
                                                         text='Для какого блока создать файл SVSU_IMPORT.txt?',
                                                         set_name_system={'SVBU_1', 'SVBU_2'})
-
-        widget = QWidget()
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)  # Разместим подложку в окне
 
     def update_vis_svbu(self):
         self.name_system_vk_svbu.show()
@@ -133,11 +124,13 @@ class SvsuImport(MainWindowModified):
 
     @asyncSlot()
     # @log_entry
-    async def print_log(self, text: str, color: str = 'black', level: str = 'INFO') -> None:
+    async def print_log(self, text: str, color: str = 'white', level: str = 'INFO') -> None:
         """Программа выводящая переданный текст в окно лога. Цвета можно использовать зеленый - green, красный - red"""
-        dict_colors = {'black': QColor(0, 0, 0),
-                       'red': QColor(255, 0, 0),
-                       'green': QColor(50, 155, 50)}
+        dict_colors = {
+            'white': QColor(169, 183, 198),
+            'black': QColor(0, 0, 0),
+            'red': QColor(255, 0, 0),
+            'green': QColor(50, 155, 50)}
         self.text_log.setTextColor(dict_colors[color])
         self.text_log.append(text)
         if level == 'INFO':

@@ -33,10 +33,11 @@ style_window_black = (
     "QPushButton:hover{background-color:#4e5157;border: 2px outset #43454a;border-radius: 10px;font-size: 16px;color: #A9B7C6;}"
     "QPushButton:pressed{background-color:#43454a;border: 2px inset #43454a;border-radius: 10px;font-size: 16px;color: #A9B7C6;}"
     "QPushButton:disabled{background-color:grey; border:none;border-radius: 10px;font-size: 16px;color: #A9B7C6;}"
-    "QTextBrowser{background: #2b2b2b;border: 2px inset #50624e;border-radius: 5px; font-size: 15px;color: #A9B7C6;}"
+    "QTextBrowser{background: #2b2b2b;border: 2px inset #43454a;border-radius: 5px; font-size: 15px;color: #A9B7C6;}"
+    "QProgressBar{;color: white;}"
     "QLabel{font-size: 15px}"
-    "#bottomWidget{border-radius: 10px;background: #2b2b2b;}"
-    "CTitleBar_buttonClose: pressed{color: white; background: rgb(165, 69, 106);}")
+    "QVBoxLayout{background: white;}"
+    )
 
 
 # style_text_browser = 'background: #C4D7B2;border: 1px inset #50624e;border-radius: 5px; font-size: 14px;'
