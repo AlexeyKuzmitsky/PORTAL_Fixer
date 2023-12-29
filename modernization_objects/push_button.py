@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QPushButton
-from PyQt6.QtGui import QFont, QIcon, QPixmap
+from PyQt6.QtGui import QFont, QIcon
 from os import path
 
 
@@ -22,12 +22,32 @@ class QPushButtonExit(QPushButton):
     def __init__(self, func_pressed=None):
         super().__init__()
 
-        font = QFont()
-        font.setFamily('MS Shell Dlg 2')
         self.setFixedWidth(40)
         self.setFixedHeight(40)
-        self.setIcon(QIcon(path.join('icon', 'close_red.svg')))
-        self.setFont(font)
+        if path.exists(path.join('icon', 'close_red.svg')):
+            self.setIcon(QIcon(path.join('icon', 'close_red.svg')))
+        else:
+            font = QFont()
+            font.setFamily('MS Shell Dlg 2')
+            self.setFont(font)
+            self.setText('X')
+        if func_pressed:
+            self.clicked.connect(func_pressed)
+
+
+class QPushButtonMinimize(QPushButton):
+    def __init__(self, func_pressed=None):
+        super().__init__()
+
+        self.setFixedWidth(40)
+        self.setFixedHeight(40)
+        if path.exists(path.join('icon', 'minimize.svg')):
+            self.setIcon(QIcon(path.join('icon', 'minimize.svg')))
+        else:
+            font = QFont()
+            font.setFamily('MS Shell Dlg 2')
+            self.setFont(font)
+            self.setText('_')
         if func_pressed:
             self.clicked.connect(func_pressed)
 
@@ -41,9 +61,7 @@ class QPushButtonInstruction(QPushButton):
         self.setMinimumHeight(50)
         self.setMinimumWidth(50)
         self.setText('Открыть инструкцию')
-        # self.setIcon(QPixmap(path.join('image', 'icon.ico')).scaled(30, 30))
-        # self.setIcon(QIcon(path.join('icon', 'book.svg')))
-        self.setIcon(QIcon(QPixmap(path.join('icon', 'book.svg'))))
+        self.setIcon(QIcon(path.join('icon', 'book.svg')))
         self.setFont(font)
         if func_pressed:
             self.clicked.connect(func_pressed)

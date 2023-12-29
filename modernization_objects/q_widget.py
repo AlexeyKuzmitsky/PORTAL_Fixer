@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import QSize, Qt, QPoint
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QToolBar, QFrame
-from modernization_objects.push_button import QPushButtonModified, QPushButtonExit
+from modernization_objects.push_button import QPushButtonModified, QPushButtonMinimize, QPushButtonExit
 from config.style import style_window_black
 from os import path
 
@@ -16,19 +16,20 @@ class MainWindowModified(QWidget):
         toolbar = QToolBar()
         self.layout = QVBoxLayout()
 
-
-        self.btn_minimized = QPushButtonModified(func_pressed=self.show_minimized)
-        self.btn_minimized.setIcon(QIcon(path.join('icon', 'minimize.svg')))
-        self.btn_minimized.setFixedWidth(40)
-        self.btn_minimized.setFixedHeight(40)
-
+        self.btn_minimized = QPushButtonMinimize(func_pressed=self.show_minimized)
         self.btn_maximized = QPushButtonModified(func_pressed=self.show_maximized)
-        self.btn_maximized.setIcon(QIcon(path.join('icon', 'maximum_size.svg')))
+        if path.exists(path.join('icon', 'maximum_size.svg')):
+            self.btn_maximized.setIcon(QIcon(path.join('icon', 'maximum_size.svg')))
+        else:
+            self.btn_maximized.setText('□')
         self.btn_maximized.setFixedWidth(40)
         self.btn_maximized.setFixedHeight(40)
 
         self.btn_normal = QPushButtonModified(func_pressed=self.show_normal)
-        self.btn_normal.setIcon(QIcon(path.join('icon', 'minimum_size.svg')))
+        if path.exists(path.join('icon', 'minimum_size.svg')):
+            self.btn_normal.setIcon(QIcon(path.join('icon', 'minimum_size.svg')))
+        else:
+            self.btn_normal.setText('□')
         self.btn_normal.setFixedWidth(40)
         self.btn_normal.setFixedHeight(40)
         self.btn_normal.setVisible(False)
