@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import QProgressBar
 import json
 
 
-async def generation_tcp_gate(name_system, print_log):
+async def generation_tcp_gate(name_system: str, print_log):
     """Генерирует файл TcpGateConf для ZPUPD"""
     # создание базы сигналов соответствующей системы
     data_ana = await loading_data_kks_ana(directory=name_system)
