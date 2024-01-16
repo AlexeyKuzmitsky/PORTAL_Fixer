@@ -1,6 +1,6 @@
 name_program = 'PORTAL_Fixer'
-version_program = '2.2'
-program_compilation_date = '2024.01.05'
+version_program = '2.3'
+program_compilation_date = '2024.01.16'
 
 program_directory_map = {
     'logs': None,
@@ -9,6 +9,7 @@ program_directory_map = {
             'TcpGate': None
         },
         'DbDumps': None,
+        'DbSrc': None,
         'NPP_models': None,
         'NPP_models_new': None,
         'screen': None,
@@ -21,6 +22,7 @@ program_directory_map = {
             'TcpGate': None
         },
         'DbDumps': None,
+        'DbSrc': None,
         'NPP_models': None,
         'NPP_models_new': None,
         'screen': None,
@@ -33,6 +35,7 @@ program_directory_map = {
             'TcpGate': None
         },
         'DbDumps': None,
+        'DbSrc': None,
         'NPP_models': None,
         'new_NPP_models_SVSU': None,
         'screen': None,
@@ -43,6 +46,7 @@ program_directory_map = {
     'SKU_VP_1': {
         'data': None,
         'DbDumps': None,
+        'DbSrc': None,
         'NPP_models': None,
         'NPP_models_new': None,
         'screen': None,
@@ -53,6 +57,7 @@ program_directory_map = {
     'SKU_VP_2': {
         'data': None,
         'DbDumps': None,
+        'DbSrc': None,
         'NPP_models': None,
         'NPP_models_new': None,
         'screen': None,

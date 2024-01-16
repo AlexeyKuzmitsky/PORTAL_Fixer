@@ -1,5 +1,4 @@
 from config.general_functions import new_file_data_ana_bin_nary
-# import config.func_checking_sources
 from config.func_checking_sources import search_for_comments_in_a_ana_file_1, search_for_comments_in_a_bin_file_1
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
@@ -44,15 +43,15 @@ class CheckingSources(MainWindowModified):
 
         self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
                                             text='Базу какой из систем обновить?',
-                                            set_name_system={'SVBU_1', 'SVBU_2', 'SVSU'})
+                                            set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'})
 
         self.checking_file_ana_1 = NameSystemWindow(func=self.start_checking_ana_file_1,
                                                     text='Файл какой системы проверить?',
-                                                    set_name_system={'SVBU_1', 'SVBU_2', 'SVSU'})
+                                                    set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'})
 
         self.checking_file_bin_1 = NameSystemWindow(func=self.start_checking_ana_file_1,
                                                     text='Файл какой системы проверить?',
-                                                    set_name_system={'SVBU_1', 'SVBU_2', 'SVSU'})
+                                                    set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'})
 
 
     def update_data_system(self):

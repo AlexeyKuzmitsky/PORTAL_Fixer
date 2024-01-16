@@ -107,7 +107,10 @@ async def new_file_data_ana_bin_nary(print_log, name_system: str,
                     description = i_line[43]
 
                     if i_line[14] == '-1':
-                        set_kks_bin_date.add(full_kks)
+                        if i_line[18] == '1' or i_line[18] == '0':
+                            set_kks_bin_date.add(full_kks)
+                        else:
+                            set_kks_nary_date.add(full_kks)
                     else:
                         set_kks_nary_date.add(full_kks)
 
