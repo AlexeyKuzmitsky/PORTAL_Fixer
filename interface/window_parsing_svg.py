@@ -1,5 +1,5 @@
-from config.general_functions import sort_files_into_groups, new_file_data_ana_bin_nary
-from config.func_parsing_svg import new_start_parsing_svg_files, dict_loading, actualizations_vk_svbu
+from config.general_functions import sort_files_into_groups, new_file_data_ana_bin_nary, actualizations_vk
+from config.func_parsing_svg import new_start_parsing_svg_files, dict_loading
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from os import path, listdir
@@ -83,7 +83,7 @@ class ParsingSvg(MainWindowModified):
                                   f'из папки {name_directory}/NPP_models_new')
         self.progress.setVisible(True)
         self.progress.reset()
-        await actualizations_vk_svbu(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
+        await actualizations_vk(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
         await self.print_log(text=f'Выполнение программы обновления видеокадров {name_directory} завершено\n')
         self.progress.setVisible(False)
 

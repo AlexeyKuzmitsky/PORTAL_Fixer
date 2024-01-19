@@ -1,4 +1,4 @@
-from config.general_functions import new_file_data_ana_bin_nary
+from config.general_functions import new_file_data_ana_bin_nary, actualizations_vk
 from config.func_generation_tcp_gate_file import generation_tcp_gate, add_data_file_bin_nary
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
@@ -18,9 +18,13 @@ class GenerationTcpGate(MainWindowModified):
         self.main_menu = main_menu
 
         self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
-                                             func_pressed=self.update_data_system))
+                                                  func_pressed=self.update_data_system))
+
+        self.layout.addWidget(QPushButtonModified(text='Обновление видеокадров',
+                                                  func_pressed=self.update_vis_system))
+
         self.layout.addWidget(QPushButtonModified(text='Создание файла ZPUPD.cfg',
-                                             func_pressed=self.tcp_gate_system))
+                                                  func_pressed=self.tcp_gate_system))
 
         self.text_log = QTextBrowser()
         self.layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
@@ -41,12 +45,19 @@ class GenerationTcpGate(MainWindowModified):
                                             text='Базу какой из систем обновить?',
                                             set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
 
+        self.name_system_vk = NameSystemWindow(func=self.start_actualizations_vk,
+                                               text='Видеокадры какой системы обновить?',
+                                               set_name_system={'SVBU_1', 'SVBU_2', 'SVSU'})
+
         self.name_system_tcp_gate = NameSystemWindow(func=self.start_generation_tcp_gate,
                                                      text='Для какой системы создать файл ZPUPD.cfg?',
                                                      set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
 
     def update_data_system(self):
         self.update_data.show()
+
+    def update_vis_system(self):
+        self.name_system_vk.show()
 
     def tcp_gate_system(self):
         self.name_system_tcp_gate.show()
@@ -96,6 +107,15 @@ class GenerationTcpGate(MainWindowModified):
             log_info.info(text.replace('\n', ' '))
         elif level == 'ERROR':
             log_info.error(text.replace('\n', ' '))
+
+    @asyncSlot()
+    async def start_actualizations_vk(self, name_directory: str) -> None:
+        """Функция запускающая обновление видеокадров SVBU"""
+        await self.print_log(text=f'Начало обновления видеокадров {name_directory}')
+        self.progress.setVisible(True)
+        self.progress.reset()
+        await actualizations_vk(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
+        await self.print_log(text=f'Обновление видеокадров {name_directory} завершено\n')
 
     def start_instruction_window(self):
         self.instruction_window.add_text_instruction()

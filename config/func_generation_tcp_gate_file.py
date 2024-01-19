@@ -91,6 +91,7 @@ async def generation_tcp_gate(name_system: str, print_log):
         set_ana_signal.update(set_ana)
         set_bin_signal.update(set_bin)
 
+    file_creation(set_ana=set_ana_signal, set_bin=set_bin_signal, name_system=name_system, name_file='ASUP.cfg')
     if name_system == 'SVSU':
         file_creation(set_ana=set_ana_signal, set_bin=set_bin_signal, name_system=name_system, name_file='ZPUPDG.cfg')
         file_creation(set_ana=set_ana_signal, set_bin=set_bin_signal, name_system=name_system, name_file='ZPUPDAS.cfg')

@@ -1,8 +1,7 @@
 import re
 import json
-import shutil
 
-from os import path, listdir
+from os import path
 from typing import Set, Dict, List
 from math import ceil
 from PyQt6.QtWidgets import QMainWindow, QMessageBox, QProgressBar
@@ -10,25 +9,6 @@ from config.point_description import AnchorPoint
 from config.general_functions import check_directory
 from config.general_functions import (loading_data_kks_ana, loading_data_kks_bin, loading_data_kks_nary,
                                       loading_data_dict_kks_ana, loading_data_dict_kks_bin, creating_list_of_submodel)
-
-
-async def actualizations_vk_svbu(print_log, name_directory: str, progress: QProgressBar) -> None:
-    """Функция обновления видеокадров в папке SVBU_(1/2)/NPP_models из папки SVBU_(1/2)/NPP_models_new"""
-    set_vis: Set[str] = set(listdir(path.join(name_directory, 'NPP_models')))
-    set_vis_new: Set[str] = set(listdir(path.join(name_directory, 'NPP_models_new')))
-    numbers_vis = len(set_vis)
-    number = 1
-    for i_vis in sorted(set_vis):
-        progress.setValue(round(number / numbers_vis * 100))
-        if i_vis in set_vis_new:
-            shutil.copy2(path.join(name_directory, 'NPP_models_new', i_vis),
-                         path.join(name_directory, 'NPP_models', i_vis))
-            await print_log(text=f'[{number}/{numbers_vis}]   +++{i_vis} видеокадр обновлен+++')
-        else:
-            await print_log(text=f'[{number}/{numbers_vis}]   '
-                                      f'---Видеокадра {i_vis} нет в {name_directory}/NPP_models_new ---',
-                                 color='red')
-        number += 1
 
 
 async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str, progress: QProgressBar) -> bool:

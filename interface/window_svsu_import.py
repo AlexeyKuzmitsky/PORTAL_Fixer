@@ -1,6 +1,5 @@
-from config.general_functions import new_file_data_ana_bin_nary
-from config.func_svsu_import import (enumeration_of_svg, actualizations_vk_svbu, actualizations_vk_svsu,
-                                     add_file_svsu_import)
+from config.general_functions import new_file_data_ana_bin_nary, actualizations_vk
+from config.func_svsu_import import enumeration_of_svg, actualizations_vk_svsu, add_file_svsu_import
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from PyQt6.QtGui import QColor
@@ -83,7 +82,7 @@ class SvsuImport(MainWindowModified):
         await self.print_log(text=f'Начало обновления видеокадров {name_directory}')
         self.progress.setVisible(True)
         self.progress.reset()
-        await actualizations_vk_svbu(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
+        await actualizations_vk(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
         await self.print_log(text=f'Обновление видеокадров {name_directory} завершено\n')
 
     @asyncSlot()

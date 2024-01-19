@@ -3,7 +3,7 @@ import json
 import shutil
 import os
 
-from os import path, mkdir
+from os import path, mkdir, listdir
 from typing import Set, Dict, List
 from .timer import timer
 from .get_logger import log_info_print, log_info
@@ -625,3 +625,22 @@ def database_loading_list_kks_ana_bin_nary(name_system: str):
         program_execution_delay(pause_length_in_seconds=3)
 
     return set_ana_signal, set_bin_signal, set_nary_signal
+
+
+async def actualizations_vk(print_log, name_directory: str, progress: QProgressBar) -> None:
+    """Функция обновления видеокадров в папке SVBU_(1/2)/NPP_models из папки SVBU_(1/2)/NPP_models_new"""
+    set_vis: Set[str] = set(listdir(path.join(name_directory, 'NPP_models')))
+    set_vis_new: Set[str] = set(listdir(path.join(name_directory, 'NPP_models_new')))
+    numbers_vis = len(set_vis)
+    number = 1
+    for i_vis in sorted(set_vis):
+        progress.setValue(round(number / numbers_vis * 100))
+        if i_vis in set_vis_new:
+            shutil.copy2(path.join(name_directory, 'NPP_models_new', i_vis),
+                         path.join(name_directory, 'NPP_models', i_vis))
+            await print_log(text=f'[{number}/{numbers_vis}]   +++{i_vis} видеокадр обновлен+++')
+        else:
+            await print_log(text=f'[{number}/{numbers_vis}]   '
+                                 f'---Видеокадра {i_vis} нет в {name_directory}/NPP_models_new ---',
+                                 color='red')
+        number += 1
