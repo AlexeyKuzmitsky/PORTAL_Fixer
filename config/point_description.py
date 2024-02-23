@@ -19,7 +19,7 @@ class AnchorPoint:
         self.x: float = 0  # расположение подмодели по горизонтали
         self.y: float = 0  # расположение подмодели по вертикали
         self.number_point: int = 0  # Порядковый номер точки на видеокадре
-        self.signal_description: List[Dict[str]] = list()  # Описание сигналов из базы данных
+        self.signal_description: List[Dict] = list()  # Описание сигналов из базы данных
         self.width: float = 0  # ширина подмодели
         self.height: float = 0  # высота подмодели
         self.transform: Any = None
@@ -92,7 +92,8 @@ class AnchorPoint:
 
     def add_bin_signals_setting(self, data_bin, kks: str, add_list_suffix: Set[str] = None):
         """Добавляет к аналоговым сигналам бинарные сигналы уставок"""
-        list_suffix: Set[str] = {'XH03', 'XH05', 'XH54', 'XH56', 'XH43', 'XH45', 'XH94', 'XH96'}
+        list_suffix: Set[str] = {'XH41', 'XH43', 'XH45', 'XH90', 'XH92', 'XH94',
+                                 'ZH41', 'ZH43', 'ZH45', 'ZH90', 'ZH92', 'ZH94'}
         if add_list_suffix:
             list_suffix.update(add_list_suffix)
         for i_suffix in list_suffix:
