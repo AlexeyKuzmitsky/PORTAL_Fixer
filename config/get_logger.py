@@ -1,9 +1,7 @@
 import logging
-# import functools
 
 from os import path
 from datetime import datetime
-# from typing import Callable
 
 
 def get_logger(name: str = __file__,
@@ -71,27 +69,6 @@ log_info_print: logging.Logger = get_logger(name=f'{__name__}_info_print',
                                             print_log=True,
                                             level=logging.INFO)
 
-
-# def log_entry(func: Callable) -> Callable:
-#     @functools.wraps(func)
-#     async def wrapped_func(*args, **kwargs) -> None:
-#         print(args)
-#         print(kwargs)
-#         try:
-#             text_message: str = kwargs['text']
-#         except KeyError:
-#             text_message: str = args[1]
-#         text_log = text_message.replace('\n', ' ')
-#         await func(*args, **kwargs)
-#
-#         if 'level' in kwargs:
-#             if kwargs['level'] == 'INFO':
-#                 log_info.info(text_log)
-#             elif kwargs['level'] == 'ERROR':
-#                 log_info.error(text_log)
-#         else:
-#             log_info.info(text_log)
-#     return wrapped_func
 
 if __name__ == '__main__':
     pass
