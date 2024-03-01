@@ -40,7 +40,7 @@ async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str, 
     number = 1
     for i_svg in sorted(svg):
         progress.setValue(round(number / numbers * 100))
-        text_log = f'[{number}/{numbers}]\t Проверка {i_svg}'
+        await print_log(text=f'[{number}/{numbers}]\t Проверка {i_svg}')
         if i_svg.endswith('.svg') or i_svg.endswith('.SVG'):
             list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system=directory,
                                                                                name_svg=i_svg)
@@ -67,11 +67,12 @@ async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str, 
                 recording_comments_to_a_file(directory=directory,
                                              list_error_kks=list_error_kks,
                                              name_file=i_svg[:-4])
-            text_log = f'{text_log:<55}Кривых KKS: {len(list_error_kks)}'
-            await print_log(text=text_log)
+            if len(list_error_kks):
+                await print_log(text=f'\tКривых KKS: {len(list_error_kks)}', a_new_line=False, color='red')
+            else:
+                await print_log(text=f'\tКривых KKS: {len(list_error_kks)}', a_new_line=False, color='green')
         else:
-            text_log = f'{text_log:<55}Файл {i_svg} не svg!'
-            await print_log(text=text_log, color='red')
+            await print_log(text=f'\tНе svg!', a_new_line=False, color='yellow')
         number += 1
     return True
 

@@ -38,6 +38,7 @@ async def actualizations_vk_svsu(print_log, name_directory: str, progress: QProg
     numbers_vis = len(set_vis)
 
     for i_vis in sorted(set_vis):
+        await print_log(text=f'[{num}/{numbers_vis}]\tобновление {i_vis}')
         progress.setValue(round(num / numbers_vis * 100))
         if i_vis == '10MKA03.svg':
             pass
@@ -56,7 +57,7 @@ async def actualizations_vk_svsu(print_log, name_directory: str, progress: QProg
                             break
                     else:
                         new_file.write(i_line)
-            await print_log(text=f'[{num}/{numbers_vis}]   +++{i_vis} видеокадр обновлен+++')
+            await print_log(text='\t+++обновлен+++', color='green', a_new_line=False)
         elif i_vis in set_vis_bloc:
             # тут пойдет замена файла
             with open(path.join(name_directory, 'NPP_models', i_vis), 'r', encoding='windows-1251') as file, \
@@ -70,11 +71,10 @@ async def actualizations_vk_svsu(print_log, name_directory: str, progress: QProg
                             break
                     else:
                         new_file.write(i_line)
-            await print_log(text=f'[{num}/{numbers_vis}]   +++{i_vis} видеокадр обновлен+++')
+            await print_log(text='\t+++обновлен+++', color='green', a_new_line=False)
         else:
-            await print_log(text=f'[{num}/{numbers_vis}]   '
-                                 f'---Видеокадра {i_vis} нет в папке {name_directory}\\NPP_models---',
-                                 color='red')
+            await print_log(text=f'\t---Видеокадра нет в папке {name_directory}\\NPP_models---',
+                            color='red', a_new_line=False)
         num += 1
 
 
@@ -115,13 +115,13 @@ async def enumeration_of_svg(print_log, progress: QProgressBar) -> None:
     num = 1
     len_num = len(set_vis)
     for i_svg in sorted(set_vis):
+        await print_log(text=f'[{num}/{len_num}] Проверка файла {i_svg}')
         progress.setValue(round(num / len_num * 100))
         if i_svg.endswith('.svg'):
             await bloc_button(svg=i_svg, set_kks_name_svg=set_kks_vis_npp_models)
-            await print_log(text=f'[{num}/{len_num}] Проверен видеокадр {i_svg}')
+            await print_log(text='\t+++SUCCESSFULLY+++', color='green', a_new_line=False)
         else:
-            await print_log(text=f'[{num}/{len_num}] Файл {i_svg} не является svg',
-                                 color='red')
+            await print_log(text=f'\tНе является svg', color='yellow', a_new_line=False)
         num += 1
 
 
@@ -178,6 +178,7 @@ async def add_file_svsu_import(print_log, name_system: str, progress: QProgressB
     num = 1
     number_name_svg = len(list_name_svg_svsu)
     for name_svg in list_name_svg_svsu:
+        await print_log(text=f'[{num: <4}/{number_name_svg: <4}] Проверка {name_svg: <25}\t')
         progress.setValue(round(num / number_name_svg * 100))
         if name_svg.endswith('.svg'):
             list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system='SVSU',
@@ -185,15 +186,13 @@ async def add_file_svsu_import(print_log, name_system: str, progress: QProgressB
             await compiling_list_of_kks(list_submodel=list_submodel,
                                         data_ana=data_ana, data_bin=data_bin, data_nary=data_nary)
             set_ana, set_bin, set_nary = await list_of_signals_on_video_frame(list_submodel=list_submodel)
-            await print_log(text=f'[{num: <4}/{number_name_svg: <4}] Проверка {name_svg: <25}\t\t'
-                                 f'Найдено KKS: ANA - {len(set_ana): <4}, BIN - {len(set_bin): <4}, '
-                                 f'NARY - {len(set_nary): <4}')
+            await print_log(text=f'Найдено KKS: ANA - {len(set_ana): <4}, BIN - {len(set_bin): <4}, '
+                                 f'NARY - {len(set_nary): <4}', color='green', a_new_line=False)
             set_ana_signal.update(set_ana)
             set_bin_signal.update(set_bin)
             set_nary_signal.update(set_nary)
         else:
-            await print_log(text=f'[{num: <4}/{number_name_svg: <4}] Файл {name_svg} не является svg',
-                                 color='red')
+            await print_log(text=f'Не является svg', color='yellow', a_new_line=False)
         num += 1
     await writing_signals_to_a_file(print_log=print_log,
                                     name_system=name_system,
@@ -225,7 +224,7 @@ async def check_all_files(print_log, name_system: str):
                                    f'Продолжить выполнение программы без файла ANA_list_kks.txt?')
         if msg == QMessageBox.StandardButton.No:
             await print_log(text=f'Программа создания файла SVSU_IMPORT.txt прервана пользователем\n',
-                                 color='red')
+                            color='red')
             return False
 
     if not check_file(path_directory=path.join(name_system, 'data'), name_file='BIN_list_kks.txt'):
@@ -236,7 +235,7 @@ async def check_all_files(print_log, name_system: str):
                                    f'Продолжить выполнение программы без файла BIN_list_kks.txt?')
         if msg == QMessageBox.StandardButton.No:
             await print_log(text=f'Программа создания файла SVSU_IMPORT.txt прервана пользователем\n',
-                                 color='red')
+                            color='red')
             return False
 
     if not check_file(path_directory=path.join(name_system, 'data'), name_file='NARY_list_kks.txt'):
@@ -247,7 +246,7 @@ async def check_all_files(print_log, name_system: str):
                                    f'Продолжить выполнение программы без файла NARY_list_kks.txt?')
         if msg == QMessageBox.StandardButton.No:
             await print_log(text=f'Программа создания файла SVSU_IMPORT.txt прервана пользователем\n',
-                                 color='red')
+                            color='red')
             return False
     return True
 

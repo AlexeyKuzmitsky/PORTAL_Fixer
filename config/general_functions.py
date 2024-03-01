@@ -132,14 +132,15 @@ async def new_file_data_ana_bin_nary(print_log, name_system: str,
             for i_kks in sorted(set_kks_nary_date):
                 file.write(f'{i_kks}\n')
 
-        await print_log(text='Сигналы BIN собраны успешно', color='green')
+        await print_log(text='\tСигналы BIN собраны успешно', color='green', a_new_line=False)
 
-        await print_log(text='Сбор ANA сигналов')
     except FileNotFoundError:
         await print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\\DbDumps.\n'
                         f'Сбор бинарных и много битовых сигналов невозможен',
                         color='red', level='ERROR')
+
     progress.setValue(round((max_progress - min_progress) * 50 / 100 + min_progress))
+    await print_log(text='Сбор ANA сигналов')
     try:
         with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
             new_text = reader(file, delimiter='|', quotechar=' ')
@@ -162,7 +163,7 @@ async def new_file_data_ana_bin_nary(print_log, name_system: str,
         with open(path.join(name_system, 'data', 'ANA_list_kks.txt'), 'w', encoding='UTF-8') as file:
             for i_kks in sorted(set_kks_ana_date):
                 file.write(f'{i_kks}\n')
-        await print_log(text='Сигналы ANA собраны успешно', color='green')
+        await print_log(text='\tСигналы ANA собраны успешно', color='green', a_new_line=False)
         progress.setValue(round((max_progress - min_progress) * 95 / 100 + min_progress))
     except FileNotFoundError:
         await print_log(f'Нет файла PLS_ANA_CONF.dmp в {name_system}\\DbDumps.\nСбор аналоговых сигналов невозможен',
@@ -337,13 +338,13 @@ async def actualizations_vk(print_log, name_directory: str, progress: QProgressB
     numbers_vis = len(set_vis)
     number = 1
     for i_vis in sorted(set_vis):
+        await print_log(text=f'[{number}/{numbers_vis}]   Обновление видеокадра {i_vis}')
         progress.setValue(round(number / numbers_vis * 100))
         if i_vis in set_vis_new:
             shutil.copy2(path.join(name_directory, 'NPP_models_new', i_vis),
                          path.join(name_directory, 'NPP_models', i_vis))
-            await print_log(text=f'[{number}/{numbers_vis}]   +++{i_vis} видеокадр обновлен+++')
+            await print_log(text='\t+++обновлен+++', a_new_line=False, color='green')
         else:
-            await print_log(text=f'[{number}/{numbers_vis}]   '
-                                 f'---Видеокадра {i_vis} нет в {name_directory}/NPP_models_new ---',
-                                 color='red')
+            await print_log(text=f'\t---Нет в {name_directory}/NPP_models_new---',
+                            a_new_line=False, color='red')
         number += 1

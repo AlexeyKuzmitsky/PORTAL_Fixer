@@ -43,9 +43,7 @@ async def search_for_comments_in_a_ana_file_1(print_log, name_system: str, progr
                     i_kks = i_kks.replace(' ', '')
 
                 if not i_kks in set_ana_signal:
-                    # text_line = "\t".join(i_line)
                     await print_log(text=f'Нет в базе KKS {i_kks}', color='red')
-                    # await print_log(text=f'Нет в базе KKS {i_kks} в строке {text_line}\n', color='red')
 
             set_kks.add(i_line[1])
             progress.setValue(round(num / len_num * 100))
@@ -101,9 +99,7 @@ async def search_for_comments_in_a_bin_file_1(print_log, name_system: str, progr
                 if i_kks in set_bin_signal or i_kks in set_nary_signal or i_kks in set_ana_signal:
                     continue
                 else:
-                    # text_line = "\t".join(i_line)
                     await print_log(text=f'Нет в базе KKS {i_kks}', color='red')
-                    # await print_log(text=f'Нет в базе KKS {i_kks} в строке {text_line}\n', color='red')
 
             set_kks.add(i_line[1])
             progress.setValue(round(num / len_num * 100))

@@ -94,15 +94,28 @@ class GenerationTcpGate(MainWindowModified):
         self.progress.setVisible(False)
 
     @asyncSlot()
-    async def print_log(self, text: str, color: str = 'white', level: str = 'INFO') -> None:
-        """Программа выводящая переданный текст в окно лога. Цвета можно использовать зеленый - green, красный - red"""
+    async def print_log(self, text: str, color: str = 'white', level: str = 'INFO', a_new_line: bool = True) -> None:
+        """
+        Программа выводящая переданный текст в окно лога.
+        Args:
+            text: текст, который будет выводиться
+            color: цвет текста (по умолчанию white)
+            level: Уровень лога (по умолчанию INFO)
+            a_new_line: Выводить с новой строки или продолжить старую (по умолчанию выводить с новой - True)
+        Returns: None
+        """
         dict_colors = {
             'white': QColor(169, 183, 198),
             'black': QColor(0, 0, 0),
             'red': QColor(255, 0, 0),
-            'green': QColor(50, 155, 50)}
+            'green': QColor(50, 155, 50),
+            'yellow': QColor(255, 255, 0)
+        }
         self.text_log.setTextColor(dict_colors[color])
-        self.text_log.append(text)
+        if a_new_line:
+            self.text_log.append(text)
+        else:
+            self.text_log.textCursor().insertText(text)
         if level == 'INFO':
             log_info.info(text.replace('\n', ' '))
         elif level == 'ERROR':
