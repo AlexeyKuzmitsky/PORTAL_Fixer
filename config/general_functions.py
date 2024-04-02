@@ -13,11 +13,12 @@ from config.checking_all_directories import check_directory
 from csv import reader
 
 
-async def creating_list_of_submodel(name_system: str, name_svg: str) -> List[AnchorPoint]:
+async def creating_list_of_submodel(name_system: str, name_svg: str, name_submodel: str = None) -> List[AnchorPoint]:
     """
     Функция составляющая список подмоделей на видеокадре.
     :param name_system: Файл svg проверяемого видеокадра.
     :param name_svg: Название svg файла.
+    :param name_submodel: Название подмодели которую ищем. Если None, ведется поиск всех подмоделей.
     :return: Список найденных подмоделей.
     """
     with open(path.join(name_system, 'NPP_models', name_svg), 'r', encoding='windows-1251') as svg_file:
@@ -31,7 +32,8 @@ async def creating_list_of_submodel(name_system: str, name_svg: str) -> List[Anc
                     list_constructor.append(i_line)
                     await new_submodel(list_constructor=list_constructor,
                                        list_submodel=list_submodel,
-                                       name_svg=name_svg)
+                                       name_svg=name_svg,
+                                       name_submodel=name_submodel)
                     flag_constructor = False
                     list_constructor.clear()
                 else:
@@ -41,7 +43,8 @@ async def creating_list_of_submodel(name_system: str, name_svg: str) -> List[Anc
                     list_constructor.append(i_line)
                     await new_submodel(list_constructor=list_constructor,
                                        list_submodel=list_submodel,
-                                       name_svg=name_svg)
+                                       name_svg=name_svg,
+                                       name_submodel=name_submodel)
                     list_constructor.clear()
                 elif '<image' in i_line:
                     flag_constructor = True
@@ -50,16 +53,21 @@ async def creating_list_of_submodel(name_system: str, name_svg: str) -> List[Anc
     return list_submodel
 
 
-async def new_submodel(list_constructor, list_submodel, name_svg: str) -> None:
+async def new_submodel(list_constructor, list_submodel, name_svg: str, name_submodel: str) -> None:
     """
     Функция создания новой точки на видеокадре.
     :param list_constructor: Характеристики подмодели.
     :param list_submodel: Список точек уже найденных на видеокадре.
     :param name_svg: Название svg файла на котором находится подмодель.
+    :param name_submodel: Название подмодели которую ищем. Если None, ведется поиск всех подмоделей.
     :return: None
     """
     submodel = AnchorPoint(full_description_of_the_submodel=list_constructor, name_svg=name_svg)
-    submodel.set_name_submodel()
+    if name_submodel:
+        if submodel.set_name_submodel() != name_submodel:
+            return
+    else:
+        submodel.set_name_submodel()
     if submodel.name_submodel:
         try:
             submodel.search_kks_on_submodel()
@@ -183,7 +191,7 @@ def check_file(path_directory: str, name_file: str) -> bool:
     return False
 
 
-async def loading_data_kks_ana(directory: str = '') -> Set[str]:
+async def loading_data_kks_ana(directory: str = '', print_log = None) -> Set[str]:
     """
     Функция считывающая базу аналоговых сигналов.
     :return: Множество аналоговых сигналов
@@ -195,11 +203,13 @@ async def loading_data_kks_ana(directory: str = '') -> Set[str]:
             for i_line in file:
                 set_kks_ana_data.add(i_line[:-1])
     except FileNotFoundError:
+        if print_log:
+            await print_log(text=f'Нет файла {directory}/data/ANA_list_kks.txt', color='red')
         log_info.error(f'Нет файла {directory}/data/ANA_list_kks.txt')
     return set_kks_ana_data
 
 
-async def loading_data_kks_bin(directory: str = '') -> Set[str]:
+async def loading_data_kks_bin(directory: str = '', print_log = None) -> Set[str]:
     """
     Функция считывающая базу бинарных сигналов.
     :return: Множество бинарных сигналов
@@ -211,6 +221,8 @@ async def loading_data_kks_bin(directory: str = '') -> Set[str]:
             for i_line in file:
                 set_kks_bin_data.add(i_line[:-1])
     except FileNotFoundError:
+        if print_log:
+            await print_log(text=f'Нет файла {directory}/data/BIN_list_kks.txt', color='red')
         log_info.error(f'Нет файла {directory}/data/BIN_list_kks.txt')
     return set_kks_bin_data
 
@@ -245,7 +257,25 @@ async def loading_data_dict_kks_bin(directory: str = '') -> Dict[str, Dict[str, 
     return dict_kks_bin_data
 
 
-async def loading_data_kks_nary(directory: str = '') -> Set[str]:
+async def loading_data_dict_kks_bin_no_description(directory: str = '', print_log = None) -> Dict[str, Set[str]]:
+    """
+    Функция считывающая базу бинарных сигналов.
+    :return: Словарь бинарных сигналов с описанием
+    """
+    dict_kks_bin_data: Dict[str, Set[str]] = dict()
+    try:
+        with open(path.join(directory, 'data', 'BIN_json_kks.json'), 'r', encoding='UTF-8') as json_file:
+            dict_bin_kks: Dict = json.load(json_file)
+            for key, value in dict_bin_kks.items():
+                dict_kks_bin_data[key] = set(value.keys())
+    except FileNotFoundError:
+        if print_log:
+            await print_log(text=f'Нет файла {directory}/data/BIN_json_kks.json', color='red')
+        log_info.error(f'Нет файла {directory}/data/BIN_json_kks.json')
+    return dict_kks_bin_data
+
+
+async def loading_data_kks_nary(directory: str = '', print_log = None) -> Set[str]:
     """
     Функция считывающая базу бинарных сигналов.
     :return: Множество бинарных сигналов
@@ -257,6 +287,8 @@ async def loading_data_kks_nary(directory: str = '') -> Set[str]:
             for i_line in file:
                 set_kks_nary_data.add(i_line[:-1])
     except FileNotFoundError:
+        if print_log:
+            await print_log(text=f'Нет файла {directory}/data/NARY_list_kks.txt', color='red')
         log_info.error(f'Нет файла {directory}/data/NARY_list_kks.txt')
     return set_kks_nary_data
 

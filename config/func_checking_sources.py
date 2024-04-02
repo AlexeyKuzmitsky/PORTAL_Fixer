@@ -1,9 +1,10 @@
 from csv import reader
 from PyQt6.QtWidgets import QProgressBar
 from config.general_functions import (check_directory, check_file, loading_data_kks_ana, loading_data_kks_bin,
-                                      loading_data_kks_nary)
-from os import path
-from typing import Set, List
+                                      loading_data_kks_nary, creating_list_of_submodel,
+                                      loading_data_dict_kks_bin_no_description)
+from os import path, listdir
+from typing import Set, List, Dict
 from config.conf import dict_level_signale, dict_suffix_level_signale
 
 import re
@@ -204,3 +205,153 @@ async def searching_for_comments_in_files_bin(print_log, name_system: str, progr
         await print_log(text='\tSuccessfully', color='green', a_new_line=False)
         await print_log(text=f'\t\t{count_error}', color='red', a_new_line=False)
         progress.setValue(round(num / len_num * 100))
+
+
+async def new_start_parsing_svg_files(print_log, name_system: str, progress: QProgressBar) -> None:
+    """
+    Функция создает файл altstation.dip
+    Args:
+        print_log: Функция вывода лога
+        name_system: Система в которой проверяется файл
+        progress: Прогресс выполнения программы
+    Returns: None
+    """
+    await print_log(text='Поиск подмоделей obj_Station_stat.svg на видеокадрах:')
+    list_svg_obj_station_stat: List[str]= await list_files_with_submodel(print_log=print_log, name_system=name_system,
+                                                                         progress=progress)
+
+    await print_log(text='Поиск видеокадров на которые ссылаются подмодели obj_Station_stat.svg')
+    set_svg_obj_station_stat: Set[str] = await list_of_name_links_svg(print_log=print_log, name_system=name_system,
+                                                                      list_svg_obj_station_stat=list_svg_obj_station_stat,
+                                                                      progress=progress)
+
+    await print_log(text='Поиск сигналов на видеокадрах')
+    dict_of_detected_signal_on_svg: Dict[str, Set[str]] = await search_for_signals_bin_nary_on_svg(
+        print_log=print_log, name_system=name_system, set_svg_obj_station_stat=set_svg_obj_station_stat, progress=progress)
+
+    await print_log(text='Запись файла altStation.dic')
+    await recording_found_signals_to_a_file(name_system=name_system,
+                                            dict_of_detected_signal_on_svg=dict_of_detected_signal_on_svg)
+    progress.setValue(100)
+
+
+async def list_files_with_submodel(print_log, name_system: str, progress: QProgressBar) -> List[str]:
+    """
+    Функция ведет поиск на видеокадрах подмодель obj_Station_stat.svg, при нахождении записывает название видеокадра
+    Args:
+        print_log: Функция вывода лога
+        name_system: Система в которой проверяется файл
+        progress: Прогресс выполнения программы
+    Returns: Список найденных svg файлов (видеокадров)
+    """
+    list_svg_obj_station_stat: List[str] = list()  # список видеокадров на которых есть подмодель obj_Station_stat.svg
+    list_name_svg = listdir(path.join(name_system, 'NPP_models'))
+    numbers = len(list_name_svg)
+    number = 1
+    for i_svg in list_name_svg:
+        progress.setValue(round(50 * (number / numbers)))
+        await print_log(text=f'[{number} из {numbers}] Проверка {i_svg}')
+        if i_svg.endswith('.svg') or i_svg.endswith('.SVG'):
+            if await search_obj_station_stat(name_system=name_system, name_svg=i_svg):
+                list_svg_obj_station_stat.append(i_svg)
+                await print_log(text='\t+Есть+', color='green', a_new_line=False)
+            else:
+                await print_log(text='\t-Нет-', a_new_line=False)
+        number += 1
+    await print_log(text=f'Поиск завершен. Найдено {len(list_svg_obj_station_stat)} видеокадров', color='green')
+    progress.setValue(50)
+    return list_svg_obj_station_stat
+
+
+
+async def list_of_name_links_svg(print_log, name_system: str, list_svg_obj_station_stat: List[str],
+                                 progress: QProgressBar) -> Set[str]:
+    """
+    Функция находящая подмодели obj_Station_stat.svg на видеокадре и записывающая привязки (ссылки на видеокадры)
+    подмоделей
+    Args:
+        print_log: Функция вывода лога
+        name_system: Система в которой проверяется файл
+        list_svg_obj_station_stat: Список содержащий названия svg содержащих подмодель obj_Station_stat.svg
+        progress: Прогресс выполнения программы
+    Returns: Список привязок на видеокадры
+    """
+    number = 1
+    numbers = len(list_svg_obj_station_stat)
+
+    set_svg_obj_station_stat: Set[str] = set()  # список видеокадров на которые ссылаются все подмодели obj_Station_stat.svg
+    for i_svg in list_svg_obj_station_stat:
+        await print_log(text=f'[{number} из {numbers}] Проверка {i_svg}')
+        list_submodel = await creating_list_of_submodel(name_system=name_system, name_svg=i_svg, name_submodel='obj_Station_stat.svg')
+        await print_log(text=f'\tНайдено ссылок: {len(list_submodel)}', a_new_line=False)
+        number += 1
+        progress.setValue(round((60 - 50) * (number / numbers)) + 50)
+        set_svg_obj_station_stat.update({i_svg.signal_description[0]['text_kks'] for i_svg in list_submodel})
+    return set_svg_obj_station_stat
+
+
+
+async def search_for_signals_bin_nary_on_svg(print_log, name_system: str, set_svg_obj_station_stat: Set[str],
+                                             progress: QProgressBar) -> Dict[str, Set[str]]:
+    await print_log(text='Загрузка базы данных сигналов')
+    set_ana_signal = await loading_data_kks_ana(directory=name_system, print_log=print_log)
+    progress.setValue(61)
+    set_bin_signal = await loading_data_kks_bin(directory=name_system, print_log=print_log)
+    progress.setValue(62)
+    set_nary_signal = await loading_data_kks_nary(directory=name_system, print_log=print_log)
+    progress.setValue(63)
+    dict_bin_signals = await loading_data_dict_kks_bin_no_description(directory=name_system, print_log=print_log)
+    progress.setValue(64)
+    await print_log(text='Сигналы загружены')
+
+    numbers = len(set_svg_obj_station_stat)
+    number = 1
+    dict_of_detected_signal_on_svg: Dict[str, Set[str]] = dict()  # KKS найденные на каждом видеокадре
+    for i_svg in set_svg_obj_station_stat:
+        await print_log(text=f'[{number} из {numbers}] Проверка {i_svg}.svg')
+        if not path.isfile(path.join(name_system, 'NPP_models', f'{i_svg}.svg')):
+            await print_log(text=f'\tОшибка', color='red', a_new_line=False)
+            await print_log(text=f'Видеокадра {name_system}/NPP_models/{i_svg}.svg нет. Поиск сигналов невозможен',
+                            color='red')
+            continue
+        dict_of_detected_signal_on_svg[i_svg] = set()
+        list_submodel = await creating_list_of_submodel(name_system=name_system, name_svg=f'{i_svg}.svg')
+        for i_submodel in list_submodel:
+            set_signal = i_submodel.check_signal_existence_database(data_ana=set_ana_signal,
+                                                                    data_bin=set_bin_signal,
+                                                                    data_nary=set_nary_signal,
+                                                                    dict_bin=dict_bin_signals)
+            dict_of_detected_signal_on_svg[i_svg].update(set_signal)
+        await print_log(text=f'\tНайдено сигналов: {len(dict_of_detected_signal_on_svg[i_svg])}', a_new_line=False)
+        number += 1
+        progress.setValue(round((95 - 65) * (number / numbers)) + 65)
+    return dict_of_detected_signal_on_svg
+
+
+async def recording_found_signals_to_a_file(name_system: str, dict_of_detected_signal_on_svg:Dict[str, Set[str]]) -> None:
+    """
+    Функция записывает найденные сигналы в файл altStation.dic
+    Args:
+        name_system: Система в которой проверяется файл
+        dict_of_detected_signal_on_svg: KKS найденные на каждом видеокадре
+    Returns: None
+    """
+    with open(path.join(name_system, 'altStation.dic'), 'w', encoding='UTF-8') as file_alt_station:
+        for name_svg, list_signal in sorted(dict_of_detected_signal_on_svg.items()):
+            for i_signal in sorted(list_signal):
+                file_alt_station.write(f'{i_signal}\t{name_svg}\n')
+
+
+async def search_obj_station_stat(name_system: str, name_svg: str) -> bool:
+    """
+    Функция поиска использования видеокадром подмодели obj_Station_stat.svg.
+    Args:
+        name_system: Название системы в которой ведется проверка
+        name_svg: Имя видеокадра.
+    Returns:  True при наличии подмодели, False при отсутствии.
+    """
+    with open(path.join(name_system, 'NPP_models', name_svg), 'r', encoding='windows-1251') as file_svg:
+        for i_line in file_svg:
+            if 'obj_Station_stat.svg' in i_line:
+                return True
+    return False

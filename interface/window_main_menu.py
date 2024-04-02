@@ -28,8 +28,8 @@ class MainWindow(MainWindowModified):  # создаем класс на осно
         self.layout.addWidget(QPushButtonModified(text='Поиск замечаний на видеокадрах',
                                                   func_pressed=self.start_parsing_svg_window))
 
-        self.layout.addWidget(QPushButtonModified(text='Создание файла altStation',
-                                                  func_pressed=self.development_warning))
+        # self.layout.addWidget(QPushButtonModified(text='Создание файла altStation',
+        #                                           func_pressed=self.development_warning))
 
         self.layout.addWidget(QPushButtonModified(text='Создание новых паспортов для видеокадров',
                                                   func_pressed=self.development_warning))
@@ -37,7 +37,7 @@ class MainWindow(MainWindowModified):  # создаем класс на осно
         self.layout.addWidget(QPushButtonModified(text='Создание файлов для TcpGate',
                                                   func_pressed=self.start_generation_tcp_gate_window))
 
-        self.layout.addWidget(QPushButtonModified(text='Проверка исходников',
+        self.layout.addWidget(QPushButtonModified(text='Работа с исходниками',
                                                   func_pressed=self.start_checking_sources_window))
 
         self.layout.addWidget(QPushButtonInstruction(func_pressed=self.start_instruction_window))

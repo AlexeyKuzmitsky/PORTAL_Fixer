@@ -101,6 +101,33 @@ class AnchorPoint:
             if new_kks in data_bin:
                 self.signal_description.append({'KKS': new_kks, 'Type_signal': 'BIN', 'Signal_in_database': True})
 
+
+    def check_signal_existence_database(self, data_ana: Set[str], data_bin: Set[str], data_nary: Set[str],
+                                        dict_bin: Dict[str, Set[str]]) -> Set[str]:
+        """
+        Функция проверяет наличие сигнала в базе данных. Если находит аналоговый сигнал, проверяет бинарные уставки
+        Args:
+            data_ana: список аналоговых сигналов с суффиксом
+            data_bin: список бинарных сигналов с суффиксом
+            data_nary: список много битовых сигналов с суффиксом
+            dict_bin: словарь бинарных сигналов, где ключ - тело бинарного сигнала,
+                                                 значение - список бинарных сигналов с суффиксом
+        Returns: Список бинарных и много битовых сигналов относящийся к точке на видеокадре
+        """
+        set_signal: Set[str] = set()
+        for i_point in self.signal_description:
+            kks = i_point['KKS']
+            if kks:
+                if kks in data_ana:
+                    if kks.split('_')[0] in dict_bin:
+                        set_signal.update(dict_bin[kks.split('_')[0]])
+                elif kks in data_nary:
+                    set_signal.add(kks)
+                elif kks in data_bin:
+                    set_signal.add(kks)
+        return set_signal
+
+
     def get_kks_ana_bin(self):
         """Функция возвращает 2 множества с сигналами:
         1. Множество аналоговых сигналов (ANA)

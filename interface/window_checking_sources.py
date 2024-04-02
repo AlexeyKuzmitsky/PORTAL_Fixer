@@ -1,6 +1,6 @@
 from config.general_functions import new_file_data_ana_bin_nary
 from config.func_checking_sources import (search_for_comments_in_a_ana_file_1, search_for_comments_in_a_bin_file_1,
-                                          searching_for_comments_in_files_bin)
+                                          searching_for_comments_in_files_bin, new_start_parsing_svg_files)
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from PyQt6.QtGui import QColor
@@ -20,6 +20,9 @@ class CheckingSources(MainWindowModified):
 
         self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
                                              func_pressed=self.update_data_system))
+
+        self.layout.addWidget(QPushButtonModified(text='Создание файла AltStation',
+                                             func_pressed=self.creating_file_alt_station_system))
 
         self.layout.addWidget(QPushButtonModified(text='Проверить файл ana_file-1.txt',
                                              func_pressed=self.checking_file_ana_1_system))
@@ -49,6 +52,12 @@ class CheckingSources(MainWindowModified):
                                             text='Базу какой из систем обновить?',
                                             set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'})
 
+        self.creating_file_alt_station = NameSystemWindow(
+            func=self.start_creating_new_file_altstation,
+            text='Для какой системы создать файл altstation?',
+            set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'}
+        )
+
         self.checking_file_ana_1 = NameSystemWindow(func=self.start_checking_ana_file_1,
                                                     text='Файл какой системы проверить?',
                                                     set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'})
@@ -64,6 +73,9 @@ class CheckingSources(MainWindowModified):
 
     def update_data_system(self):
         self.update_data.show()
+
+    def creating_file_alt_station_system(self):
+        self.creating_file_alt_station.show()
 
     def checking_file_ana_1_system(self):
         self.checking_file_ana_1.show()
@@ -86,6 +98,15 @@ class CheckingSources(MainWindowModified):
         self.progress.reset()
         await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress)
         await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
+
+    @asyncSlot()
+    async def start_creating_new_file_altstation(self, name_system: str) -> None:
+        """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
+        await self.print_log(f'Начало создания файла altstation {name_system}')
+        self.progress.setVisible(True)
+        self.progress.reset()
+        await new_start_parsing_svg_files(print_log=self.print_log, name_system=name_system, progress=self.progress)
+        await self.print_log(text=f'Создание файла altstation {name_system} завершено\n')
 
     @asyncSlot()
     async def start_checking_ana_file_1(self, name_system: str) -> None:
