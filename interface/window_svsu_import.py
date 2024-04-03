@@ -156,4 +156,8 @@ class SvsuImport(MainWindowModified):
     def close_program(self):
         """Функция закрытия программы"""
         self.instruction_window.close()
+        self.name_system_vk_svbu.close()
+        self.name_system_vk_svsu.close()
+        self.update_data.close()
+        self.name_system_svsu_import.close()
         self.close()

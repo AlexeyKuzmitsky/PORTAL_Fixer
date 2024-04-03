@@ -137,4 +137,7 @@ class GenerationTcpGate(MainWindowModified):
     def close_program(self):
         """Функция закрытия программы"""
         self.instruction_window.close()
+        self.update_data.close()
+        self.name_system_vk.close()
+        self.name_system_tcp_gate.close()
         self.close()

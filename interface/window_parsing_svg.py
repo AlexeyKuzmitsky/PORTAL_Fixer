@@ -168,4 +168,8 @@ class ParsingSvg(MainWindowModified):
     def close_program(self):
         """Функция закрытия программы"""
         self.instruction_window.close()
+        self.name_system_vk.close()
+        self.update_data.close()
+        self.name_system_parsing_svg.close()
+        self.name_system_sorting_comments.close()
         self.close()

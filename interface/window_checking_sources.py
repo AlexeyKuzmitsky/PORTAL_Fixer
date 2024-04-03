@@ -68,7 +68,7 @@ class CheckingSources(MainWindowModified):
 
         self.checking_file_bin_rep = NameSystemWindow(func=self.start_checking_bin_file,
                                                       text='Файлы какой системы проверить?',
-                                                      set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'})
+                                                      set_name_system={'SVBU_1', 'SVBU_2'})
 
 
     def update_data_system(self):
@@ -174,4 +174,9 @@ class CheckingSources(MainWindowModified):
     def close_program(self):
         """Функция закрытия программы"""
         self.instruction_window.close()
+        self.update_data.close()
+        self.creating_file_alt_station.close()
+        self.checking_file_ana_1.close()
+        self.checking_file_bin_1.close()
+        self.checking_file_bin_rep.close()
         self.close()

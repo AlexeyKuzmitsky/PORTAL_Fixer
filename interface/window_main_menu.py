@@ -72,4 +72,8 @@ class MainWindow(MainWindowModified):  # создаем класс на осно
     def close_program(self):
         """Функция закрытия программы"""
         self.instruction_window.close()
+        self.svsu_window.close_program()
+        self.parsing_svg.close_program()
+        self.generation_tcp_gate.close_program()
+        self.checking_sources.close_program()
         self.close()
