@@ -16,6 +16,7 @@ async def parse_the_formula(text: str) -> List[str]:
     list_kks = re.findall(r'"([^\\"]+_[^\\"]+)"', text)
     return list_kks
 
+
 async def search_for_comments_in_a_ana_file_1(print_log, name_system: str, progress: QProgressBar) -> None:
     """
     Функция поиска в файле ana_file-1.txt несуществующих KKS
@@ -43,7 +44,7 @@ async def search_for_comments_in_a_ana_file_1(print_log, name_system: str, progr
                     await print_log(text=f'У KKS {i_kks} есть лишние пробелы', color='yellow')
                     i_kks = i_kks.replace(' ', '')
 
-                if not i_kks in set_ana_signal:
+                if i_kks not in set_ana_signal:
                     await print_log(text=f'Нет в базе KKS {i_kks}', color='red')
 
             set_kks.add(i_line[1])
@@ -189,7 +190,8 @@ async def searching_for_comments_in_files_bin(print_log, name_system: str, progr
         with open(path.join(name_system, 'DbSrc', i_name_file), 'r', encoding='ANSI') as file:
             data_file = list(csv.reader(file, delimiter='\t'))
         count_error: int = 0
-        with open(path.join(name_system, 'Ошибки в уставках', f'fail_suffix_{i_name_file[:-4]}.txt'), 'w', encoding='UTF-8') as fail_file:
+        with open(path.join(name_system, 'Ошибки в уставках', f'fail_suffix_{i_name_file[:-4]}.txt'),
+                  'w', encoding='UTF-8') as fail_file:
             fail_file.write(f'KKS_signal\tSuffix_signal\tCod_signal\n')
             for i_line in data_file[1:]:
                 kks = i_line[1]
@@ -217,22 +219,72 @@ async def new_start_parsing_svg_files(print_log, name_system: str, progress: QPr
     Returns: None
     """
     await print_log(text='Поиск подмоделей obj_Station_stat.svg на видеокадрах:')
-    list_svg_obj_station_stat: List[str]= await list_files_with_submodel(print_log=print_log, name_system=name_system,
-                                                                         progress=progress)
+    list_svg_obj_station_stat: List[str] = await list_files_with_submodel(print_log=print_log, name_system=name_system,
+                                                                          progress=progress)
 
     await print_log(text='Поиск видеокадров на которые ссылаются подмодели obj_Station_stat.svg')
-    set_svg_obj_station_stat: Set[str] = await list_of_name_links_svg(print_log=print_log, name_system=name_system,
-                                                                      list_svg_obj_station_stat=list_svg_obj_station_stat,
-                                                                      progress=progress)
+    set_svg_obj_station_stat: Set[str] = await list_of_name_links_svg(
+        print_log=print_log, name_system=name_system,
+        list_svg_obj_station_stat=list_svg_obj_station_stat,
+        progress=progress)
 
     await print_log(text='Поиск сигналов на видеокадрах')
     dict_of_detected_signal_on_svg: Dict[str, Set[str]] = await search_for_signals_bin_nary_on_svg(
-        print_log=print_log, name_system=name_system, set_svg_obj_station_stat=set_svg_obj_station_stat, progress=progress)
+        print_log=print_log, name_system=name_system,
+        set_svg_obj_station_stat=set_svg_obj_station_stat, progress=progress)
+
+    await print_log(text='Поиск дубликатов привязок на видеокадров')
+    dict_of_detected_signal_on_svg: Dict[str, Set[str]] = await removing_duplicates_by_priority(
+        print_log=print_log, dict_signal_on_svg=dict_of_detected_signal_on_svg, name_system=name_system)
 
     await print_log(text='Запись файла altStation.dic')
     await recording_found_signals_to_a_file(name_system=name_system,
                                             dict_of_detected_signal_on_svg=dict_of_detected_signal_on_svg)
+    await print_log(text=f'Всего записано сигналов: {await count_elements(my_dict=dict_of_detected_signal_on_svg)}')
+    await print_log(text=f'для {len(dict_of_detected_signal_on_svg)} видеокадров')
     progress.setValue(100)
+
+
+async def removing_duplicates_by_priority(print_log, dict_signal_on_svg: dict[str, Set[str]],
+                                          name_system: str) -> Dict[str, Set[str]]:
+    """
+    Функция проверяет приоритеты сигналов для альтстанций, и удаляет дубликаты найденных одинаковых сигналов на разных
+    видеокадрах
+    Args:
+        print_log: Функция вывода лога
+        dict_signal_on_svg: Словарь имен видеокадров и найденных на них сигналов
+        name_system: Имя системы (директории) в которой берется файл altStation_priority.txt
+    Returns: Словарь имен видеокадров и найденных на них сигналов без дубликатов
+    """
+    dict_of_detected_signal_on_svg: Dict[str, Set[str]] = dict()
+    all_signals: Set[str] = set()  # Все сигналы найденные на видеокадре
+    dict_priority: Dict[str, str] = dict()  # словарь приоритетов распределения сигналов на видеокадрах
+    try:
+        with open(path.join(name_system, 'data', 'altStation_priority.txt'), 'r', encoding='UTF-8') as file:
+            for i_line in file:
+                signal, svg_file = i_line[: -1].split('\t')
+                dict_priority[signal] = svg_file
+
+        for signal, svg_file in dict_priority.items():
+            if svg_file in dict_signal_on_svg:
+                if signal in dict_signal_on_svg[svg_file]:
+                    if svg_file in dict_of_detected_signal_on_svg:
+                        dict_of_detected_signal_on_svg[svg_file].add(signal)
+                    else:
+                        dict_of_detected_signal_on_svg[svg_file] = {signal}
+                    all_signals.add(signal)
+    except FileNotFoundError:
+        await print_log(text=f'Нет файла {name_system}/data/altStation_priority.txt. Приоритет не будет установлен',
+                        color='red')
+    for svg_file, signal in sorted(dict_signal_on_svg.items()):
+        dict_signal_on_svg[svg_file] -= all_signals
+        if svg_file in dict_of_detected_signal_on_svg:
+            dict_of_detected_signal_on_svg[svg_file].update(dict_signal_on_svg[svg_file])
+        else:
+            dict_of_detected_signal_on_svg[svg_file] = dict_signal_on_svg[svg_file]
+        all_signals.update(dict_of_detected_signal_on_svg[svg_file])
+
+    return dict_of_detected_signal_on_svg
 
 
 async def list_files_with_submodel(print_log, name_system: str, progress: QProgressBar) -> List[str]:
@@ -263,7 +315,6 @@ async def list_files_with_submodel(print_log, name_system: str, progress: QProgr
     return list_svg_obj_station_stat
 
 
-
 async def list_of_name_links_svg(print_log, name_system: str, list_svg_obj_station_stat: List[str],
                                  progress: QProgressBar) -> Set[str]:
     """
@@ -279,16 +330,17 @@ async def list_of_name_links_svg(print_log, name_system: str, list_svg_obj_stati
     number = 1
     numbers = len(list_svg_obj_station_stat)
 
-    set_svg_obj_station_stat: Set[str] = set()  # список видеокадров на которые ссылаются все подмодели obj_Station_stat.svg
+    set_svg_obj_station_stat: Set[str] = set()  # список видеокадров на которые ссылаются подмодели obj_Station_stat.svg
     for i_svg in list_svg_obj_station_stat:
         await print_log(text=f'[{number} из {numbers}] Проверка {i_svg}')
-        list_submodel = await creating_list_of_submodel(name_system=name_system, name_svg=i_svg, name_submodel='obj_Station_stat.svg')
+        list_submodel = await creating_list_of_submodel(name_system=name_system,
+                                                        name_svg=i_svg,
+                                                        name_submodel='obj_Station_stat.svg')
         await print_log(text=f'\tНайдено ссылок: {len(list_submodel)}', a_new_line=False)
         number += 1
         progress.setValue(round((60 - 50) * (number / numbers)) + 50)
         set_svg_obj_station_stat.update({i_svg.signal_description[0]['text_kks'] for i_svg in list_submodel})
     return set_svg_obj_station_stat
-
 
 
 async def search_for_signals_bin_nary_on_svg(print_log, name_system: str, set_svg_obj_station_stat: Set[str],
@@ -303,7 +355,6 @@ async def search_for_signals_bin_nary_on_svg(print_log, name_system: str, set_sv
     dict_bin_signals = await loading_data_dict_kks_bin_no_description(directory=name_system, print_log=print_log)
     progress.setValue(64)
     await print_log(text='Сигналы загружены')
-
     numbers = len(set_svg_obj_station_stat)
     number = 1
     dict_of_detected_signal_on_svg: Dict[str, Set[str]] = dict()  # KKS найденные на каждом видеокадре
@@ -321,14 +372,17 @@ async def search_for_signals_bin_nary_on_svg(print_log, name_system: str, set_sv
                                                                     data_bin=set_bin_signal,
                                                                     data_nary=set_nary_signal,
                                                                     dict_bin=dict_bin_signals)
+
             dict_of_detected_signal_on_svg[i_svg].update(set_signal)
+
         await print_log(text=f'\tНайдено сигналов: {len(dict_of_detected_signal_on_svg[i_svg])}', a_new_line=False)
         number += 1
         progress.setValue(round((95 - 65) * (number / numbers)) + 65)
     return dict_of_detected_signal_on_svg
 
 
-async def recording_found_signals_to_a_file(name_system: str, dict_of_detected_signal_on_svg:Dict[str, Set[str]]) -> None:
+async def recording_found_signals_to_a_file(name_system: str,
+                                            dict_of_detected_signal_on_svg: Dict[str, Set[str]]) -> None:
     """
     Функция записывает найденные сигналы в файл altStation.dic
     Args:
@@ -355,3 +409,10 @@ async def search_obj_station_stat(name_system: str, name_svg: str) -> bool:
             if 'obj_Station_stat.svg' in i_line:
                 return True
     return False
+
+
+async def count_elements(my_dict):
+    number_elements = 0
+    for list_number in my_dict.values():
+        number_elements += len(list_number)
+    return number_elements

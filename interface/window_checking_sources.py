@@ -19,19 +19,19 @@ class CheckingSources(MainWindowModified):
         self.main_menu = main_menu
 
         self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
-                                             func_pressed=self.update_data_system))
+                                                  func_pressed=self.update_data_system))
 
         self.layout.addWidget(QPushButtonModified(text='Создание файла AltStation',
-                                             func_pressed=self.creating_file_alt_station_system))
+                                                  func_pressed=self.creating_file_alt_station_system))
 
         self.layout.addWidget(QPushButtonModified(text='Проверить файл ana_file-1.txt',
-                                             func_pressed=self.checking_file_ana_1_system))
+                                                  func_pressed=self.checking_file_ana_1_system))
 
         self.layout.addWidget(QPushButtonModified(text='Проверить файл bin_file-1.txt',
-                                             func_pressed=self.checking_file_bin_1_system))
+                                                  func_pressed=self.checking_file_bin_1_system))
 
         self.layout.addWidget(QPushButtonModified(text='Проверить файлы bin_file(00-13).rep',
-                                             func_pressed=self.checking_file_bin_rep_system))
+                                                  func_pressed=self.checking_file_bin_rep_system))
 
         self.text_log = QTextBrowser()
         self.layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
@@ -60,16 +60,17 @@ class CheckingSources(MainWindowModified):
 
         self.checking_file_ana_1 = NameSystemWindow(func=self.start_checking_ana_file_1,
                                                     text='Файл какой системы проверить?',
-                                                    set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'})
+                                                    set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'}
+                                                    )
 
         self.checking_file_bin_1 = NameSystemWindow(func=self.start_checking_bin_file_1,
                                                     text='Файл какой системы проверить?',
-                                                    set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'})
+                                                    set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'}
+                                                    )
 
         self.checking_file_bin_rep = NameSystemWindow(func=self.start_checking_bin_file,
                                                       text='Файлы какой системы проверить?',
                                                       set_name_system={'SVBU_1', 'SVBU_2'})
-
 
     def update_data_system(self):
         self.update_data.show()
@@ -137,7 +138,6 @@ class CheckingSources(MainWindowModified):
         await search_for_comments_in_a_bin_file_1(print_log=self.print_log, name_system=name_system,
                                                   progress=self.progress)
         await self.print_log(text=f'Поиск отсутствующих KKS в {name_system}/DbSrc/file_bin-1.txt завершен\n')
-
 
     @asyncSlot()
     async def print_log(self, text: str, color: str = 'white', level: str = 'INFO', a_new_line: bool = True) -> None:

@@ -79,7 +79,7 @@ async def new_submodel(list_constructor, list_submodel, name_svg: str, name_subm
 
 
 async def new_file_data_ana_bin_nary(print_log, name_system: str,
-                                     progress: QProgressBar, min_progress: int=0, max_progress: int=100) -> None:
+                                     progress: QProgressBar, min_progress: int = 0, max_progress: int = 100) -> None:
     """
     Функция обновления файлов со списком KKS сигналов. По завершению обновляются (создаются если не было) 3 файла:
     BIN_list_kks.txt со списком бинарных сигналов
@@ -191,7 +191,7 @@ def check_file(path_directory: str, name_file: str) -> bool:
     return False
 
 
-async def loading_data_kks_ana(directory: str = '', print_log = None) -> Set[str]:
+async def loading_data_kks_ana(directory: str = '', print_log=None) -> Set[str]:
     """
     Функция считывающая базу аналоговых сигналов.
     :return: Множество аналоговых сигналов
@@ -209,7 +209,7 @@ async def loading_data_kks_ana(directory: str = '', print_log = None) -> Set[str
     return set_kks_ana_data
 
 
-async def loading_data_kks_bin(directory: str = '', print_log = None) -> Set[str]:
+async def loading_data_kks_bin(directory: str = '', print_log=None) -> Set[str]:
     """
     Функция считывающая базу бинарных сигналов.
     :return: Множество бинарных сигналов
@@ -257,7 +257,7 @@ async def loading_data_dict_kks_bin(directory: str = '') -> Dict[str, Dict[str, 
     return dict_kks_bin_data
 
 
-async def loading_data_dict_kks_bin_no_description(directory: str = '', print_log = None) -> Dict[str, Set[str]]:
+async def loading_data_dict_kks_bin_no_description(directory: str = '', print_log=None) -> Dict[str, Set[str]]:
     """
     Функция считывающая базу бинарных сигналов.
     :return: Словарь бинарных сигналов с описанием
@@ -275,7 +275,7 @@ async def loading_data_dict_kks_bin_no_description(directory: str = '', print_lo
     return dict_kks_bin_data
 
 
-async def loading_data_kks_nary(directory: str = '', print_log = None) -> Set[str]:
+async def loading_data_kks_nary(directory: str = '', print_log=None) -> Set[str]:
     """
     Функция считывающая базу бинарных сигналов.
     :return: Множество бинарных сигналов
