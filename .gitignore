@@ -1,5 +1,13 @@
 /logs
 /output
+!/SKU_VP_1/data/kks_vis_groups.json
+!/SKU_VP_2/data/kks_vis_groups.json
+!/SVBU_1/data/TcpGate
+!/SVBU_1/data/kks_vis_groups.json
+!/SVBU_1/data/list_kks_svg_TcpGate.txt
+!/SVBU_2/data/TcpGate
+!/SVBU_2/data/kks_vis_groups.json
+!/SVBU_2/data/list_kks_svg_TcpGate.txt
 /SKU_VP_1
 /SKU_VP_2
 /SVBU_1

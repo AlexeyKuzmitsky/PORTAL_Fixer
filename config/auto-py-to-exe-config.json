@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "E:/PycharmProjects/PORTAL_Fixer2/main_gui.py"
+   "value": "E:/PycharmProjects/PORTAL_Fixer/main_gui.py"
   },
   {
    "optionDest": "onefile",
@@ -19,11 +19,11 @@
   },
   {
    "optionDest": "icon_file",
-   "value": "E:/PycharmProjects/PORTAL_Fixer2/image/icon.ico"
+   "value": "E:/PycharmProjects/PORTAL_Fixer/image/icon.ico"
   },
   {
    "optionDest": "name",
-   "value": "PORTAL_Fixer_2.0.8"
+   "value": "PORTAL_Fixer_2.5.3"
   },
   {
    "optionDest": "clean_build",
@@ -60,6 +60,6 @@
  ],
  "nonPyinstallerOptions": {
   "increaseRecursionLimit": true,
-  "manualArguments": ""
+  "manualArguments": "--exclude \"PyQt5\""
  }
 }
