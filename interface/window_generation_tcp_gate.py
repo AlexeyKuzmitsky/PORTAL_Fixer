@@ -1,4 +1,4 @@
-from config.general_functions import new_file_data_ana_bin_nary, actualizations_vk
+from config.general_functions import actualizations_vk
 from config.func_generation_tcp_gate_file import generation_tcp_gate, add_data_file_bin_nary
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
@@ -86,8 +86,8 @@ class GenerationTcpGate(MainWindowModified):
         await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
         self.progress.setVisible(True)
         self.progress.reset()
-        await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress,
-                                         min_progress=0, max_progress=50)
+        # await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress,
+        #                                  min_progress=0, max_progress=50)
         await add_data_file_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress,
                                      min_progress=50, max_progress=100)
         await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')

@@ -1,4 +1,4 @@
-from config.general_functions import sort_files_into_groups, new_file_data_ana_bin_nary, actualizations_vk
+from config.general_functions import sort_files_into_groups, actualizations_vk
 from config.func_parsing_svg import new_start_parsing_svg_files, dict_loading
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
@@ -19,13 +19,13 @@ class ParsingSvg(MainWindowModified):
         self.main_menu = main_menu
 
         self.layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVBU',
-                                             func_pressed=self.update_vis_svbu))
-        self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
-                                             func_pressed=self.update_data_system))
+                                                  func_pressed=self.update_vis_svbu))
+        # self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
+        #                                      func_pressed=self.update_data_system))
         self.layout.addWidget(QPushButtonModified(text='Поиск замечаний на видеокадрах',
-                                             func_pressed=self.start_parsing_svg))
+                                                  func_pressed=self.start_parsing_svg))
         self.layout.addWidget(QPushButtonModified(text='Сортировка найденных замечаний',
-                                             func_pressed=self.start_sorting_comments))
+                                                  func_pressed=self.start_sorting_comments))
 
         self.text_log = QTextBrowser()
         self.layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
@@ -44,15 +44,16 @@ class ParsingSvg(MainWindowModified):
 
         self.name_system_vk = NameSystemWindow(func=self.start_actualizations_vk_svbu,
                                                text='Видеокадры какого блока обновить?',
-                                               set_name_system={'SVBU_1', 'SVBU_2'})
+                                               set_name_system={'SVBU_1', 'SVBU_2', 'SKU_VP_1', 'SKU_VP_1', 'SVSU'})
 
-        self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
-                                            text='Базу какой из систем обновить?',
-                                            set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
+        # self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
+        #                                     text='Базу какой из систем обновить?',
+        #                                     set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
 
         self.name_system_parsing_svg = NameSystemWindow(func=self.checking_svg_files,
                                                         text='На каких видеокадрах найти замечания?',
-                                                        set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
+                                                        set_name_system={'SVBU_1', 'SVBU_2', 'SKU_VP_1',
+                                                                         'SKU_VP_2', 'SVSU'})
 
         self.name_system_sorting_comments = NameSystemWindow(func=self.sorting_notes_files,
                                                              text='Для какой системы распределить замечания?',
@@ -63,8 +64,8 @@ class ParsingSvg(MainWindowModified):
     def update_vis_svbu(self):
         self.name_system_vk.show()
 
-    def update_data_system(self):
-        self.update_data.show()
+    # def update_data_system(self):
+    #     self.update_data.show()
 
     def start_parsing_svg(self):
         self.name_system_parsing_svg.show()
@@ -87,15 +88,15 @@ class ParsingSvg(MainWindowModified):
         await self.print_log(text=f'Выполнение программы обновления видеокадров {name_directory} завершено\n')
         self.progress.setVisible(False)
 
-    @asyncSlot()
-    async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
-        """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
-        await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
-        self.progress.setVisible(True)
-        self.progress.reset()
-        await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress)
-        await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
-        self.progress.setVisible(False)
+    # @asyncSlot()
+    # async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
+    #     """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
+    #     await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
+    #     self.progress.setVisible(True)
+    #     self.progress.reset()
+    #     await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress)
+    #     await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
+    #     self.progress.setVisible(False)
 
     @asyncSlot()
     async def checking_svg_files(self, name_directory: str) -> None:
@@ -121,14 +122,13 @@ class ParsingSvg(MainWindowModified):
         Функция запускающая распределение файлов с замечаниями согласно списку принадлежности к группе.
         :return: None
         """
-        await self.print_log(f'Старт распределения файлов с замечаниями {name_directory} '
-                             f'согласно списку принадлежности к группе')
+        await self.print_log(f'Старт сортировки файлов с замечаниями {name_directory}')
         self.progress.setVisible(True)
         self.progress.reset()
         vis_groups = await dict_loading(print_log=self.print_log, number_bloc=name_directory)
         if len(vis_groups):
             await sort_files_into_groups(number_bloc=name_directory, group_svg=vis_groups, progress=self.progress)
-            await self.print_log(text='Распределено успешно!\n', color='green')
+            await self.print_log(text='\tsuccessfully', color='green', a_new_line=False)
         else:
             await self.print_log(text='Распределение невозможно!\n', color='red', level='ERROR')
         self.progress.setVisible(False)
@@ -169,7 +169,7 @@ class ParsingSvg(MainWindowModified):
         """Функция закрытия программы"""
         self.instruction_window.close()
         self.name_system_vk.close()
-        self.update_data.close()
+        # self.update_data.close()
         self.name_system_parsing_svg.close()
         self.name_system_sorting_comments.close()
         self.close()

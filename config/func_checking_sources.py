@@ -2,7 +2,7 @@ from csv import reader
 from PyQt6.QtWidgets import QProgressBar
 from config.general_functions import (check_directory, check_file, loading_data_kks_ana, loading_data_kks_bin,
                                       loading_data_kks_nary, creating_list_of_submodel,
-                                      loading_data_dict_kks_bin_no_description)
+                                      loading_data_dict_kks_bin_description)
 from os import path, listdir
 from typing import Set, List, Dict
 from config.conf import dict_level_signale, dict_suffix_level_signale
@@ -29,7 +29,7 @@ async def search_for_comments_in_a_ana_file_1(print_log, name_system: str, progr
     if not result:
         return
 
-    set_ana_signal = await loading_data_kks_ana(directory=name_system)
+    set_ana_signal = await loading_data_kks_ana(name_system=name_system, print_log=print_log)
 
     set_kks: Set[str] = set()
     num = 1
@@ -81,9 +81,9 @@ async def search_for_comments_in_a_bin_file_1(print_log, name_system: str, progr
     if not result:
         return
 
-    set_ana_signal = await loading_data_kks_ana(directory=name_system)
-    set_bin_signal = await loading_data_kks_bin(directory=name_system)
-    set_nary_signal = await loading_data_kks_nary(directory=name_system)
+    set_ana_signal = await loading_data_kks_ana(name_system=name_system, print_log=print_log)
+    set_bin_signal = await loading_data_kks_bin(name_system=name_system, print_log=print_log)
+    set_nary_signal = await loading_data_kks_nary(name_system=name_system, print_log=print_log)
 
     set_kks: Set[str] = set()
     num = 1
@@ -346,13 +346,13 @@ async def list_of_name_links_svg(print_log, name_system: str, list_svg_obj_stati
 async def search_for_signals_bin_nary_on_svg(print_log, name_system: str, set_svg_obj_station_stat: Set[str],
                                              progress: QProgressBar) -> Dict[str, Set[str]]:
     await print_log(text='Загрузка базы данных сигналов')
-    set_ana_signal = await loading_data_kks_ana(directory=name_system, print_log=print_log)
+    set_ana_signal = await loading_data_kks_ana(name_system=name_system, print_log=print_log)
     progress.setValue(61)
-    set_bin_signal = await loading_data_kks_bin(directory=name_system, print_log=print_log)
+    set_bin_signal = await loading_data_kks_bin(name_system=name_system, print_log=print_log)
     progress.setValue(62)
-    set_nary_signal = await loading_data_kks_nary(directory=name_system, print_log=print_log)
+    set_nary_signal = await loading_data_kks_nary(name_system=name_system, print_log=print_log)
     progress.setValue(63)
-    dict_bin_signals = await loading_data_dict_kks_bin_no_description(directory=name_system, print_log=print_log)
+    dict_bin_signals = await loading_data_dict_kks_bin_description(name_system=name_system, print_log=print_log)
     progress.setValue(64)
     await print_log(text='Сигналы загружены')
     numbers = len(set_svg_obj_station_stat)

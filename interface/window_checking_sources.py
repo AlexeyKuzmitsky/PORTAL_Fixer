@@ -1,4 +1,4 @@
-from config.general_functions import new_file_data_ana_bin_nary
+# from config.general_functions import new_file_data_ana_bin_nary
 from config.func_checking_sources import (search_for_comments_in_a_ana_file_1, search_for_comments_in_a_bin_file_1,
                                           searching_for_comments_in_files_bin, new_start_parsing_svg_files)
 from interface.window_name_system import NameSystemWindow
@@ -18,8 +18,8 @@ class CheckingSources(MainWindowModified):
         self.instruction_window = Instruction()
         self.main_menu = main_menu
 
-        self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
-                                                  func_pressed=self.update_data_system))
+        # self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
+        #                                           func_pressed=self.update_data_system))
 
         self.layout.addWidget(QPushButtonModified(text='Создание файла AltStation',
                                                   func_pressed=self.creating_file_alt_station_system))
@@ -48,9 +48,9 @@ class CheckingSources(MainWindowModified):
 
         self.layout.addLayout(horizontal_layout)
 
-        self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
-                                            text='Базу какой из систем обновить?',
-                                            set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'})
+        # self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
+        #                                     text='Базу какой из систем обновить?',
+        #                                     set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'})
 
         self.creating_file_alt_station = NameSystemWindow(
             func=self.start_creating_new_file_altstation,
@@ -72,8 +72,8 @@ class CheckingSources(MainWindowModified):
                                                       text='Файлы какой системы проверить?',
                                                       set_name_system={'SVBU_1', 'SVBU_2'})
 
-    def update_data_system(self):
-        self.update_data.show()
+    # def update_data_system(self):
+    #     self.update_data.show()
 
     def creating_file_alt_station_system(self):
         self.creating_file_alt_station.show()
@@ -91,14 +91,14 @@ class CheckingSources(MainWindowModified):
         self.main_menu.show()
         self.close()
 
-    @asyncSlot()
-    async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
-        """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
-        await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
-        self.progress.setVisible(True)
-        self.progress.reset()
-        await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress)
-        await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
+    # @asyncSlot()
+    # async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
+    #     """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
+    #     await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
+    #     self.progress.setVisible(True)
+    #     self.progress.reset()
+    #     await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress)
+    #     await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
 
     @asyncSlot()
     async def start_creating_new_file_altstation(self, name_system: str) -> None:
@@ -174,7 +174,7 @@ class CheckingSources(MainWindowModified):
     def close_program(self):
         """Функция закрытия программы"""
         self.instruction_window.close()
-        self.update_data.close()
+        # self.update_data.close()
         self.creating_file_alt_station.close()
         self.checking_file_ana_1.close()
         self.checking_file_bin_1.close()

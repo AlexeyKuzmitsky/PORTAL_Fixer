@@ -169,9 +169,9 @@ async def add_file_svsu_import(print_log, name_system: str, progress: QProgressB
 
     list_name_svg_svsu = listdir(path.join('SVSU', 'NPP_models'))
 
-    data_ana = await loading_data_kks_ana(directory=name_system)
-    data_bin = await loading_data_kks_bin(directory=name_system)
-    data_nary = await loading_data_kks_nary(directory=name_system)
+    data_ana = await loading_data_kks_ana(name_system=name_system, print_log=print_log)
+    data_bin = await loading_data_kks_bin(name_system=name_system, print_log=print_log)
+    data_nary = await loading_data_kks_nary(name_system=name_system, print_log=print_log)
     set_ana_signal: Set[str] = set()
     set_bin_signal: Set[str] = set()
     set_nary_signal: Set[str] = set()

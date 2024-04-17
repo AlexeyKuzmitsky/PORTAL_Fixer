@@ -78,105 +78,105 @@ async def new_submodel(list_constructor, list_submodel, name_svg: str, name_subm
         list_submodel.append(submodel)
 
 
-async def new_file_data_ana_bin_nary(print_log, name_system: str,
-                                     progress: QProgressBar, min_progress: int = 0, max_progress: int = 100) -> None:
-    """
-    Функция обновления файлов со списком KKS сигналов. По завершению обновляются (создаются если не было) 3 файла:
-    BIN_list_kks.txt со списком бинарных сигналов
-    NARY_list_kks.txt со списком много битовых сигналов
-    ANA_list_kks.txt со списков аналоговых сигналов
-    :param print_log: функция вывода лога.
-    :param name_system: Папка в которой будут обновления.
-    :param progress: Прогресс выполнения программы
-    :param min_progress: Минимальный процент прогресса
-    :param max_progress: Максимальный процент прогресса
-    :return: None
-    """
-    check_directory(path_directory=name_system, name_directory='DbDumps')
-    check_directory(path_directory=name_system, name_directory='data')
-
-    set_kks_bin_date = set()
-    set_kks_nary_date = set()
-    set_kks_ana_date = set()
-
-    dict_kks_bin_data = dict()
-    dict_kks_ana_data = dict()
-
-    await print_log(text='Сбор BIN сигналов')
-    progress.setValue(round((max_progress-min_progress) * 5 / 100 + min_progress))
-    try:
-        with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
-            new_text = reader(file, delimiter='|')
-            for i_line in new_text:
-                try:
-                    full_kks = i_line[42]
-                    kks = full_kks.partition('_')[0]
-                    description = i_line[43]
-
-                    if i_line[14] == '-1':
-                        if i_line[18] == '1' or i_line[18] == '0':
-                            set_kks_bin_date.add(full_kks)
-                        else:
-                            set_kks_nary_date.add(full_kks)
-                    else:
-                        set_kks_nary_date.add(full_kks)
-
-                    if kks in dict_kks_bin_data:
-                        dict_kks_bin_data[kks][full_kks] = description
-                    else:
-                        dict_kks_bin_data[kks] = {full_kks: description}
-
-                except IndexError:
-                    ...
-        progress.setValue(round((max_progress - min_progress) * 35 / 100 + min_progress))
-        with open(path.join(name_system, 'data', 'BIN_json_kks.json'), 'w', encoding='UTF-8') as json_file:
-            json.dump(dict_kks_bin_data, json_file, indent=4, ensure_ascii=False)
-        progress.setValue(round((max_progress - min_progress) * 40 / 100 + min_progress))
-        with open(path.join(name_system, 'data', 'BIN_list_kks.txt'), 'w', encoding='UTF-8') as file:
-            for i_kks in sorted(set_kks_bin_date):
-                file.write(f'{i_kks}\n')
-        progress.setValue(round((max_progress - min_progress) * 45 / 100 + min_progress))
-        with open(path.join(name_system, 'data', 'NARY_list_kks.txt'), 'w', encoding='UTF-8') as file:
-            for i_kks in sorted(set_kks_nary_date):
-                file.write(f'{i_kks}\n')
-
-        await print_log(text='\tСигналы BIN собраны успешно', color='green', a_new_line=False)
-
-    except FileNotFoundError:
-        await print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\\DbDumps.\n'
-                        f'Сбор бинарных и много битовых сигналов невозможен',
-                        color='red', level='ERROR')
-
-    progress.setValue(round((max_progress - min_progress) * 50 / 100 + min_progress))
-    await print_log(text='Сбор ANA сигналов')
-    try:
-        with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
-            new_text = reader(file, delimiter='|', quotechar=' ')
-            for i_line in new_text:
-                try:
-                    full_kks = i_line[78]
-                    kks = full_kks.partition('_')[0]
-                    description = i_line[79]
-                    set_kks_ana_date.add(full_kks)
-                    if kks in dict_kks_ana_data:
-                        dict_kks_ana_data[kks][full_kks] = description
-                    else:
-                        dict_kks_ana_data[kks] = {full_kks: description}
-                except IndexError:
-                    pass
-        progress.setValue(round((max_progress - min_progress) * 65 / 100 + min_progress))
-        with open(path.join(name_system, 'data', 'ANA_json_kks.json'), 'w', encoding='UTF-8') as json_file:
-            json.dump(dict_kks_ana_data, json_file, indent=4, ensure_ascii=False)
-        progress.setValue(round((max_progress - min_progress) * 80 / 100 + min_progress))
-        with open(path.join(name_system, 'data', 'ANA_list_kks.txt'), 'w', encoding='UTF-8') as file:
-            for i_kks in sorted(set_kks_ana_date):
-                file.write(f'{i_kks}\n')
-        await print_log(text='\tСигналы ANA собраны успешно', color='green', a_new_line=False)
-        progress.setValue(round((max_progress - min_progress) * 95 / 100 + min_progress))
-    except FileNotFoundError:
-        await print_log(f'Нет файла PLS_ANA_CONF.dmp в {name_system}\\DbDumps.\nСбор аналоговых сигналов невозможен',
-                        color='red', level='ERROR')
-    progress.setValue(round((max_progress - min_progress) + min_progress))
+# async def new_file_data_ana_bin_nary(print_log, name_system: str,
+#                                      progress: QProgressBar, min_progress: int = 0, max_progress: int = 100) -> None:
+#     """
+#     Функция обновления файлов со списком KKS сигналов. По завершению обновляются (создаются если не было) 3 файла:
+#     BIN_list_kks.txt со списком бинарных сигналов
+#     NARY_list_kks.txt со списком много битовых сигналов
+#     ANA_list_kks.txt со списков аналоговых сигналов
+#     :param print_log: функция вывода лога.
+#     :param name_system: Папка в которой будут обновления.
+#     :param progress: Прогресс выполнения программы
+#     :param min_progress: Минимальный процент прогресса
+#     :param max_progress: Максимальный процент прогресса
+#     :return: None
+#     """
+#     check_directory(path_directory=name_system, name_directory='DbDumps')
+#     check_directory(path_directory=name_system, name_directory='data')
+#
+#     set_kks_bin_date = set()
+#     set_kks_nary_date = set()
+#     set_kks_ana_date = set()
+#
+#     dict_kks_bin_data = dict()
+#     dict_kks_ana_data = dict()
+#
+#     await print_log(text='Сбор BIN сигналов')
+#     progress.setValue(round((max_progress-min_progress) * 5 / 100 + min_progress))
+#     try:
+#         with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
+#             new_text = reader(file, delimiter='|')
+#             for i_line in new_text:
+#                 try:
+#                     full_kks = i_line[42]
+#                     kks = full_kks.partition('_')[0]
+#                     description = i_line[43]
+#
+#                     if i_line[14] == '-1':
+#                         if i_line[18] == '1' or i_line[18] == '0':
+#                             set_kks_bin_date.add(full_kks)
+#                         else:
+#                             set_kks_nary_date.add(full_kks)
+#                     else:
+#                         set_kks_nary_date.add(full_kks)
+#
+#                     if kks in dict_kks_bin_data:
+#                         dict_kks_bin_data[kks][full_kks] = description
+#                     else:
+#                         dict_kks_bin_data[kks] = {full_kks: description}
+#
+#                 except IndexError:
+#                     ...
+#         progress.setValue(round((max_progress - min_progress) * 35 / 100 + min_progress))
+#         with open(path.join(name_system, 'data', 'BIN_json_kks.json'), 'w', encoding='UTF-8') as json_file:
+#             json.dump(dict_kks_bin_data, json_file, indent=4, ensure_ascii=False)
+#         progress.setValue(round((max_progress - min_progress) * 40 / 100 + min_progress))
+#         with open(path.join(name_system, 'data', 'BIN_list_kks.txt'), 'w', encoding='UTF-8') as file:
+#             for i_kks in sorted(set_kks_bin_date):
+#                 file.write(f'{i_kks}\n')
+#         progress.setValue(round((max_progress - min_progress) * 45 / 100 + min_progress))
+#         with open(path.join(name_system, 'data', 'NARY_list_kks.txt'), 'w', encoding='UTF-8') as file:
+#             for i_kks in sorted(set_kks_nary_date):
+#                 file.write(f'{i_kks}\n')
+#
+#         await print_log(text='\tСигналы BIN собраны успешно', color='green', a_new_line=False)
+#
+#     except FileNotFoundError:
+#         await print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\\DbDumps.\n'
+#                         f'Сбор бинарных и много битовых сигналов невозможен',
+#                         color='red', level='ERROR')
+#
+#     # progress.setValue(round((max_progress - min_progress) * 50 / 100 + min_progress))
+#     # await print_log(text='Сбор ANA сигналов')
+#     # try:
+#     #     with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
+#     #         new_text = reader(file, delimiter='|', quotechar=' ')
+#     #         for i_line in new_text:
+#     #             try:
+#     #                 full_kks = i_line[78]
+#     #                 kks = full_kks.partition('_')[0]
+#     #                 description = i_line[79]
+#     #                 set_kks_ana_date.add(full_kks)
+#     #                 if kks in dict_kks_ana_data:
+#     #                     dict_kks_ana_data[kks][full_kks] = description
+#     #                 else:
+#     #                     dict_kks_ana_data[kks] = {full_kks: description}
+#     #             except IndexError:
+#     #                 pass
+#     #     progress.setValue(round((max_progress - min_progress) * 65 / 100 + min_progress))
+#     #     with open(path.join(name_system, 'data', 'ANA_json_kks.json'), 'w', encoding='UTF-8') as json_file:
+#     #         json.dump(dict_kks_ana_data, json_file, indent=4, ensure_ascii=False)
+#     #     progress.setValue(round((max_progress - min_progress) * 80 / 100 + min_progress))
+#     #     with open(path.join(name_system, 'data', 'ANA_list_kks.txt'), 'w', encoding='UTF-8') as file:
+#     #         for i_kks in sorted(set_kks_ana_date):
+#     #             file.write(f'{i_kks}\n')
+#     #     await print_log(text='\tСигналы ANA собраны успешно', color='green', a_new_line=False)
+#     #     progress.setValue(round((max_progress - min_progress) * 95 / 100 + min_progress))
+#     # except FileNotFoundError:
+#     #     await print_log(f'Нет файла PLS_ANA_CONF.dmp в {name_system}\\DbDumps.\nСбор аналоговых сигналов невозможен',
+#     #                     color='red', level='ERROR')
+#     progress.setValue(round((max_progress - min_progress) + min_progress))
 
 
 def check_file(path_directory: str, name_file: str) -> bool:
@@ -191,106 +191,241 @@ def check_file(path_directory: str, name_file: str) -> bool:
     return False
 
 
-async def loading_data_kks_ana(directory: str = '', print_log=None) -> Set[str]:
+# Переписать функцию
+# async def loading_data_kks_ana(directory: str = '', print_log=None) -> Set[str]:
+#     """
+#     Функция считывающая базу аналоговых сигналов.
+#     :return: Множество аналоговых сигналов
+#     """
+#     set_kks_ana_data: Set[str] = set()
+#
+#     try:
+#         with open(path.join(directory, 'data', 'ANA_list_kks.txt')) as file:
+#             for i_line in file:
+#                 set_kks_ana_data.add(i_line[:-1])
+#     except FileNotFoundError:
+#         if print_log:
+#             await print_log(text=f'Нет файла {directory}/data/ANA_list_kks.txt', color='red')
+#         log_info.error(f'Нет файла {directory}/data/ANA_list_kks.txt')
+#     return set_kks_ana_data
+
+
+async def loading_data_kks_ana(name_system: str = '', print_log=None) -> Set[str] | bool:
     """
     Функция считывающая базу аналоговых сигналов.
     :return: Множество аналоговых сигналов
     """
     set_kks_ana_data: Set[str] = set()
 
-    try:
-        with open(path.join(directory, 'data', 'ANA_list_kks.txt')) as file:
-            for i_line in file:
-                set_kks_ana_data.add(i_line[:-1])
-    except FileNotFoundError:
-        if print_log:
-            await print_log(text=f'Нет файла {directory}/data/ANA_list_kks.txt', color='red')
-        log_info.error(f'Нет файла {directory}/data/ANA_list_kks.txt')
+    await print_log(text='Сбор списка сигналов ANA')
+    if not check_file(path_directory=path.join(name_system, 'DbDumps'), name_file='PLS_ANA_CONF.dmp'):
+        await print_log(f'Нет файла PLS_ANA_CONF.dmp в {name_system}\\DbDumps.\n'
+                        f'Сбор аналоговых сигналов невозможен', color='red', level='ERROR')
+        return set_kks_ana_data
+    with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
+        new_text = reader(file, delimiter='|', quotechar=' ')
+        for i_line in new_text:
+            try:
+                full_kks = i_line[78]
+                set_kks_ana_data.add(full_kks)
+            except IndexError:
+                pass
+    await print_log(text='\tsuccessfully', color='green', a_new_line=False)
     return set_kks_ana_data
 
 
-async def loading_data_kks_bin(directory: str = '', print_log=None) -> Set[str]:
+# async def loading_data_kks_bin(directory: str = '', print_log=None) -> Set[str]:
+#     """
+#     Функция считывающая базу бинарных сигналов.
+#     :return: Множество бинарных сигналов
+#     """
+#     set_kks_bin_data: Set[str] = set()
+#
+#     try:
+#         with open(path.join(directory, 'data', 'BIN_list_kks.txt')) as file:
+#             for i_line in file:
+#                 set_kks_bin_data.add(i_line[:-1])
+#     except FileNotFoundError:
+#         if print_log:
+#             await print_log(text=f'Нет файла {directory}/data/BIN_list_kks.txt', color='red')
+#         log_info.error(f'Нет файла {directory}/data/BIN_list_kks.txt')
+#     return set_kks_bin_data
+
+
+async def loading_data_kks_bin(name_system: str, print_log) -> Set[str]:
     """
     Функция считывающая базу бинарных сигналов.
     :return: Множество бинарных сигналов
     """
-    set_kks_bin_data: Set[str] = set()
+    set_kks_bin_date: Set[str] = set()
+    await print_log(text='Сбор списка сигналов BIN')
+    if not check_file(path_directory=path.join(name_system, 'DbDumps'), name_file='PLS_BIN_CONF.dmp'):
+        await print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\\DbDumps.\n'
+                        f'Сбор сигналов BIN невозможен', color='red', level='ERROR')
+        return set_kks_bin_date
+    with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
+        new_text = reader(file, delimiter='|')
+        for i_line in new_text:
+            try:
+                full_kks = i_line[42]
+                if i_line[14] == '-1':
+                    if i_line[18] == '1' or i_line[18] == '0':
+                        set_kks_bin_date.add(full_kks)
+            except IndexError:
+                pass
+    await print_log(text='\tsuccessfully', color='green', a_new_line=False)
+    return set_kks_bin_date
 
-    try:
-        with open(path.join(directory, 'data', 'BIN_list_kks.txt')) as file:
-            for i_line in file:
-                set_kks_bin_data.add(i_line[:-1])
-    except FileNotFoundError:
-        if print_log:
-            await print_log(text=f'Нет файла {directory}/data/BIN_list_kks.txt', color='red')
-        log_info.error(f'Нет файла {directory}/data/BIN_list_kks.txt')
-    return set_kks_bin_data
+
+# async def loading_data_dict_kks_ana(directory: str = '') -> Dict[str, Dict[str, str]]:
+#     """
+#     Функция считывающая базу аналоговых сигналов с описанием сигналов.
+#     :return: Словарь аналоговых сигналов с описанием
+#     """
+#     dict_kks_ana_data: Dict[str, Dict[str, str]] = dict()
+#     try:
+#         with open(path.join(directory, 'data', 'ANA_json_kks.json'), 'r', encoding='UTF-8') as json_file:
+#             dict_ana_kks = json.load(json_file)
+#             dict_kks_ana_data.update(dict_ana_kks)
+#     except FileNotFoundError:
+#         log_info.error(f'Нет файла {directory}/data/ANA_json_kks.json')
+#     return dict_kks_ana_data
 
 
-async def loading_data_dict_kks_ana(directory: str = '') -> Dict[str, Dict[str, str]]:
+async def loading_data_dict_kks_ana_description(name_system: str, print_log) -> Dict[str, Dict[str, str]]:
     """
-    Функция считывающая базу аналоговых сигналов с описанием сигналов.
-    :return: Словарь аналоговых сигналов с описанием
+    Функция составляющая словарь сигналов, в котором ключ - KKS сигнала без суффикса,
+    значение - словарь (где ключ - KKS сигнала с суффиксом, значение - описание сигнала)
     """
     dict_kks_ana_data: Dict[str, Dict[str, str]] = dict()
-    try:
-        with open(path.join(directory, 'data', 'ANA_json_kks.json'), 'r', encoding='UTF-8') as json_file:
-            dict_ana_kks = json.load(json_file)
-            dict_kks_ana_data.update(dict_ana_kks)
-    except FileNotFoundError:
-        log_info.error(f'Нет файла {directory}/data/ANA_json_kks.json')
+    await print_log(text='Сбор описания сигналов ANA')
+    if not check_file(path_directory=path.join(name_system, 'DbDumps'), name_file='PLS_ANA_CONF.dmp'):
+        await print_log(f'Нет файла PLS_ANA_CONF.dmp в {name_system}\\DbDumps.\n'
+                        f'Сбор описания сигналов ANA невозможен', color='red', level='ERROR')
+        return dict_kks_ana_data
+
+    with open(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'), 'r', encoding='windows-1251') as file:
+        new_text = reader(file, delimiter='|', quotechar=' ')
+        for i_line in new_text:
+            try:
+                full_kks = i_line[78]
+                kks = full_kks.partition('_')[0]
+                description = i_line[79]
+                if kks in dict_kks_ana_data:
+                    dict_kks_ana_data[kks][full_kks] = description
+                else:
+                    dict_kks_ana_data[kks] = {full_kks: description}
+            except IndexError:
+                pass
+    await print_log(text='\tsuccessfully', color='green', a_new_line=False)
     return dict_kks_ana_data
 
 
-async def loading_data_dict_kks_bin(directory: str = '') -> Dict[str, Dict[str, str]]:
+# async def loading_data_dict_kks_bin(directory: str = '') -> Dict[str, Dict[str, str]]:
+#     """
+#     Функция считывающая базу бинарных сигналов с описанием сигналов.
+#     :return: Словарь бинарных сигналов с описанием
+#     """
+#     dict_kks_bin_data: Dict[str, Dict[str, str]] = dict()
+#     try:
+#         with open(path.join(directory, 'data', 'BIN_json_kks.json'), 'r', encoding='UTF-8') as json_file:
+#             dict_bin_kks = json.load(json_file)
+#             dict_kks_bin_data.update(dict_bin_kks)
+#     except FileNotFoundError:
+#         log_info.error(f'Нет файла {directory}/data/BIN_json_kks.json')
+#     return dict_kks_bin_data
+
+
+async def loading_data_dict_kks_bin_description(name_system: str, print_log) -> Dict[str, Dict[str, str]]:
     """
     Функция считывающая базу бинарных сигналов с описанием сигналов.
     :return: Словарь бинарных сигналов с описанием
     """
     dict_kks_bin_data: Dict[str, Dict[str, str]] = dict()
-    try:
-        with open(path.join(directory, 'data', 'BIN_json_kks.json'), 'r', encoding='UTF-8') as json_file:
-            dict_bin_kks = json.load(json_file)
-            dict_kks_bin_data.update(dict_bin_kks)
-    except FileNotFoundError:
-        log_info.error(f'Нет файла {directory}/data/BIN_json_kks.json')
+
+    await print_log(text='Сбор описания сигналов BIN')
+    if not check_file(path_directory=path.join(name_system, 'DbDumps'), name_file='PLS_BIN_CONF.dmp'):
+        await print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\\DbDumps.\n'
+                        f'Сбор описания сигналов BIN невозможен', color='red', level='ERROR')
+        return dict_kks_bin_data
+
+    with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
+        new_text = reader(file, delimiter='|')
+        for i_line in new_text:
+            try:
+                full_kks = i_line[42]
+                kks = full_kks.partition('_')[0]
+                description = i_line[43]
+                if kks in dict_kks_bin_data:
+                    dict_kks_bin_data[kks][full_kks] = description
+                else:
+                    dict_kks_bin_data[kks] = {full_kks: description}
+            except IndexError:
+                pass
+    await print_log(text='\tsuccessfully', color='green', a_new_line=False)
     return dict_kks_bin_data
 
 
-async def loading_data_dict_kks_bin_no_description(directory: str = '', print_log=None) -> Dict[str, Set[str]]:
-    """
-    Функция считывающая базу бинарных сигналов.
-    :return: Словарь бинарных сигналов с описанием
-    """
-    dict_kks_bin_data: Dict[str, Set[str]] = dict()
-    try:
-        with open(path.join(directory, 'data', 'BIN_json_kks.json'), 'r', encoding='UTF-8') as json_file:
-            dict_bin_kks: Dict = json.load(json_file)
-            for key, value in dict_bin_kks.items():
-                dict_kks_bin_data[key] = set(value.keys())
-    except FileNotFoundError:
-        if print_log:
-            await print_log(text=f'Нет файла {directory}/data/BIN_json_kks.json', color='red')
-        log_info.error(f'Нет файла {directory}/data/BIN_json_kks.json')
-    return dict_kks_bin_data
+# async def loading_data_dict_kks_bin_no_description(directory: str = '', print_log=None) -> Dict[str, Set[str]]:
+#     """
+#     Функция считывающая базу бинарных сигналов.
+#     :return: Словарь бинарных сигналов с описанием
+#     """
+#     dict_kks_bin_data: Dict[str, Set[str]] = dict()
+#     try:
+#         with open(path.join(directory, 'data', 'BIN_json_kks.json'), 'r', encoding='UTF-8') as json_file:
+#             dict_bin_kks: Dict = json.load(json_file)
+#             for key, value in dict_bin_kks.items():
+#                 dict_kks_bin_data[key] = set(value.keys())
+#     except FileNotFoundError:
+#         if print_log:
+#             await print_log(text=f'Нет файла {directory}/data/BIN_json_kks.json', color='red')
+#         log_info.error(f'Нет файла {directory}/data/BIN_json_kks.json')
+#     return dict_kks_bin_data
 
 
-async def loading_data_kks_nary(directory: str = '', print_log=None) -> Set[str]:
-    """
-    Функция считывающая базу бинарных сигналов.
-    :return: Множество бинарных сигналов
-    """
-    set_kks_nary_data: Set[str] = set()
+# async def loading_data_kks_nary(directory: str = '', print_log=None) -> Set[str]:
+#     """
+#     Функция считывающая базу бинарных сигналов.
+#     :return: Множество бинарных сигналов
+#     """
+#     set_kks_nary_data: Set[str] = set()
+#
+#     try:
+#         with open(path.join(directory, 'data', 'NARY_list_kks.txt')) as file:
+#             for i_line in file:
+#                 set_kks_nary_data.add(i_line[:-1])
+#     except FileNotFoundError:
+#         if print_log:
+#             await print_log(text=f'Нет файла {directory}/data/NARY_list_kks.txt', color='red')
+#         log_info.error(f'Нет файла {directory}/data/NARY_list_kks.txt')
+#     return set_kks_nary_data
 
-    try:
-        with open(path.join(directory, 'data', 'NARY_list_kks.txt')) as file:
-            for i_line in file:
-                set_kks_nary_data.add(i_line[:-1])
-    except FileNotFoundError:
-        if print_log:
-            await print_log(text=f'Нет файла {directory}/data/NARY_list_kks.txt', color='red')
-        log_info.error(f'Нет файла {directory}/data/NARY_list_kks.txt')
-    return set_kks_nary_data
+
+async def loading_data_kks_nary(name_system: str, print_log) -> Set[str]:
+    """
+    Функция считывающая базу много битовых сигналов.
+    :return: Множество много битовых сигналов
+    """
+    set_kks_nary_date: Set[str] = set()
+    await print_log(text='Сбор сигналов NARY')
+    if not check_file(path_directory=path.join(name_system, 'DbDumps'), name_file='PLS_BIN_CONF.dmp'):
+        await print_log(f'Нет файла PLS_BIN_CONF.dmp в {name_system}\\DbDumps.\n'
+                        f'Сбор сигналов NARY невозможен', color='red', level='ERROR')
+        return set_kks_nary_date
+    with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
+        new_text = reader(file, delimiter='|')
+        for i_line in new_text:
+            try:
+                full_kks = i_line[42]
+                if i_line[14] != '-1':
+                    if i_line[18] != '1' and i_line[18] != '0':
+                        set_kks_nary_date.add(full_kks)
+                else:
+                    set_kks_nary_date.add(full_kks)
+            except IndexError:
+                ...
+    return set_kks_nary_date
 
 
 async def sort_files_into_groups(number_bloc: str, group_svg: dict, progress: QProgressBar):

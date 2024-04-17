@@ -1,4 +1,4 @@
-from config.general_functions import new_file_data_ana_bin_nary, actualizations_vk
+from config.general_functions import actualizations_vk
 from config.func_svsu_import import enumeration_of_svg, actualizations_vk_svsu, add_file_svsu_import
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
@@ -18,19 +18,20 @@ class SvsuImport(MainWindowModified):
         self.main_menu = main_menu
 
         self.layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVBU',
-                                             func_pressed=self.update_vis_svbu))
+                                                  func_pressed=self.update_vis_svbu))
 
         self.layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVSU из самых актуальных видеокадров SVBU',
-                                             func_pressed=self.update_vis_svsu))
+                                                  func_pressed=self.update_vis_svsu))
 
-        self.layout.addWidget(QPushButtonModified(text='Сделать неактивными кнопки на кадрах с несуществующими ссылками',
-                                             func_pressed=self.start_bloc_button))
+        self.layout.addWidget(QPushButtonModified(text='Сделать неактивными кнопки на кадрах с '
+                                                       'несуществующими ссылками',
+                                                  func_pressed=self.start_bloc_button))
 
-        self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
-                                             func_pressed=self.update_data_system))
+        # self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
+        #                                      func_pressed=self.update_data_system))
 
         self.layout.addWidget(QPushButtonModified(text='Создать файл SVSU_IMPORT.txt',
-                                             func_pressed=self.update_file_svsu_import))
+                                                  func_pressed=self.update_file_svsu_import))
 
         self.text_log = QTextBrowser()
         self.layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
@@ -53,9 +54,9 @@ class SvsuImport(MainWindowModified):
         self.name_system_vk_svsu = NameSystemWindow(func=self.start_actualizations_vk_svsu,
                                                     text='Видеокадры какого блока обновить?',
                                                     set_name_system={'SVBU_1', 'SVBU_2'})
-        self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
-                                            text='Базу какой из систем обновить?',
-                                            set_name_system={'SVBU_1', 'SVBU_2', 'SVSU'})
+        # self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
+        #                                     text='Базу какой из систем обновить?',
+        #                                     set_name_system={'SVBU_1', 'SVBU_2', 'SVSU'})
         self.name_system_svsu_import = NameSystemWindow(func=self.start_add_file_svsu_import,
                                                         text='Для какого блока создать файл SVSU_IMPORT.txt?',
                                                         set_name_system={'SVBU_1', 'SVBU_2'})
@@ -66,8 +67,8 @@ class SvsuImport(MainWindowModified):
     def update_vis_svsu(self):
         self.name_system_vk_svsu.show()
 
-    def update_data_system(self):
-        self.update_data.show()
+    # def update_data_system(self):
+    #     self.update_data.show()
 
     def update_file_svsu_import(self):
         self.name_system_svsu_import.show()
@@ -103,14 +104,14 @@ class SvsuImport(MainWindowModified):
         await enumeration_of_svg(print_log=self.print_log, progress=self.progress)
         await self.print_log(text=f'Блокировка кнопок завершена\n')
 
-    @asyncSlot()
-    async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
-        """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
-        await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
-        self.progress.setVisible(True)
-        self.progress.reset()
-        await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress)
-        await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
+    # @asyncSlot()
+    # async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
+    #     """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
+    #     await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
+    #     self.progress.setVisible(True)
+    #     self.progress.reset()
+    #     await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress)
+    #     await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
 
     @asyncSlot()
     async def start_add_file_svsu_import(self, name_directory: str) -> None:
@@ -158,6 +159,6 @@ class SvsuImport(MainWindowModified):
         self.instruction_window.close()
         self.name_system_vk_svbu.close()
         self.name_system_vk_svsu.close()
-        self.update_data.close()
+        # self.update_data.close()
         self.name_system_svsu_import.close()
         self.close()

@@ -8,7 +8,8 @@ from PyQt6.QtWidgets import QMainWindow, QMessageBox, QProgressBar
 from config.point_description import AnchorPoint
 from config.general_functions import check_directory
 from config.general_functions import (loading_data_kks_ana, loading_data_kks_bin, loading_data_kks_nary,
-                                      loading_data_dict_kks_ana, loading_data_dict_kks_bin, creating_list_of_submodel)
+                                      loading_data_dict_kks_ana_description, loading_data_dict_kks_bin_description,
+                                      creating_list_of_submodel)
 
 
 async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str, progress: QProgressBar) -> bool:
@@ -21,11 +22,16 @@ async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str, 
     :param progress: Прогресс выполнения программы
     :return: None
     """
-    set_kks_ana_data = await loading_data_kks_ana(directory=directory)
-    set_kks_bin_data = await loading_data_kks_bin(directory=directory)
-    set_kks_nary_data = await loading_data_kks_nary(directory=directory)
-    dict_kks_ana_data = await loading_data_dict_kks_ana(directory=directory)
-    dict_kks_bin_data = await loading_data_dict_kks_bin(directory=directory)
+    set_kks_ana_data = await loading_data_kks_ana(name_system=directory, print_log=print_log)
+    progress.setValue(2)
+    set_kks_bin_data = await loading_data_kks_bin(name_system=directory, print_log=print_log)
+    progress.setValue(6)
+    set_kks_nary_data = await loading_data_kks_nary(name_system=directory, print_log=print_log)
+    progress.setValue(10)
+    dict_kks_ana_data = await loading_data_dict_kks_ana_description(name_system=directory, print_log=print_log)
+    progress.setValue(12)
+    dict_kks_bin_data = await loading_data_dict_kks_bin_description(name_system=directory, print_log=print_log)
+    progress.setValue(16)
 
     if not await checking_data(print_log=print_log, name_system=directory,
                                data_ana=set_kks_ana_data, data_bin=set_kks_bin_data, data_nary=set_kks_nary_data,
@@ -39,7 +45,7 @@ async def new_start_parsing_svg_files(print_log, svg: Set[str], directory: str, 
     numbers = len(svg)
     number = 1
     for i_svg in sorted(svg):
-        progress.setValue(round(number / numbers * 100))
+        progress.setValue(round(number / numbers * 84) + 16)
         await print_log(text=f'[{number}/{numbers}]\t Проверка {i_svg}')
         if i_svg.endswith('.svg') or i_svg.endswith('.SVG'):
             list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system=directory,
@@ -190,4 +196,3 @@ async def dict_loading(print_log, number_bloc: str) -> Dict:
     except FileNotFoundError:
         await print_log(f'Нет файла "kks_vis_groups.json" в папке {path.join(number_bloc, "data")}')
         return {}
-

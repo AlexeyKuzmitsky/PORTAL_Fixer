@@ -12,7 +12,7 @@ import json
 async def generation_tcp_gate(name_system: str, print_log):
     """Генерирует файл TcpGateConf для ZPUPD"""
     # создание базы сигналов соответствующей системы
-    data_ana = await loading_data_kks_ana(directory=name_system)
+    data_ana = await loading_data_kks_ana(name_system=name_system, print_log=print_log)
     if not data_ana:
         await print_log(f'Нет файла ANA_list_kks.txt в {name_system}\\data.\n'
                         f'Создание файла ZPUPD невозможно. \n'
@@ -20,7 +20,7 @@ async def generation_tcp_gate(name_system: str, print_log):
                         color='red', level='ERROR')
         return False
 
-    data_bin = await loading_data_kks_bin(directory=name_system)
+    data_bin = await loading_data_kks_bin(name_system=name_system, print_log=print_log)
     if not data_bin:
         await print_log(f'Нет файла BIN_list_kks.txt в {name_system}\\data.\n'
                         f'Создание файла ZPUPD невозможно. \n'
@@ -28,7 +28,7 @@ async def generation_tcp_gate(name_system: str, print_log):
                         color='red', level='ERROR')
         return False
 
-    data_nary = await loading_data_kks_nary(directory=name_system)
+    data_nary = await loading_data_kks_nary(name_system=name_system, print_log=print_log)
     if not data_nary:
         await print_log(f'Нет файла NARY_list_kks.txt в {name_system}\\data.\n'
                         f'Создание файла ZPUPD невозможно. \n'
@@ -39,7 +39,7 @@ async def generation_tcp_gate(name_system: str, print_log):
     check_directory(path_directory=name_system, name_directory='TcpGate')
     check_directory(path_directory=path.join(name_system, 'data'), name_directory='TcpGate')
     if name_system == 'SVSU':
-        await removing_redundant_signals(data_ana=data_ana, data_bin=data_bin, data_nary=data_nary)
+        await removing_redundant_signals(data_ana=data_ana, data_bin=data_bin, data_nary=data_nary, print_log=print_log)
         list_name_svg_system = listdir(path.join(name_system, 'NPP_models'))
     else:
         list_name_svg_system = listdir(path.join(name_system, 'NPP_models')) + listdir(path.join('SVSU', 'NPP_models'))
@@ -105,15 +105,15 @@ async def generation_tcp_gate(name_system: str, print_log):
     return True
 
 
-async def removing_redundant_signals(data_ana: Set[str], data_bin: Set[str], data_nary: Set[str]):
+async def removing_redundant_signals(data_ana: Set[str], data_bin: Set[str], data_nary: Set[str], print_log):
     """Функция удаляет из списка СВСУ сигналов те, которые уже имеются в базе блоков"""
-    ana_signal_svbu1 = await loading_data_kks_ana(directory='SVBU_1')
-    bin_signal_svbu1 = await loading_data_kks_bin(directory='SVBU_1')
-    nary_signal_svbu1 = await loading_data_kks_nary(directory='SVBU_1')
+    ana_signal_svbu1 = await loading_data_kks_ana(name_system='SVBU_1', print_log=print_log)
+    bin_signal_svbu1 = await loading_data_kks_bin(name_system='SVBU_1', print_log=print_log)
+    nary_signal_svbu1 = await loading_data_kks_nary(name_system='SVBU_1', print_log=print_log)
 
-    ana_signal_svbu2 = await loading_data_kks_ana(directory='SVBU_2')
-    bin_signal_svbu2 = await loading_data_kks_bin(directory='SVBU_2')
-    nary_signal_svbu2 = await loading_data_kks_nary(directory='SVBU_2')
+    ana_signal_svbu2 = await loading_data_kks_ana(name_system='SVBU_2', print_log=print_log)
+    bin_signal_svbu2 = await loading_data_kks_bin(name_system='SVBU_2', print_log=print_log)
+    nary_signal_svbu2 = await loading_data_kks_nary(name_system='SVBU_2', print_log=print_log)
 
     data_ana.difference_update(ana_signal_svbu1)  # удаляем ANA сигналы СВБУ_1
     data_ana.difference_update(ana_signal_svbu2)  # удаляем ANA сигналы СВБУ_2
@@ -223,7 +223,7 @@ def file_description_nary_signal(set_bin: Set[str], name_system: str,
 
 
 async def add_data_file_bin_nary(print_log, name_system: str,
-                                 progress: QProgressBar, min_progress: int=50, max_progress: int=100):
+                                 progress: QProgressBar, min_progress: int = 50, max_progress: int = 100):
     """Функция создает файл BIN_NARY_kks.json"""
     check_directory(path_directory=name_system, name_directory='DbDumps')
     check_directory(path_directory=name_system, name_directory='data')
