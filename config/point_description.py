@@ -80,12 +80,12 @@ class AnchorPoint:
                         self.add_bin_signals_setting(data_bin=data_bin,
                                                      kks=kks.split('_')[0])
                     continue
-                elif kks in data_nary:
-                    i_point['Type_signal'] = 'NARY'
-                    i_point['Signal_in_database'] = True
-                    continue
                 elif kks in data_bin:
                     i_point['Type_signal'] = 'BIN'
+                    i_point['Signal_in_database'] = True
+                    continue
+                elif kks in data_nary:
+                    i_point['Type_signal'] = 'NARY'
                     i_point['Signal_in_database'] = True
                     continue
             i_point['Signal_in_database'] = False
@@ -102,7 +102,8 @@ class AnchorPoint:
                 self.signal_description.append({'KKS': new_kks, 'Type_signal': 'BIN', 'Signal_in_database': True})
 
     def check_signal_existence_database(self, data_ana: Set[str], data_bin: Set[str], data_nary: Set[str],
-                                        dict_bin: Dict[str, Set[str]], exclude_repetition: bool = False) -> Set[str]:
+                                        dict_bin: Dict[str, Dict[str, str]],
+                                        exclude_repetition: bool = False) -> Set[str]:
         """
         Функция проверяет наличие сигнала в базе данных. Если находит аналоговый сигнал, проверяет бинарные уставки
         Args:
@@ -110,7 +111,8 @@ class AnchorPoint:
             data_bin: список бинарных сигналов с суффиксом
             data_nary: список много битовых сигналов с суффиксом
             dict_bin: словарь бинарных сигналов, где ключ - тело бинарного сигнала,
-                                                 значение - список бинарных сигналов с суффиксом
+                                                 значение - словарь (ключ - бинарные сигналы с суффиксом,
+                                                                     значение - описание сигнала)
             exclude_repetition: Если True, найденный аналоговый сигнал будет удален, что бы не повторяться.
         Returns: Список бинарных и много битовых сигналов относящийся к точке на видеокадре
         """
@@ -239,7 +241,7 @@ class AnchorPoint:
         """Функция создает изображение c числом number_point в круге."""
         img = Image.new('RGBA', (300, 300), (0, 0, 0, 0))
         text = str(self.number_point)
-        idraw = ImageDraw.Draw(img)
+        i_draw = ImageDraw.Draw(img)
         font_2 = ImageFont.truetype("arial.ttf", size=200)
         font_3 = ImageFont.truetype("arial.ttf", size=160)
         if len(text) == 1:
@@ -263,8 +265,8 @@ class AnchorPoint:
             except KeyError:
                 pass
 
-        idraw.ellipse((0, 0, 300, 300), fill=background_color, outline=(10, 10, 10), width=8)
-        idraw.text((x, y), text, font=font, fill='black')
+        i_draw.ellipse((0, 0, 300, 300), fill=background_color, outline=(10, 10, 10), width=8)
+        i_draw.text((x, y), text, font=font, fill='black')
         self.img = img.resize((30, 30))
 
     def print_info(self):
@@ -663,7 +665,7 @@ class AnchorPoint:
             if 'KKS' in i_line:
                 kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
                 self.signal_description.append({'KKS': f'{kks}S42_XQ01', 'text_kks': f'{kks}S42_XQ01'})
-                # self.signal_description.append({'KKS': f'{kks}E02_XQ01', 'text_kks': kks})  # разобраться что должно
+                # self.signal_description.append({'KKS': f'{kks}E02_XQ01', 'text_kks': kks}) # разобраться что должно
 
     def search_kks_in_arm(self):
         """Поиск KKS на подмоделях Arm_4_1_PL_VHR.svg, aux_MKB.svg"""

@@ -1,5 +1,5 @@
 from config.general_functions import actualizations_vk
-from config.func_generation_tcp_gate_file import generation_tcp_gate, add_data_file_bin_nary
+from config.func_generation_tcp_gate_file import generation_tcp_gate
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from PyQt6.QtGui import QColor
@@ -16,9 +16,6 @@ class GenerationTcpGate(MainWindowModified):
         self.setting_window_size(width=750, height=650)
         self.instruction_window = Instruction()
         self.main_menu = main_menu
-
-        self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
-                                                  func_pressed=self.update_data_system))
 
         self.layout.addWidget(QPushButtonModified(text='Обновление видеокадров',
                                                   func_pressed=self.update_vis_system))
@@ -41,10 +38,6 @@ class GenerationTcpGate(MainWindowModified):
 
         self.layout.addLayout(horizontal_layout)
 
-        self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
-                                            text='Базу какой из систем обновить?',
-                                            set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
-
         self.name_system_vk = NameSystemWindow(func=self.start_actualizations_vk,
                                                text='Видеокадры какой системы обновить?',
                                                set_name_system={'SVBU_1', 'SVBU_2', 'SVSU'})
@@ -52,9 +45,6 @@ class GenerationTcpGate(MainWindowModified):
         self.name_system_tcp_gate = NameSystemWindow(func=self.start_generation_tcp_gate,
                                                      text='Для какой системы создать файл ZPUPD.cfg?',
                                                      set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
-
-    def update_data_system(self):
-        self.update_data.show()
 
     def update_vis_system(self):
         self.name_system_vk.show()
@@ -72,25 +62,14 @@ class GenerationTcpGate(MainWindowModified):
         Функция запускающая создание файла ZPUPD.cfg.
         :return: None
         """
+        self.progress.setVisible(True)
+        self.progress.reset()
         await self.print_log(text=f'Старт создания файла ZPUPD.cfg для {name_directory}')
-        if await generation_tcp_gate(name_system=name_directory, print_log=self.print_log):
+        if await generation_tcp_gate(name_system=name_directory, print_log=self.print_log, progress=self.progress):
             await self.print_log(text='\nСоздание файла ZPUPD.cfg завершено успешно\n', color='green')
         else:
             await self.print_log(text='Создание файла ZPUPD.cfg прекращено. Устраните все недочеты и повторите\n',
                                  color='red', level='ERROR')
-        self.progress.setVisible(False)
-
-    @asyncSlot()
-    async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
-        """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
-        await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
-        self.progress.setVisible(True)
-        self.progress.reset()
-        # await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress,
-        #                                  min_progress=0, max_progress=50)
-        await add_data_file_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress,
-                                     min_progress=50, max_progress=100)
-        await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
         self.progress.setVisible(False)
 
     @asyncSlot()
@@ -137,7 +116,6 @@ class GenerationTcpGate(MainWindowModified):
     def close_program(self):
         """Функция закрытия программы"""
         self.instruction_window.close()
-        self.update_data.close()
         self.name_system_vk.close()
         self.name_system_tcp_gate.close()
         self.close()

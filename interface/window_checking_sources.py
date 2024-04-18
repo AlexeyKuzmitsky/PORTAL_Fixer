@@ -18,9 +18,6 @@ class CheckingSources(MainWindowModified):
         self.instruction_window = Instruction()
         self.main_menu = main_menu
 
-        # self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
-        #                                           func_pressed=self.update_data_system))
-
         self.layout.addWidget(QPushButtonModified(text='Создание файла AltStation',
                                                   func_pressed=self.creating_file_alt_station_system))
 
@@ -48,10 +45,6 @@ class CheckingSources(MainWindowModified):
 
         self.layout.addLayout(horizontal_layout)
 
-        # self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
-        #                                     text='Базу какой из систем обновить?',
-        #                                     set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'})
-
         self.creating_file_alt_station = NameSystemWindow(
             func=self.start_creating_new_file_altstation,
             text='Для какой системы создать файл altstation?',
@@ -72,9 +65,6 @@ class CheckingSources(MainWindowModified):
                                                       text='Файлы какой системы проверить?',
                                                       set_name_system={'SVBU_1', 'SVBU_2'})
 
-    # def update_data_system(self):
-    #     self.update_data.show()
-
     def creating_file_alt_station_system(self):
         self.creating_file_alt_station.show()
 
@@ -90,15 +80,6 @@ class CheckingSources(MainWindowModified):
     def main_menu_window(self):
         self.main_menu.show()
         self.close()
-
-    # @asyncSlot()
-    # async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
-    #     """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
-    #     await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
-    #     self.progress.setVisible(True)
-    #     self.progress.reset()
-    #     await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress)
-    #     await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
 
     @asyncSlot()
     async def start_creating_new_file_altstation(self, name_system: str) -> None:
@@ -174,7 +155,6 @@ class CheckingSources(MainWindowModified):
     def close_program(self):
         """Функция закрытия программы"""
         self.instruction_window.close()
-        # self.update_data.close()
         self.creating_file_alt_station.close()
         self.checking_file_ana_1.close()
         self.checking_file_bin_1.close()

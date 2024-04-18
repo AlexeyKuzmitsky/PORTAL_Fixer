@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import QProgressBar
 import json
 
 
-async def generation_tcp_gate(name_system: str, print_log):
+async def generation_tcp_gate(name_system: str, print_log, progress: QProgressBar):
     """Генерирует файл TcpGateConf для ZPUPD"""
     # создание базы сигналов соответствующей системы
     data_ana = await loading_data_kks_ana(name_system=name_system, print_log=print_log)
@@ -19,6 +19,7 @@ async def generation_tcp_gate(name_system: str, print_log):
                         f'Для продолжения выполните пункт "обновления баз данных" для {name_system}\n',
                         color='red', level='ERROR')
         return False
+    progress.setValue(1)
 
     data_bin = await loading_data_kks_bin(name_system=name_system, print_log=print_log)
     if not data_bin:
@@ -27,6 +28,7 @@ async def generation_tcp_gate(name_system: str, print_log):
                         f'Для продолжения выполните пункт "обновления баз данных" для {name_system}\n',
                         color='red', level='ERROR')
         return False
+    progress.setValue(4)
 
     data_nary = await loading_data_kks_nary(name_system=name_system, print_log=print_log)
     if not data_nary:
@@ -35,11 +37,15 @@ async def generation_tcp_gate(name_system: str, print_log):
                         f'Для продолжения выполните пункт "обновления баз данных" для {name_system}\n',
                         color='red', level='ERROR')
         return False
+    progress.setValue(7)
 
     check_directory(path_directory=name_system, name_directory='TcpGate')
+    progress.setValue(8)
     check_directory(path_directory=path.join(name_system, 'data'), name_directory='TcpGate')
+    progress.setValue(9)
     if name_system == 'SVSU':
-        await removing_redundant_signals(data_ana=data_ana, data_bin=data_bin, data_nary=data_nary, print_log=print_log)
+        await removing_redundant_signals(data_ana=data_ana, data_bin=data_bin, data_nary=data_nary, print_log=print_log,
+                                         progress=progress)
         list_name_svg_system = listdir(path.join(name_system, 'NPP_models'))
     else:
         list_name_svg_system = listdir(path.join(name_system, 'NPP_models')) + listdir(path.join('SVSU', 'NPP_models'))
@@ -49,6 +55,7 @@ async def generation_tcp_gate(name_system: str, print_log):
 
     # создаем список проверяемых svg файлов
     list_name_svg: List[str] = await preparing_list_of_video_frames(name_system=name_system)
+    progress.setValue(33)
     if not list_name_svg:
         await print_log(f'Нет файла list_kks_svg_TcpGate.txt в {name_system}\\data.\n'
                         f'Создание файла ZPUPD невозможно. \n'
@@ -57,13 +64,13 @@ async def generation_tcp_gate(name_system: str, print_log):
 
     # добавляем список видеокадров от цеха связи если есть
     list_name_txt = listdir(path.join(name_system, 'data', 'TcpGate'))
-
+    progress.setValue(35)
     number_name_svg = len(list_name_svg) + len(list_name_txt)
     num = 0
     for name_svg in list_name_svg + list_name_txt:
         num += 1
         text_log = f'[{num}/{number_name_svg}] Проверка {name_svg}'
-
+        progress.setValue(round(num / number_name_svg * 40) + 35)
         if name_svg in list_name_svg_system:
             try:
                 list_submodel: List[AnchorPoint] = await creating_list_of_submodel(name_system=name_system,
@@ -92,28 +99,35 @@ async def generation_tcp_gate(name_system: str, print_log):
         set_bin_signal.update(set_bin)
 
     file_creation(set_ana=set_ana_signal, set_bin=set_bin_signal, name_system=name_system, name_file='ASUP.cfg')
+    progress.setValue(80)
     if name_system == 'SVSU':
         file_creation(set_ana=set_ana_signal, set_bin=set_bin_signal, name_system=name_system, name_file='ZPUPDG.cfg')
         file_creation(set_ana=set_ana_signal, set_bin=set_bin_signal, name_system=name_system, name_file='ZPUPDAS.cfg')
     else:
         file_creation(set_ana=set_ana_signal, set_bin=set_bin_signal, name_system=name_system)
-    if not file_description_nary_signal(set_bin=set_bin_signal, name_system=name_system):
-        await print_log(f'Нет файла BIN_NARY_kks.json в {name_system}\\data.\n'
-                        f'Создание файла description_nary_signal.json  с описанием многобитовых сигналов невозможно.\n'
-                        f'Для создания данного файла, выполните пункт "обновления баз данных" для {name_system}\n',
-                        color='red')
+    progress.setValue(90)
+    await print_log('Создание файла description_nary_signal.json с описанием битов многобитовых сигналов')
+    await file_description_nary_signal(print_log=print_log, set_bin=set_bin_signal, name_system=name_system)
+    progress.setValue(100)
     return True
 
 
-async def removing_redundant_signals(data_ana: Set[str], data_bin: Set[str], data_nary: Set[str], print_log):
+async def removing_redundant_signals(data_ana: Set[str], data_bin: Set[str], data_nary: Set[str], print_log,
+                                     progress: QProgressBar):
     """Функция удаляет из списка СВСУ сигналов те, которые уже имеются в базе блоков"""
     ana_signal_svbu1 = await loading_data_kks_ana(name_system='SVBU_1', print_log=print_log)
+    progress.setValue(11)
     bin_signal_svbu1 = await loading_data_kks_bin(name_system='SVBU_1', print_log=print_log)
+    progress.setValue(15)
     nary_signal_svbu1 = await loading_data_kks_nary(name_system='SVBU_1', print_log=print_log)
+    progress.setValue(19)
 
     ana_signal_svbu2 = await loading_data_kks_ana(name_system='SVBU_2', print_log=print_log)
+    progress.setValue(20)
     bin_signal_svbu2 = await loading_data_kks_bin(name_system='SVBU_2', print_log=print_log)
+    progress.setValue(24)
     nary_signal_svbu2 = await loading_data_kks_nary(name_system='SVBU_2', print_log=print_log)
+    progress.setValue(28)
 
     data_ana.difference_update(ana_signal_svbu1)  # удаляем ANA сигналы СВБУ_1
     data_ana.difference_update(ana_signal_svbu2)  # удаляем ANA сигналы СВБУ_2
@@ -123,6 +137,7 @@ async def removing_redundant_signals(data_ana: Set[str], data_bin: Set[str], dat
 
     data_nary.difference_update(nary_signal_svbu1)  # удаляем NARY сигналы СВБУ_1
     data_nary.difference_update(nary_signal_svbu2)  # удаляем NARY сигналы СВБУ_2
+    progress.setValue(30)
 
 
 async def preparing_list_of_video_frames(name_system: str) -> List[str]:
@@ -203,13 +218,13 @@ def file_creation(set_ana, set_bin, name_system, name_file: str = 'ZPUPD.cfg'):
         file_zpupd.write('#\n')
 
 
-def file_description_nary_signal(set_bin: Set[str], name_system: str,
-                                 name_file: str = 'description_nary_signal.json') -> bool:
+async def file_description_nary_signal(print_log, set_bin: Set[str], name_system: str,
+                                       name_file: str = 'description_nary_signal.json', ) -> bool:
     """Запись описания сигналов NARY в JSON файл"""
-    try:
-        with open(path.join(name_system, 'data', 'BIN_NARY_kks.json'), 'r', encoding='UTF-8') as file_description:
-            dict_nary_signal = json.load(file_description)
-    except FileNotFoundError:
+    dict_nary_signal = await add_data_file_bin_nary(print_log=print_log, name_system=name_system)
+    if not dict_nary_signal:
+        await print_log(f'Создание файла description_nary_signal.json  с описанием многобитовых сигналов невозможно.\n',
+                        color='red')
         return False
     dict_nary_signal_to_file: Dict[str, Dict[str, str]] = dict()
     for i_kks in set_bin:
@@ -222,22 +237,19 @@ def file_description_nary_signal(set_bin: Set[str], name_system: str,
     return True
 
 
-async def add_data_file_bin_nary(print_log, name_system: str,
-                                 progress: QProgressBar, min_progress: int = 50, max_progress: int = 100):
-    """Функция создает файл BIN_NARY_kks.json"""
+async def add_data_file_bin_nary(print_log, name_system: str):
+    """Функция сбора описания битов многобитовых сигналов (NARY)"""
     check_directory(path_directory=name_system, name_directory='DbDumps')
     check_directory(path_directory=name_system, name_directory='data')
     dict_kks_bin_data: Dict = dict()
 
     print_log('Сбор описания сигналов NARY')
-    progress.setValue(round((max_progress - min_progress) * 15 / 100 + min_progress))
     try:
         dict_description: Dict[int, Dict[str, str]] = add_list_description(name_system=name_system)
     except FileNotFoundError:
-        print_log(f'Создание файла BIN_NARY_kks.json невозможно.\n'
-                  f'Нет файла PLS_BIN_NARY_CONF.dmp в папке {name_system}\\DbDumps\n', color='red', level='ERROR')
-        return
-    progress.setValue(round((max_progress - min_progress) * 45 / 100 + min_progress))
+        await print_log(text='\tERROR', color='red', a_new_line=False)
+        print_log(f'Нет файла PLS_BIN_NARY_CONF.dmp в папке {name_system}\\DbDumps\n', color='red', level='ERROR')
+        return dict_kks_bin_data
     with open(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file:
         new_text = reader(file, delimiter='|')
         for i_line in new_text:
@@ -254,11 +266,8 @@ async def add_data_file_bin_nary(print_log, name_system: str,
                 ...
             except KeyError:
                 ...
-    progress.setValue(round((max_progress - min_progress) * 65 / 100 + min_progress))
-    with open(path.join(name_system, 'data', 'BIN_NARY_kks.json'), 'w', encoding='UTF-8') as json_file:
-        json.dump(dict_kks_bin_data, json_file, indent=2, ensure_ascii=False)
-    print_log('Описания сигналов NARY собраны\n', color='green')
-    progress.setValue(round((max_progress - min_progress) + min_progress))
+    await print_log(text='\tsuccessfully', color='green', a_new_line=False)
+    return dict_kks_bin_data
 
 
 def add_list_description(name_system: str) -> Dict[int, Dict[str, str]]:

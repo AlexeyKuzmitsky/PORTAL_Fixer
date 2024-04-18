@@ -20,8 +20,6 @@ class ParsingSvg(MainWindowModified):
 
         self.layout.addWidget(QPushButtonModified(text='Обновить видеокадры SVBU',
                                                   func_pressed=self.update_vis_svbu))
-        # self.layout.addWidget(QPushButtonModified(text='Обновление баз данных сигналов',
-        #                                      func_pressed=self.update_data_system))
         self.layout.addWidget(QPushButtonModified(text='Поиск замечаний на видеокадрах',
                                                   func_pressed=self.start_parsing_svg))
         self.layout.addWidget(QPushButtonModified(text='Сортировка найденных замечаний',
@@ -46,10 +44,6 @@ class ParsingSvg(MainWindowModified):
                                                text='Видеокадры какого блока обновить?',
                                                set_name_system={'SVBU_1', 'SVBU_2', 'SKU_VP_1', 'SKU_VP_1', 'SVSU'})
 
-        # self.update_data = NameSystemWindow(func=self.start_new_data_ana_bin_nary,
-        #                                     text='Базу какой из систем обновить?',
-        #                                     set_name_system={'SVSU', 'SVBU_1', 'SVBU_2'})
-
         self.name_system_parsing_svg = NameSystemWindow(func=self.checking_svg_files,
                                                         text='На каких видеокадрах найти замечания?',
                                                         set_name_system={'SVBU_1', 'SVBU_2', 'SKU_VP_1',
@@ -63,9 +57,6 @@ class ParsingSvg(MainWindowModified):
 
     def update_vis_svbu(self):
         self.name_system_vk.show()
-
-    # def update_data_system(self):
-    #     self.update_data.show()
 
     def start_parsing_svg(self):
         self.name_system_parsing_svg.show()
@@ -87,16 +78,6 @@ class ParsingSvg(MainWindowModified):
         await actualizations_vk(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
         await self.print_log(text=f'Выполнение программы обновления видеокадров {name_directory} завершено\n')
         self.progress.setVisible(False)
-
-    # @asyncSlot()
-    # async def start_new_data_ana_bin_nary(self, name_system: str) -> None:
-    #     """Функция запускающая обновление файлов (или их создание если не было) с базами данных сигналов"""
-    #     await self.print_log(f'Начало обновления базы данных сигналов {name_system}')
-    #     self.progress.setVisible(True)
-    #     self.progress.reset()
-    #     await new_file_data_ana_bin_nary(print_log=self.print_log, name_system=name_system, progress=self.progress)
-    #     await self.print_log(text=f'Обновление базы данных сигналов {name_system} завершено\n')
-    #     self.progress.setVisible(False)
 
     @asyncSlot()
     async def checking_svg_files(self, name_directory: str) -> None:
@@ -169,7 +150,6 @@ class ParsingSvg(MainWindowModified):
         """Функция закрытия программы"""
         self.instruction_window.close()
         self.name_system_vk.close()
-        # self.update_data.close()
         self.name_system_parsing_svg.close()
         self.name_system_sorting_comments.close()
         self.close()
