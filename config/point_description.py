@@ -121,6 +121,7 @@ class AnchorPoint:
             kks = i_point['KKS']
             if kks:
                 if kks in data_ana:
+                    set_signal.add(kks)
                     if kks.split('_')[0] in dict_bin:
                         set_signal.update(dict_bin[kks.split('_')[0]])
                     if exclude_repetition:
@@ -129,6 +130,7 @@ class AnchorPoint:
                     set_signal.add(kks)
                 elif kks in data_bin:
                     set_signal.add(kks)
+
         return set_signal
 
     def get_kks_ana_bin(self):
