@@ -140,7 +140,7 @@ async def bloc_button(svg: str, set_kks_name_svg: Set[str]) -> None:
             if '<rt:dyn type="Disable" mode="constant" value="true"/>' in i_line:
                 continue
             if flag_button:
-                if 'type="OnClick">LoadNew' in i_line:
+                if 'type="OnClick">LoadNew' in i_line or 'type="OnClick">SendNew' in i_line:
                     new_file_svg.write(i_line)
                     try:
                         result = re.findall(r'&quot;(.*)&quot;', i_line)[0]

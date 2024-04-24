@@ -364,6 +364,7 @@ async def search_for_signals_bin_nary_on_svg(print_log, name_system: str, set_sv
             await print_log(text=f'\tОшибка', color='red', a_new_line=False)
             await print_log(text=f'Видеокадра {name_system}/NPP_models/{i_svg}.svg нет. Поиск сигналов невозможен',
                             color='red')
+            number += 1
             continue
         dict_of_detected_signal_on_svg[i_svg] = set()
         list_submodel = await creating_list_of_submodel(name_system=name_system, name_svg=f'{i_svg}.svg')
