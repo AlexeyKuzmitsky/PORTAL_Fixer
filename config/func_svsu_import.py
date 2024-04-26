@@ -50,7 +50,7 @@ async def actualizations_vk_svsu(print_log, name_directory: str, progress: QProg
                        encoding='windows-1251') as new_file):
                 for i_line in file:
                     for vis in kks_dict_new:
-                        if f'&quot;{vis}' in i_line:
+                        if f'{vis}' in i_line:
                             result = re.split(fr'{vis}', i_line)
                             result = f'{result[0]}{kks_dict_new[vis]}{result[1]}'
                             new_file.write(result)
@@ -64,7 +64,7 @@ async def actualizations_vk_svsu(print_log, name_directory: str, progress: QProg
                     open(path.join('SVSU', 'NPP_models', i_vis), 'w', encoding='windows-1251') as new_file:
                 for i_line in file:
                     for vis in kks_dict_new:
-                        if f'&quot;{vis}' in i_line:
+                        if f'{vis}' in i_line:
                             result = re.split(fr'{vis}', i_line)
                             result = f'{result[0]}{kks_dict_new[vis]}{result[1]}'
                             new_file.write(result)
@@ -133,6 +133,7 @@ async def bloc_button(svg: str, set_kks_name_svg: Set[str]) -> None:
     :param set_kks_name_svg: Список всех имеющихся видеокадров на которые может быть ссылка
     :return: None
     """
+    alt_station_line = ''
     with open(path.join('SVSU', 'NPP_models', svg), 'r', encoding='windows-1251') as file_svg, \
             open(path.join('SVSU', 'new_NPP_models_SVSU', svg), 'w', encoding='windows-1251') as new_file_svg:
         flag_button = False
@@ -140,7 +141,10 @@ async def bloc_button(svg: str, set_kks_name_svg: Set[str]) -> None:
             if '<rt:dyn type="Disable" mode="constant" value="true"/>' in i_line:
                 continue
             if flag_button:
-                if 'type="OnClick">LoadNew' in i_line or 'type="OnClick">SendNew' in i_line:
+                if 'Station_Name' in i_line:
+                    alt_station_line = i_line
+                    continue
+                if 'type="OnClick">' in i_line:
                     new_file_svg.write(i_line)
                     try:
                         result = re.findall(r'&quot;(.*)&quot;', i_line)[0]
@@ -149,7 +153,10 @@ async def bloc_button(svg: str, set_kks_name_svg: Set[str]) -> None:
                             result = re.findall(r'\("(\d0.*\d+)"\)</', i_line)[0]
                         except IndexError:
                             result = '0'
-                    if result not in set_kks_name_svg or result != '0':
+                    if result in set_kks_name_svg:
+                        if alt_station_line:
+                            new_file_svg.write(alt_station_line)
+                    else:
                         new_file_svg.write(f'    <rt:dyn type="Disable" mode="constant" value="true"/>\n')
                     flag_button = False
                 else:

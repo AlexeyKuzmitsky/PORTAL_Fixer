@@ -1,5 +1,5 @@
 name_program = 'PORTAL_Fixer'
-version_program = '2.5.5'
+version_program = '2.5.6'
 program_compilation_date = '2024.04.22'
 
 program_directory_map = {
@@ -150,3 +150,17 @@ dict_suffix_level_signale = {
     'ZH02': 'Технологическая',
     'ZH52': 'Технологическая',
 }
+
+# priority_level = {
+#     'H0': 7,
+#     'A1': 7,
+#
+#     'A2': 4,
+#     'W2': 3,
+#     'T3': 2,
+#     'C3': 2,
+#     'D4': 2,
+#     'YP11': 6,
+#     'YP12': 4,
+#
+# }
