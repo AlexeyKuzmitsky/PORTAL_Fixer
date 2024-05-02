@@ -26,4 +26,5 @@ style_window_black = (
     "QProgressBar{;color: white;}"
     "QLabel{font-size: 15px}"
     "QVBoxLayout{background: white;}"
+    "QHeaderView::section { background-color: #A9B7C6; color: #2b2b2b; font-weight: bold;}"
     )

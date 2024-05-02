@@ -3,6 +3,7 @@ from interface.window_parsing_svg import ParsingSvg
 from interface.window_instruction import Instruction
 from interface.window_generation_tcp_gate import GenerationTcpGate
 from interface.window_checking_sources import CheckingSources
+from interface.window_working_data import WorkingData
 from PyQt6.QtWidgets import QMessageBox
 from modernization_objects.push_button import QPushButtonModified, QPushButtonInstruction
 
@@ -18,6 +19,7 @@ class MainWindow(MainWindowModified):  # создаем класс на осно
         self.parsing_svg = ParsingSvg(main_menu=self)
         self.generation_tcp_gate = GenerationTcpGate(main_menu=self)
         self.checking_sources = CheckingSources(main_menu=self)
+        self.working_data = WorkingData(main_menu=self)
 
         self.instruction_window = Instruction()
 
@@ -36,6 +38,9 @@ class MainWindow(MainWindowModified):  # создаем класс на осно
 
         self.layout.addWidget(QPushButtonModified(text='Работа с исходниками',
                                                   func_pressed=self.start_checking_sources_window))
+
+        self.layout.addWidget(QPushButtonModified(text='Работа с базой сигналов',
+                                                  func_pressed=self.start_working_data_window))
 
         self.layout.addWidget(QPushButtonInstruction(func_pressed=self.start_instruction_window))
         self.layout.addStretch()
@@ -58,6 +63,10 @@ class MainWindow(MainWindowModified):  # создаем класс на осно
 
     def start_checking_sources_window(self):
         self.checking_sources.show()
+        self.close()
+
+    def start_working_data_window(self):
+        self.working_data.show()
         self.close()
 
     def development_warning(self):

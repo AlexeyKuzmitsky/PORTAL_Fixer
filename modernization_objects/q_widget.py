@@ -63,7 +63,6 @@ class MainWindowModified(QWidget):
         else:
             self.showMaximized()
 
-
     def mousePressEvent(self, event):
         """ Координаты записи нажатия мышью
         :param event:
@@ -90,8 +89,6 @@ class MainWindowModified(QWidget):
                 self.window().y() + delta.y(),
             )
             self.mPos = QPoint(250, 10)
-            # super().mouseMoveEvent(event)
-            # event.accept()
         if self.mPos is not None:
             delta = event.position().toPoint() - self.mPos
 
@@ -128,7 +125,6 @@ class MainWindowModified(QWidget):
     def show_minimized(self):
         """Свернуть окно"""
         self.showMinimized()
-
 
     def show_normal(self):
         """Возвращает окно в стандартное состояние"""
