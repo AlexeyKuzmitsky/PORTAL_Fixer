@@ -23,6 +23,7 @@ style_window_black = (
     "QPushButton:pressed{background-color:#43454a;border: 2px inset #43454a;border-radius: 10px;font-size: 16px;color: #A9B7C6;}"
     "QPushButton:disabled{background-color:grey; border:none;border-radius: 10px;font-size: 16px;color: #A9B7C6;}"
     "QTextBrowser{background: #2b2b2b;border: 2px inset #43454a;border-radius: 5px; font-size: 15px;color: #A9B7C6;}"
+    "QLineEdit{background: #2b2d30; border:1px outset #43454a;border-radius: 7px}"
     "QProgressBar{;color: white;}"
     "QLabel{font-size: 15px}"
     "QVBoxLayout{background: white;}"

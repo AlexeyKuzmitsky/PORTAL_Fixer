@@ -1,5 +1,6 @@
-import os.path
+import typing
 
+from os import path
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from PyQt6.QtGui import QColor
@@ -8,7 +9,6 @@ from PyQt6.QtCore import QAbstractTableModel, Qt, QModelIndex, QSortFilterProxyM
 from qasync import asyncSlot
 from modernization_objects.push_button import QPushButtonModified, QPushButtonInstruction, QPushButtonMenu
 from modernization_objects.q_widget import MainWindowModified
-from config.get_logger import log_info
 from csv import reader
 from typing import List, Dict
 
@@ -22,6 +22,8 @@ class TableData(MainWindowModified):
 
         self.layout.addWidget(QPushButtonModified(text='Сгенерить базу',
                                                   func_pressed=self.generation_data))
+
+        self.list_number_columns: List[int] = [0, 42, 43, 47]
 
         # Создаем строку для фильтрации данных
         horizontal_layout_filter = QHBoxLayout()
@@ -44,65 +46,77 @@ class TableData(MainWindowModified):
 
         self.layout.addWidget(self.data_table)  # добавить таблицу данных
 
-        # self.progress = QProgressBar()
-        # self.progress.setStyleSheet('text-align: center;')
-        # self.layout.addWidget(self.progress)
-        # self.progress.setVisible(False)
-
         horizontal_layout = QHBoxLayout()
+        horizontal_layout.addWidget(QPushButtonModified(text=' Импорт в Excel',
+                                                        path_icon=path.join('icon', 'excel.svg')))
+        horizontal_layout.addWidget(QPushButtonModified(text=' Импорт в TXT',
+                                                        path_icon=path.join('icon', 'txt.svg')))
 
-        # horizontal_layout.addWidget(self.filter_input)
         horizontal_layout.addWidget(QPushButtonMenu(func_pressed=self.main_menu_window))
         horizontal_layout.addWidget(QPushButtonInstruction(func_pressed=self.start_instruction_window))
 
         self.layout.addLayout(horizontal_layout)
 
     def new_data_table(self, text):
-        if self.check_text_filter(text=text):
-            data = self.last_data
-        else:
-            data = self.data
-        new_data = list()
-        for i in data:
-            if self.filter_line(text, i):
-                # if i[0].startswith(filter_text):
-                new_data.append(i)
+        """
+        Функция производящая подготовку и вывод новых данных в таблицу
+        """
+        new_data: List[List[str]] = self.filter_data(text)
         model = TableModel(new_data, self.name_columns)
         self.data_table.setModel(model)
         self.text_number_records.setText(f'Количество записей: {len(new_data)}')
-        self.last_data = data
+        self.last_data = new_data[:]
+        self.data_table.resizeColumnsToContents()
 
     def check_text_filter(self, text: str):
-        if len(text) == 1:
+        if len(text) < 2:
             return False
         if len(text) > len(self.last_filter_text) and text.startswith(self.last_filter_text):
             return True
         return False
 
-    def filter_line(self, text, list_element):
-        for i in list_element:
-            if text in i:
-                return True
-        return False
-
-    # def on_filter_changed(self, text):
-    #     proxy_model = self.data_table.model()
-    #     proxy_model.setFilterFixedString(text)
+    def filter_data(self, text) -> List[List[str]]:
+        """
+        Функция фильтрации данных в таблице согласно поисковому запросу
+        """
+        if self.check_text_filter(text=text):
+            data = self.last_data[:]
+        else:
+            data = self.data[:]
+        self.last_filter_text = text
+        new_data: List[List[str]] = list()
+        for i_line in data:
+            for i_element in i_line:
+                if text in i_element:
+                    new_data.append(i_line)
+                    break
+        return new_data
 
     def generation_data(self):
-        with open(os.path.join('SVBU_1', 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file_data:
+        self.data.clear()
+        print(self.data)
+        with open(path.join('SVBU_1', 'DbDumps', 'PLS_BIN_CONF.dmp'), 'r', encoding='windows-1251') as file_data:
             new_text = reader(file_data, delimiter='|', quotechar=' ')
             new_text.__next__()
             new_text.__next__()
             new_text.__next__()
             label = new_text.__next__()
-            for i_num_column in range(len(label)):
-                self.name_columns[i_num_column] = label[i_num_column]
-            for i_line in new_text:
-                self.data.append(i_line)
 
-        model = TableModel(self.data[:-1], self.name_columns)
+            number_column = 0
+            for i_num in self.list_number_columns:
+                self.name_columns[number_column] = label[i_num]
+                number_column += 1
+            for i_line in new_text:
+                try:
+                    self.data.append([i_line[num] for num in self.list_number_columns])
+                except IndexError:
+                    pass
+            print(len(self.data))
+
+        model = TableModel(self.data, self.name_columns)
         self.data_table.setModel(model)
+        self.data_table.resizeColumnsToContents()
+        self.text_number_records.setText(f'Количество записей: {len(self.data)}')
 
     def main_menu_window(self):
         self.main_menu.show()
@@ -194,9 +208,8 @@ class TableModel(QAbstractTableModel):
         super(TableModel, self).__init__()
         self._data = data
         self.name_columns = name_columns
-        self.items = []
 
-    def data(self, index: QModelIndex, role: Qt.ItemDataRole):
+    def data(self, index: QModelIndex, role: int = None):
         """
         Заполнение таблицы данными
         """
@@ -205,7 +218,7 @@ class TableModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.DisplayRole:
             return self._data[index.row()][index.column()]
 
-    def headerData(self, section: int, orientation: Qt.Orientation, role: Qt.ItemDataRole):
+    def headerData(self, section: int, orientation: Qt.Orientation, role: int = None) -> typing.Any:
         """
         Формирование подписей столбцов и строк
         """
@@ -230,6 +243,3 @@ class TableModel(QAbstractTableModel):
             return len(self._data[0])
         except IndexError:
             return 0
-
-    # def setItems(self, items):
-    #     self.items = items
