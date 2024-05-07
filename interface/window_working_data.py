@@ -4,11 +4,12 @@ from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from interface.window_table_data import TableData
 from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import QHBoxLayout, QTextBrowser, QProgressBar, QTableView
+from PyQt6.QtWidgets import QHBoxLayout, QTextBrowser, QProgressBar
 from qasync import asyncSlot
 from modernization_objects.push_button import QPushButtonModified, QPushButtonInstruction, QPushButtonMenu
 from modernization_objects.q_widget import MainWindowModified
 from config.get_logger import log_info
+from typing import List
 
 
 class WorkingData(MainWindowModified):
@@ -16,7 +17,7 @@ class WorkingData(MainWindowModified):
         super().__init__()  # получим доступ к изменениям настроек
         self.setting_window_size(width=750, height=650)
         self.instruction_window = Instruction()
-        self.table_data = TableData(main_menu=self)
+        self.list_window_table: List[TableData] = list()
         self.main_menu = main_menu
 
         self.layout.addWidget(QPushButtonModified(text='Загрузить таблицу сигналов',
@@ -31,8 +32,6 @@ class WorkingData(MainWindowModified):
         self.layout.addWidget(QPushButtonModified(text='Проверить файлы bin_file(00-13).rep',
                                                   func_pressed=self.checking_file_bin_rep_system))
 
-        # self.data_table = QTableView()
-        # self.layout.addWidget(self.data_table)  # добавить таблицу данных
         self.text_log = QTextBrowser()
         self.layout.addWidget(self.text_log)  # добавить QTextBrowser на подложку для виджетов
 
@@ -155,11 +154,16 @@ class WorkingData(MainWindowModified):
         self.instruction_window.add_text_instruction()
         self.instruction_window.show()
 
-    def start_table_data_window(self):
-        self.table_data.show()
+    @asyncSlot()
+    async def start_table_data_window(self):
+        table_data = TableData(main_menu=self)
+        self.list_window_table.append(table_data)
+        table_data.show()
 
     def close_program(self):
         """Функция закрытия программы"""
+        for i_window in self.list_window_table:
+            i_window.close()
         self.instruction_window.close()
         self.creating_file_alt_station.close()
         self.checking_file_ana_1.close()

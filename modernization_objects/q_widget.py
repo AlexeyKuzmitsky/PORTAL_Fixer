@@ -134,15 +134,6 @@ class MainWindowModified(QWidget):
         """Отслеживание движения мыши в окне
         :param event:
         """
-        # if self.isMaximized():
-        #     self.show_normal()
-        #     delta = event.position().toPoint() + self.mPos
-        #     self.window().move(
-        #         self.window().x() + delta.x(),
-        #         self.window().y() + delta.y(),
-        #     )
-        #     self.mPos = QPoint(250, 10)
-
         if self.check_cursor_pos(event=event):
             self.setCursor(self.get_cursor_for_position())
         else:
