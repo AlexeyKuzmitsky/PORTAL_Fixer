@@ -1,16 +1,15 @@
-import typing
-
 from os import path
 from interface.window_selection_name_file import NameFileWindow
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
+from interface.window_selection_column import SelectionColumn
 from PyQt6.QtWidgets import QHBoxLayout, QTableView, QLineEdit, QLabel, QMessageBox
 from PyQt6.QtCore import QAbstractTableModel, Qt, QModelIndex
 from qasync import asyncSlot
 from modernization_objects.push_button import QPushButtonModified
 from modernization_objects.q_widget import MainWindowModified
 from csv import reader
-from typing import List, Dict
+from typing import List, Dict, Any
 
 
 class TableData(MainWindowModified):
@@ -24,6 +23,8 @@ class TableData(MainWindowModified):
                                                   func_pressed=self.start_window_choice_system))
 
         self.name_system: str = ''
+        self.name_file: str = ''
+        self.list_name_column: Dict[int, str] = dict()
         self.window_choice_system = NameSystemWindow(func=self.start_generation_data,
                                                      text='Файл какой системы проверить?',
                                                      set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'}
@@ -32,6 +33,7 @@ class TableData(MainWindowModified):
         self.window_selection_name_file = NameFileWindow(func=self.loading_the_database,
                                                          text='Какой файл загрузить?')
 
+        self.selection_column = None
         self.list_number_columns: List[int] = [0, 42, 43, 47]
 
         # Создаем строку для фильтрации данных
@@ -106,17 +108,44 @@ class TableData(MainWindowModified):
         self.window_selection_name_file.show()
 
     def loading_the_database(self, name_file: str):
+        if not path.isfile(path.join(self.name_system, 'DbDumps', name_file)):
+            self.error_message(title=f'Нет файла {name_file}',
+                               text=f'Невозможно загрузить содержимое файла {self.name_system}/DbDumps/{name_file} '
+                                    f'т.к. его нет')
+            return
+        self.name_file = name_file
         self.data.clear()
         with open(path.join(self.name_system, 'DbDumps', name_file), 'r', encoding='windows-1251') as file_data:
-            new_text = reader(file_data, delimiter='|', quotechar=' ')
-            new_text.__next__()
-            new_text.__next__()
-            new_text.__next__()
-            list_name_column = new_text.__next__()
+            for __ in range(3):
+                next(file_data)
+            list_name_column = next(file_data).split('|')
+            #
+            # new_text = reader(file_data, delimiter='|', quotechar=' ')
+            # new_text.__next__()
+            # new_text.__next__()
+            # new_text.__next__()
+            # list_name_column = new_text.__next__()
+        self.listing_columns(list_name_column=list_name_column)
 
+        self.selection_column = SelectionColumn(func=self.set_list_of_columns,
+                                                list_column=list_name_column,
+                                                name_file=name_file)
+        self.selection_column.show()
+
+    def set_list_of_columns(self, list_column: List[int]):
+        if list_column:
+            self.list_number_columns = list_column
+
+        self.data_output()
+
+    def data_output(self):
+        with open(path.join(self.name_system, 'DbDumps', self.name_file), 'r', encoding='windows-1251') as file_data:
+            new_text = reader(file_data, delimiter='|', quotechar=' ')
+            for __ in range(4):
+                new_text.__next__()
             number_column = 0
             for i_num in self.list_number_columns:
-                self.name_columns[number_column] = list_name_column[i_num]
+                self.name_columns[number_column] = self.list_name_column[i_num]
                 number_column += 1
             for i_line in new_text:
                 try:
@@ -127,6 +156,12 @@ class TableData(MainWindowModified):
         self.data_table.setModel(model)
         self.data_table.resizeColumnsToContents()
         self.text_number_records.setText(f'Количество записей: {len(self.data)}')
+
+    def listing_columns(self, list_name_column):
+        num = 0
+        for i_name in list_name_column:
+            self.list_name_column[num] = i_name
+            num += 1
 
     def start_window_choice_system(self):
         self.window_choice_system.show()
@@ -144,6 +179,10 @@ class TableData(MainWindowModified):
                             'На данный момент данная программа находится в разработке и не готова к выполнению '
                             'каких либо функций.\n'
                             'Следите за обновлениями, она скоро заработает!')
+
+    def error_message(self, title: str, text: str):
+        """Сообщение с текстом"""
+        QMessageBox.warning(self, title, text)
 
     def close_program(self):
         """Функция закрытия программы"""
@@ -166,7 +205,7 @@ class TableModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.DisplayRole:
             return self._data[index.row()][index.column()]
 
-    def headerData(self, section: int, orientation: Qt.Orientation, role: int = None) -> typing.Any:
+    def headerData(self, section: int, orientation: Qt.Orientation, role: int = None) -> Any:
         """
         Формирование подписей столбцов и строк
         """

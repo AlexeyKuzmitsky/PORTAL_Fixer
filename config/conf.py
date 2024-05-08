@@ -151,6 +151,10 @@ dict_suffix_level_signale = {
     'ZH52': 'Технологическая',
 }
 
+
+column_descriptions = {
+    ''
+}
 # priority_level = {
 #     'H0': 7,
 #     'A1': 7,
