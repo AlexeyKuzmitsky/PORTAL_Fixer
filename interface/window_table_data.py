@@ -5,6 +5,7 @@ from interface.window_instruction import Instruction
 from interface.window_selection_column import SelectionColumn
 from PyQt6.QtWidgets import QHBoxLayout, QTableView, QLineEdit, QLabel, QMessageBox
 from PyQt6.QtCore import QAbstractTableModel, Qt, QModelIndex
+from PyQt6.QtGui import QIcon
 from qasync import asyncSlot
 from modernization_objects.push_button import QPushButtonModified
 from modernization_objects.q_widget import MainWindowModified
@@ -39,6 +40,9 @@ class TableData(MainWindowModified):
         # Создаем строку для фильтрации данных
         horizontal_layout_filter = QHBoxLayout()
         horizontal_layout_filter.addWidget(QLabel('Поле для фильтрации: '))
+        label = QLabel()
+        label.setPixmap(QIcon(path.join('icon', 'filter.svg')).pixmap(35, 35))
+        horizontal_layout_filter.addWidget(label)
         self.filter_input = QLineEdit()
         horizontal_layout_filter.addWidget(self.filter_input)
 
@@ -118,13 +122,7 @@ class TableData(MainWindowModified):
         with open(path.join(self.name_system, 'DbDumps', name_file), 'r', encoding='windows-1251') as file_data:
             for __ in range(3):
                 next(file_data)
-            list_name_column = next(file_data).split('|')
-            #
-            # new_text = reader(file_data, delimiter='|', quotechar=' ')
-            # new_text.__next__()
-            # new_text.__next__()
-            # new_text.__next__()
-            # list_name_column = new_text.__next__()
+            list_name_column = next(file_data)[2:].split('|')
         self.listing_columns(list_name_column=list_name_column)
 
         self.selection_column = SelectionColumn(func=self.set_list_of_columns,
@@ -175,9 +173,9 @@ class TableData(MainWindowModified):
         self.instruction_window.show()
 
     def development_warning(self):
-        QMessageBox.warning(self, 'Программа в разработке',
-                            'На данный момент данная программа находится в разработке и не готова к выполнению '
-                            'каких либо функций.\n'
+        QMessageBox.warning(self, 'Функция в разработке',
+                            'На данный момент данная функция находится в разработке и не готова к выполнению '
+                            'каких либо задачи.\n'
                             'Следите за обновлениями, она скоро заработает!')
 
     def error_message(self, title: str, text: str):

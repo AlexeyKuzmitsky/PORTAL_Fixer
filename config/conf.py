@@ -152,7 +152,22 @@ dict_suffix_level_signale = {
 }
 
 
-column_descriptions = {
+column_descriptions_ana = {
+    'PVNR': 'Номер переменной',
+    'CATEGORYMAP3': 'Битовая маска пользователей - получателей сигнализации',
+    'ROUNDDIGITS': 'Количество знаков после запятой',
+    'RANGELOW': 'Нижняя граница диапазона значений',
+    'RANGEHIGH': 'Верхняя граница диапазона значений',
+    'DAEDBAND': 'Значение зоны нечувствительности',
+    'HIST_DAEDBAND': 'Зона нечувствительности при архивировании',
+    'HIST_TIME_SEC': 'Шаг архивирования',
+    'HIST_FLAGS': 'Флаг архивирования',
+    'PVID': 'Имя переменной',
+    'PVDESCRIPTION': 'Описание переменной',
+    'ALTSTATIONID': 'Имя альтернитивной станции'
+}
+
+column_descriptions_bin = {
     ''
 }
 # priority_level = {
