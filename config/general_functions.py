@@ -132,7 +132,6 @@ async def loading_data_kks_bin(name_system: str, print_log) -> Set[str]:
                     set_kks_bin_date.add(full_kks)
             except IndexError:
                 pass
-    print(len(full_kks))
     await print_log(text='\tsuccessfully', color='green', a_new_line=False)
     return set_kks_bin_date
 
