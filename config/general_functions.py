@@ -128,12 +128,11 @@ async def loading_data_kks_bin(name_system: str, print_log) -> Set[str]:
         for i_line in new_text:
             try:
                 full_kks = i_line[42]
-                if i_line[14] == '-1':
+                if i_line[18] == '1':
                     set_kks_bin_date.add(full_kks)
-                    # if i_line[18] == '1' or i_line[18] == '0':
-                    #     set_kks_bin_date.add(full_kks)
             except IndexError:
                 pass
+    print(len(full_kks))
     await print_log(text='\tsuccessfully', color='green', a_new_line=False)
     return set_kks_bin_date
 
@@ -213,10 +212,8 @@ async def loading_data_kks_nary(name_system: str, print_log) -> Set[str]:
         for i_line in new_text:
             try:
                 full_kks = i_line[42]
-                if i_line[14] != '-1':
+                if i_line[18] == '16':
                     set_kks_nary_date.add(full_kks)
-                    # if i_line[18] != '0':
-                    #     set_kks_nary_date.add(full_kks)
                 else:
                     set_kks_nary_date.add(full_kks)
             except IndexError:
