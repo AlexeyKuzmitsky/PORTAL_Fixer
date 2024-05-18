@@ -1,6 +1,6 @@
 name_program = 'PORTAL_Fixer'
-version_program = '2.6.2test'
-program_compilation_date = '2024.04.22'
+version_program = '2.7.0'
+program_compilation_date = '2024.05.18'
 
 program_directory_map = {
     'logs': None,

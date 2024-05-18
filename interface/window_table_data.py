@@ -3,7 +3,7 @@ from interface.window_selection_name_file import NameFileWindow
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from interface.window_selection_column import SelectionColumn
-from PyQt6.QtWidgets import QHBoxLayout, QTableView, QLineEdit, QLabel, QMessageBox
+from PyQt6.QtWidgets import QHBoxLayout, QTableView, QLineEdit, QLabel, QMessageBox, QFileDialog
 from PyQt6.QtCore import QAbstractTableModel, Qt, QModelIndex
 from PyQt6.QtGui import QIcon
 from qasync import asyncSlot
@@ -11,6 +11,7 @@ from modernization_objects.push_button import QPushButtonModified
 from modernization_objects.q_widget import MainWindowModified
 from csv import reader
 from typing import List, Dict, Any
+from config.func_table_data import save_data_to_txt_file, save_data_to_xlsx_file
 
 
 class TableData(MainWindowModified):
@@ -62,10 +63,10 @@ class TableData(MainWindowModified):
         self.layout.addWidget(self.data_table)  # добавить таблицу данных
 
         horizontal_layout = QHBoxLayout()
-        horizontal_layout.addWidget(QPushButtonModified(func_pressed=self.development_warning,
+        horizontal_layout.addWidget(QPushButtonModified(func_pressed=self.save_data_to_xlsx_file,
                                                         text=' Импорт в Excel',
                                                         path_icon=path.join('icon', 'excel.svg')))
-        horizontal_layout.addWidget(QPushButtonModified(func_pressed=self.development_warning,
+        horizontal_layout.addWidget(QPushButtonModified(func_pressed=self.save_data_to_text_file,
                                                         text=' Импорт в TXT',
                                                         path_icon=path.join('icon', 'txt.svg')))
 
@@ -177,6 +178,43 @@ class TableData(MainWindowModified):
                             'На данный момент данная функция находится в разработке и не готова к выполнению '
                             'каких либо задачи.\n'
                             'Следите за обновлениями, она скоро заработает!')
+
+    def save_data_to_text_file(self):
+        """Функция сохраняющая последнюю базу в таблице в текстовый файл"""
+        if self.last_data:
+            data = self.last_data
+        elif self.data and not self.filter_input.text():
+            data = self.data
+        else:
+            self.message_empty_database()
+            return
+        file_name, _ = QFileDialog.getSaveFileName(self, 'Сохранить файл', f'{self.name_file[:-4]}.txt',
+                                                   "All Files (*);;Text Files (*.txt)")
+        try:
+            save_data_to_txt_file(data=data, list_name_column=list(self.name_columns.values()), path=file_name)
+        except FileNotFoundError:
+            pass
+
+    def save_data_to_xlsx_file(self):
+        """Функция сохраняющая последнюю базу в таблице в файл XLSX"""
+        if self.last_data:
+            data = self.last_data
+        elif self.data and not self.filter_input.text():
+            data = self.data
+        else:
+            self.message_empty_database()
+            return
+        file_name, _ = QFileDialog.getSaveFileName(self, 'Сохранить файл', f'{self.name_file[:-4]}.xlsx',
+                                                   "All Files (*);;Книга Excel (*.xlsx)")
+        try:
+            save_data_to_xlsx_file(data=data, list_name_column=list(self.name_columns.values()), path=file_name)
+        except FileNotFoundError:
+            pass
+
+    def message_empty_database(self):
+        """Функция выводящая окно с предупреждением """
+        QMessageBox.warning(self, 'Нечего сохранять',
+                            'В данный момент таблица пуста. Для добавления данных нажмите "Загрузить данные из файла"')
 
     def error_message(self, title: str, text: str):
         """Сообщение с текстом"""
