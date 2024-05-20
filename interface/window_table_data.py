@@ -36,7 +36,7 @@ class TableData(MainWindowModified):
                                                          text='Какой файл загрузить?')
 
         self.selection_column = None
-        self.list_number_columns: List[int] = [0, 42, 43, 47]
+        self.list_number_columns: List[int] = list()
 
         # Создаем строку для фильтрации данных
         horizontal_layout_filter = QHBoxLayout()
@@ -119,7 +119,7 @@ class TableData(MainWindowModified):
                                     f'т.к. его нет')
             return
         self.name_file = name_file
-        self.data.clear()
+
         with open(path.join(self.name_system, 'DbDumps', name_file), 'r', encoding='windows-1251') as file_data:
             for __ in range(3):
                 next(file_data)
@@ -138,6 +138,7 @@ class TableData(MainWindowModified):
         self.data_output()
 
     def data_output(self):
+        self.data.clear()
         with open(path.join(self.name_system, 'DbDumps', self.name_file), 'r', encoding='windows-1251') as file_data:
             new_text = reader(file_data, delimiter='|', quotechar=' ')
             for __ in range(4):

@@ -1,4 +1,5 @@
-import pandas as pd
+# import pandas as pd
+from pandas import DataFrame, ExcelWriter
 from typing import List
 
 
@@ -6,7 +7,7 @@ def save_data_to_txt_file(data: List[List[str]], list_name_column: List[str], pa
     """
     Функция сохранения данных в текстовый файл
     """
-    df = pd.DataFrame(data, columns=list_name_column)
+    df = DataFrame(data, columns=list_name_column)
     df.to_csv(path, sep='|', index=False)
 
 
@@ -15,8 +16,8 @@ def save_data_to_xlsx_file(data: List[List[str]], list_name_column: List[str], p
     Функция сохранения данных в файл excel
     """
     sheet_name = f'{path.split('/')[-1][:-5]}'
-    excel_writer = pd.ExcelWriter(path, engine='xlsxwriter')
-    df = pd.DataFrame(data, columns=list_name_column)
+    excel_writer = ExcelWriter(path, engine='xlsxwriter')
+    df = DataFrame(data, columns=list_name_column)
     df.to_excel(excel_writer, index=False, sheet_name=sheet_name)
 
     worksheet = excel_writer.sheets[sheet_name]
