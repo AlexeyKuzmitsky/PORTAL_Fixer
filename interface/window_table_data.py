@@ -12,6 +12,7 @@ from modernization_objects.q_widget import MainWindowModified
 from csv import reader
 from typing import List, Dict, Any
 from config.func_table_data import save_data_to_txt_file, save_data_to_xlsx_file
+from multiprocessing import Process
 
 
 class TableData(MainWindowModified):
@@ -139,6 +140,7 @@ class TableData(MainWindowModified):
 
     def data_output(self):
         self.data.clear()
+        self.name_columns.clear()
         with open(path.join(self.name_system, 'DbDumps', self.name_file), 'r', encoding='windows-1251') as file_data:
             new_text = reader(file_data, delimiter='|', quotechar=' ')
             for __ in range(4):
@@ -181,7 +183,7 @@ class TableData(MainWindowModified):
                             'Следите за обновлениями, она скоро заработает!')
 
     def save_data_to_text_file(self):
-        """Функция сохраняющая последнюю базу в таблице в текстовый файл"""
+        """Функция сохраняющая последнюю базу из таблицы в текстовый файл"""
         if self.last_data:
             data = self.last_data
         elif self.data and not self.filter_input.text():
@@ -191,13 +193,14 @@ class TableData(MainWindowModified):
             return
         file_name, _ = QFileDialog.getSaveFileName(self, 'Сохранить файл', f'{self.name_file[:-4]}.txt',
                                                    "All Files (*);;Text Files (*.txt)")
-        try:
-            save_data_to_txt_file(data=data, list_name_column=list(self.name_columns.values()), path=file_name)
-        except FileNotFoundError:
-            pass
+        if not file_name:
+            return
+        file_saving_process = Process(target=save_data_to_txt_file,
+                                      args=(data, list(self.name_columns.values()), file_name))
+        file_saving_process.start()
 
     def save_data_to_xlsx_file(self):
-        """Функция сохраняющая последнюю базу в таблице в файл XLSX"""
+        """Функция сохраняющая последнюю базу из таблицы в файл XLSX"""
         if self.last_data:
             data = self.last_data
         elif self.data and not self.filter_input.text():
@@ -207,10 +210,11 @@ class TableData(MainWindowModified):
             return
         file_name, _ = QFileDialog.getSaveFileName(self, 'Сохранить файл', f'{self.name_file[:-4]}.xlsx',
                                                    "All Files (*);;Книга Excel (*.xlsx)")
-        try:
-            save_data_to_xlsx_file(data=data, list_name_column=list(self.name_columns.values()), path=file_name)
-        except FileNotFoundError:
-            pass
+        if not file_name:
+            return
+        file_saving_process = Process(target=save_data_to_xlsx_file,
+                                      args=(data, list(self.name_columns.values()), file_name))
+        file_saving_process.start()
 
     def message_empty_database(self):
         """Функция выводящая окно с предупреждением """
