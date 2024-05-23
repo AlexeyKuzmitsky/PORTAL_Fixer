@@ -1,5 +1,7 @@
 from pandas import DataFrame, ExcelWriter
 from typing import List
+from modernization_objects.q_widget import InformationWindow
+from PyQt6.QtWidgets import QApplication
 
 
 def save_data_to_txt_file(data: List[List[str]], list_name_column: List[str], path: str):
@@ -8,6 +10,11 @@ def save_data_to_txt_file(data: List[List[str]], list_name_column: List[str], pa
     """
     df = DataFrame(data, columns=list_name_column)
     df.to_csv(path, sep='|', index=False)
+    app = QApplication([])
+    window = InformationWindow(text=f'Файл {path} успешно сохранен')
+
+    window.show()
+    app.exec()
 
 
 def save_data_to_xlsx_file(data: List[List[str]], list_name_column: List[str], path: str):
@@ -25,3 +32,8 @@ def save_data_to_xlsx_file(data: List[List[str]], list_name_column: List[str], p
         max_len = max(df[name_col].astype(str).map(len).max(), len(name_col)*1.3)
         worksheet.set_column(i, i, max_len)
     excel_writer.close()
+    app = QApplication([])
+    window = InformationWindow(text=f'Файл {path} успешно сохранен')
+
+    window.show()
+    app.exec()

@@ -1,7 +1,7 @@
-from PyQt6.QtWidgets import QWidget
+from PyQt6.QtWidgets import QWidget, QSpacerItem
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QIcon, QPixmap
-from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QToolBar, QFrame
+from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QToolBar, QFrame, QSizePolicy
 from modernization_objects.push_button import QPushButtonModified, QPushButtonMinimize, QPushButtonExit
 from config.style import style_window_black
 from os import path
@@ -211,6 +211,110 @@ class MainWindowModified(QWidget):
         self.btn_normal.setVisible(False)
         self.showNormal()
         self.btn_maximized.setVisible(True)
+
+    def close_program(self):
+        """Функция закрытия программы"""
+        self.close()
+
+
+class InformationWindow(QWidget):
+    def __init__(self, text: str = ''):  # изменим начальные настройки
+        super().__init__()  # получим доступ к изменениям настроек
+        self.min_width = 500
+        self.min_height = 330
+        self.mPos = None
+
+        # попытка вывести окно поверх всех остальных (не работает)
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
+
+        self.layout = QVBoxLayout()
+        horizontal_layout = QHBoxLayout()
+        self.layout.addWidget(QLabel('Информационное сообщение'))
+        self.layout.addWidget(QLabel(text))
+        spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        horizontal_layout.addItem(spacer)
+        horizontal_layout.addWidget(QPushButtonModified(func_pressed=self.close_program, text='Ок'))
+        self.layout.addItem(horizontal_layout)
+        self.setStyleSheet(style_window_black)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)  # отключение титула
+        self.setLayout(self.layout)
+
+        self.setMouseTracking(True)  # Включаем отслеживание мыши
+        self.resize_area = None
+        self.arrow_type = None
+        self.old_pos = None
+
+    def mousePressEvent(self, event):
+        """ Координаты записи нажатия мышью
+        :param event:
+        """
+        if event.buttons() == Qt.MouseButton.LeftButton:
+            cursor_pos = event.globalPosition()
+            window_rect = self.geometry()
+
+            if cursor_pos.y() > window_rect.y() + window_rect.height() - 10:
+                self.resize_area = Qt.Edge.BottomEdge
+            elif cursor_pos.x() < window_rect.x() + 10:
+                self.resize_area = Qt.Edge.LeftEdge
+            elif cursor_pos.x() > window_rect.x() + window_rect.width() - 10:
+                self.resize_area = Qt.Edge.RightEdge
+            elif cursor_pos.y() < window_rect.y() + 60:
+                self.resize_area = Qt.Edge.TopEdge
+                self.mPos = event.pos()
+            else:
+                self.resize_area = None
+            self.old_pos = cursor_pos
+
+    def get_cursor_for_position(self):
+        if self.arrow_type is None:
+            return Qt.CursorShape.ArrowCursor
+        elif self.arrow_type == Qt.Edge.BottomEdge:
+            return Qt.CursorShape.SizeVerCursor
+        else:
+            return Qt.CursorShape.SizeHorCursor
+
+    def mouseReleaseEvent(self, event):
+        """ Мышь отпущена, удалить координаты
+        :param event:
+        """
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+        self.mPos = None
+        self.resize_area = None
+
+    def leaveEvent(self, event):
+        self.setCursor(Qt.CursorShape.ArrowCursor)  # Возврат стандартного курсора
+        self.arrow_type = None
+
+        event.accept()
+
+    def mouseMoveEvent(self, event):
+        """Отслеживание движения мыши в окне
+        :param event:
+        """
+        # Перемещение окна
+        if self.mPos is not None:
+            delta = event.position().toPoint() - self.mPos
+            self.window().move(
+                self.window().x() + delta.x(),
+                self.window().y() + delta.y(),
+            )
+        event.accept()
+
+    def setting_window_size(self, width: int = 500, height: int = 330) -> None:
+        """
+        Функция устанавливает размер окна
+        Args:
+            width: Ширина окна
+            height: Высота окна
+        Returns: None
+        """
+        self.setMinimumSize(QSize(width, height))  # Устанавливаем минимальный размер окна
+        self.min_width = width
+        self.min_height = height
+
+    def show_minimized(self):
+        """Свернуть окно"""
+        self.showMinimized()
 
     def close_program(self):
         """Функция закрытия программы"""
