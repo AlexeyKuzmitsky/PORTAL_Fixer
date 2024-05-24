@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QSpacerItem
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QIcon, QPixmap
+from PyQt6.QtGui import QIcon, QPixmap, QPen, QColor, QPainter
 from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QToolBar, QFrame, QSizePolicy
 from modernization_objects.push_button import QPushButtonModified, QPushButtonMinimize, QPushButtonExit
 from config.style import style_window_black
@@ -60,6 +60,11 @@ class MainWindowModified(QWidget):
         self.resize_area = None
         self.arrow_type = None
         self.old_pos = None
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setPen(QPen(QColor('#43454a'), 2))
+        painter.drawRect(self.rect())
 
     def mouseDoubleClickEvent(self, event):
         """ Дважды щелкните строку заголовка
