@@ -11,7 +11,7 @@ def save_data_to_txt_file(data: List[List[str]], list_name_column: List[str], pa
     df = DataFrame(data, columns=list_name_column)
     df.to_csv(path, sep='|', index=False)
     app = QApplication([])
-    window = InformationWindow(text=f'Файл {path} успешно сохранен')
+    window = InformationWindow(text=f' Файл {path} \n успешно сохранен', message_type='successfully')
 
     window.show()
     app.exec()
@@ -33,7 +33,7 @@ def save_data_to_xlsx_file(data: List[List[str]], list_name_column: List[str], p
         worksheet.set_column(i, i, max_len)
     excel_writer.close()
     app = QApplication([])
-    window = InformationWindow(text=f'Файл {path} успешно сохранен')
+    window = InformationWindow(text=f' Файл {path} \n успешно сохранен', message_type='successfully')
 
     window.show()
     app.exec()

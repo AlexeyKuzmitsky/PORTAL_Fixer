@@ -223,19 +223,22 @@ class MainWindowModified(QWidget):
 
 
 class InformationWindow(QWidget):
-    def __init__(self, text: str = ''):  # изменим начальные настройки
+    def __init__(self, text: str = '', message_type: str = ''):  # изменим начальные настройки
         super().__init__()  # получим доступ к изменениям настроек
         self.min_width = 500
         self.min_height = 330
         self.mPos = None
+        self.message_type = message_type
+        self.text_message = text
 
         # попытка вывести окно поверх всех остальных (не работает)
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
 
         self.layout = QVBoxLayout()
-        horizontal_layout = QHBoxLayout()
         self.layout.addWidget(QLabel('Информационное сообщение'))
-        self.layout.addWidget(QLabel(text))
+        self.setting_icon()
+
+        horizontal_layout = QHBoxLayout()
         spacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         horizontal_layout.addItem(spacer)
         horizontal_layout.addWidget(QPushButtonModified(func_pressed=self.close_program, text='Ок'))
@@ -248,6 +251,25 @@ class InformationWindow(QWidget):
         self.resize_area = None
         self.arrow_type = None
         self.old_pos = None
+
+    def setting_icon(self):
+        """Функция устанавливает иконку для всплывающего окна"""
+        horizontal_layout_text_and_icon = QHBoxLayout()
+        if path.exists(path.join('icon', f'{self.message_type}.svg')):
+            icon_warning = QLabel()
+            icon = QIcon(path.join('icon', f'{self.message_type}.svg'))
+            if self.message_type == 'successfully':
+                icon_warning.setPixmap(icon.pixmap(60, 60))
+            else:
+                icon_warning.setPixmap(icon.pixmap(100, 100))
+            horizontal_layout_text_and_icon.addWidget(icon_warning)
+        horizontal_layout_text_and_icon.addWidget(QLabel(self.text_message))
+        self.layout.addItem(horizontal_layout_text_and_icon)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setPen(QPen(QColor('#43454a'), 2))
+        painter.drawRect(self.rect())
 
     def mousePressEvent(self, event):
         """ Координаты записи нажатия мышью
