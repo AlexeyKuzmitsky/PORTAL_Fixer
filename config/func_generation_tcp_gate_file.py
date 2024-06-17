@@ -258,7 +258,7 @@ async def add_data_file_bin_nary(print_log, name_system: str):
                 number_description = i_line[14]
                 if number_description != '-1':
                     dict_kks_bin_data[full_kks] = dict_description[int(number_description)]
-                else:
+                elif i_line[18] == '16':
                     dict_kks_bin_data[full_kks] = dict()
             except IndexError:
                 ...
@@ -266,6 +266,10 @@ async def add_data_file_bin_nary(print_log, name_system: str):
                 ...
             except KeyError:
                 ...
+    await print_log(text='\tsuccessfully', color='green', a_new_line=False)
+    await print_log(text='Сохранение описания многобитовых сигналов в файл BIN_NARY_kks.json')
+    with open(path.join(name_system, 'data', f'BIN_NARY_kks.json'), 'w', encoding='UTF-8') as json_file:
+        json.dump(dict_kks_bin_data, json_file, indent=2, ensure_ascii=False)
     await print_log(text='\tsuccessfully', color='green', a_new_line=False)
     return dict_kks_bin_data
 

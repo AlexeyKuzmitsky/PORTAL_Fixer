@@ -1,6 +1,6 @@
 name_program = 'PORTAL_Fixer'
-version_program = '2.7.4'
-program_compilation_date = '2024.05.24'
+version_program = '2.7.5'
+program_compilation_date = '2024.06.17'
 
 program_directory_map = {
     'logs': None,
@@ -207,6 +207,8 @@ column_descriptions_bin = {
     'CHANGETIME': 'Время последнего изменения конфигурации',
     'CHANGEUSERNR': 'Автор изменения конфигурации',
     'NUMBITS': 'Количество значащих бит',
+    'CATEGORYMAP3': 'Битовая маска пользователей - получателей сигнализации',
+    'PRJSPECNR1': 'Битовая маска пользователей - получателей управления'
 }
 # priority_level = {
 #     'H0': 7,
