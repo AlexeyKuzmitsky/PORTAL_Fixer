@@ -40,42 +40,42 @@ async def actualizations_vk_svsu(print_log, name_directory: str, progress: QProg
     for i_vis in sorted(set_vis):
         await print_log(text=f'[{num}/{numbers_vis}]\tобновление {i_vis}')
         progress.setValue(round(num / numbers_vis * 100))
-        if i_vis == '10MKA03.svg':
-            pass
         if i_vis in renaming_kks:
-            # тут пойдет замена файла
-            with (open(path.join(name_directory, 'NPP_models', renaming_kks[i_vis]), 'r',
-                       encoding='windows-1251') as file,
-                  open(path.join('SVSU', 'NPP_models', i_vis), 'w',
-                       encoding='windows-1251') as new_file):
-                for i_line in file:
-                    for vis in kks_dict_new:
-                        if f'{vis}' in i_line:
-                            result = re.split(fr'{vis}', i_line)
-                            result = f'{result[0]}{kks_dict_new[vis]}{result[1]}'
-                            new_file.write(result)
-                            break
-                    else:
-                        new_file.write(i_line)
+            await overwriting_a_file(number=number, name_svg=renaming_kks[i_vis], name_svg_new=i_vis,
+                                     name_system=name_directory, kks_dict_new=kks_dict_new)
             await print_log(text='\t+++обновлен+++', color='green', a_new_line=False)
         elif i_vis in set_vis_bloc:
-            # тут пойдет замена файла
-            with open(path.join(name_directory, 'NPP_models', i_vis), 'r', encoding='windows-1251') as file, \
-                    open(path.join('SVSU', 'NPP_models', i_vis), 'w', encoding='windows-1251') as new_file:
-                for i_line in file:
-                    for vis in kks_dict_new:
-                        if f'{vis}' in i_line:
-                            result = re.split(fr'{vis}', i_line)
-                            result = f'{result[0]}{kks_dict_new[vis]}{result[1]}'
-                            new_file.write(result)
-                            break
-                    else:
-                        new_file.write(i_line)
+            await overwriting_a_file(number=number, name_svg=i_vis, name_svg_new=i_vis,
+                                     name_system=name_directory, kks_dict_new=kks_dict_new)
             await print_log(text='\t+++обновлен+++', color='green', a_new_line=False)
         else:
             await print_log(text=f'\t---Видеокадра нет в папке {name_directory}\\NPP_models---',
                             color='red', a_new_line=False)
         num += 1
+
+
+async def overwriting_a_file(number: str, name_svg: str, name_svg_new: str, name_system: str,
+                             kks_dict_new: Dict[str, str]):
+    """
+    Функция переписывающая файл с заменой текста в ссылках на нужный блок
+    :param number: Номер блока.
+    :param name_svg: Имя начального видеокадра.
+    :param name_svg_new: Новое имя видеокадра (обычно одно и тоже).
+    :param name_system: Имя директории (SVBU_1 или SVBU_2).
+    :param kks_dict_new: Словарь замен названий видеокадров.
+    :return: None.
+    """
+    with open(path.join(name_system, 'NPP_models', name_svg), 'r', encoding='windows-1251') as file, \
+            open(path.join('SVSU', 'NPP_models', name_svg_new), 'w', encoding='windows-1251') as new_file:
+        for i_line in file:
+            for vis in kks_dict_new:
+                if f'{vis}' in i_line and not f'{number}0{vis}' in i_line:
+                    result = re.split(fr'{vis}', i_line)
+                    result = f'{result[0]}{kks_dict_new[vis]}{result[1]}'
+                    new_file.write(result)
+                    break
+            else:
+                new_file.write(i_line)
 
 
 async def compiling_list_of_kks(list_submodel: List[AnchorPoint],
