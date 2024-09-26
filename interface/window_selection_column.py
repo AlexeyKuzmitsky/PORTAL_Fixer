@@ -11,6 +11,7 @@ class SelectionColumn(MainWindowModified):
         self.setting_window_size(width=700, height=750)
         self.name_file: str = name_file
         self.func = func
+        self.list_column = list_column
         if name_file == 'PLS_ANA_CONF.dmp':
             self.list_number_columns: List[int] = [0, 6, 17, 19, 20, 42, 60, 61, 62, 78, 79, 83]
             self.dict_column_descriptions: Dict[str, str] = column_descriptions_ana
@@ -19,17 +20,36 @@ class SelectionColumn(MainWindowModified):
             self.dict_column_descriptions: Dict[str, str] = column_descriptions_bin
         self.dict_check_box = dict()
 
-        self.table = QTableWidget()
-        self.table.setColumnCount(3)
-        self.table.setRowCount(len(list_column))
-        self.table.setHorizontalHeaderLabels(['Check', 'Название столбца', 'Описание столбца'])
-        self.filling_the_table_with_data(list_column=list_column)
+        self.table = QTableWidget(len(list_column), 3)
 
+        self.table.setHorizontalHeaderItem(0, QTableWidgetItem('Check'))
+        self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Название столбца'))
+        self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Описание столбца'))
+        self.filling_the_table_with_data(list_column=list_column)
+        self.table.horizontalHeader().sectionDoubleClicked.connect(self.on_header_double_clicked)
         self.layout.addWidget(self.table)  # добавить таблицу данных
         self.table.resizeColumnsToContents()
 
         self.layout.addWidget(QPushButtonModified(text='Загрузить выбранные столбцы',
                                                   func_pressed=self.apply_column_selection))
+
+    def on_header_double_clicked(self, index):
+        """
+        Функция выбора в таблице всех пунктов или отмена выбора
+        """
+        if index == 0:
+            flag = True
+            for row in range(len(self.list_column)):
+                checkbox = self.table.cellWidget(row, 0)
+                if not checkbox.isChecked():
+                    flag = False
+                    break
+            if flag:
+                for row in range(len(self.list_column)):
+                    self.table.cellWidget(row, 0).setChecked(False)
+            else:
+                for row in range(len(self.list_column)):
+                    self.table.cellWidget(row, 0).setChecked(True)
 
     def filling_the_table_with_data(self, list_column: List[str]):
         """
@@ -41,7 +61,6 @@ class SelectionColumn(MainWindowModified):
             check_widget.setObjectName(str(row))
             if row in self.list_number_columns:
                 check_widget.setChecked(True)
-            check_widget.setStyleSheet("QCheckBox::indicator {width: 70px; height: 30px;}")
             self.table.setCellWidget(row, 0, check_widget)
             name_column = list_column[row]
             self.table.setItem(row, 1, QTableWidgetItem(name_column))

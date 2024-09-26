@@ -13,6 +13,7 @@ from csv import reader
 from typing import List, Dict, Any
 from config.func_table_data import save_data_to_txt_file, save_data_to_xlsx_file
 from multiprocessing import Process
+# import pandas as pd
 
 
 class TableData(MainWindowModified):
@@ -29,7 +30,7 @@ class TableData(MainWindowModified):
         self.name_file: str = ''
         self.list_name_column: Dict[int, str] = dict()
         self.window_choice_system = NameSystemWindow(func=self.start_generation_data,
-                                                     text='Файл какой системы проверить?',
+                                                     text='Файл какой системы загрузить?',
                                                      set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'}
                                                      )
 
@@ -56,6 +57,7 @@ class TableData(MainWindowModified):
 
         self.name_columns: Dict[int, str] = {}
         self.data_table = QTableView()
+        self.data_table.horizontalHeader().sectionDoubleClicked.connect(self.sorted_data_table)
         self.data: List[List[str]] = list()
 
         self.last_filter_text: str = ''  # текст, который был в последнем запросе
@@ -124,7 +126,7 @@ class TableData(MainWindowModified):
         with open(path.join(self.name_system, 'DbDumps', name_file), 'r', encoding='windows-1251') as file_data:
             for __ in range(3):
                 next(file_data)
-            list_name_column = next(file_data)[2:].split('|')
+            list_name_column = next(file_data)[2:-1].split('|')
         self.listing_columns(list_name_column=list_name_column)
 
         self.selection_column = SelectionColumn(func=self.set_list_of_columns,
@@ -140,6 +142,7 @@ class TableData(MainWindowModified):
 
     def data_output(self):
         self.data.clear()
+        self.last_data.clear()
         self.name_columns.clear()
         with open(path.join(self.name_system, 'DbDumps', self.name_file), 'r', encoding='windows-1251') as file_data:
             new_text = reader(file_data, delimiter='|', quotechar=' ')
@@ -154,6 +157,21 @@ class TableData(MainWindowModified):
                     self.data.append([i_line[num] for num in self.list_number_columns])
                 except IndexError:
                     pass
+
+        ####################
+        # df = pd.read_csv(path.join('SKU_VP_2', 'DbDumps', 'PLS_ANA_CONF.dmp'), encoding='windows-1251', sep='|',
+        #                  header=3, skipfooter=1, engine='python', dtype='str')
+        # number_column = 0
+        # print(self.list_name_column)
+        #
+        # for i_num in self.list_number_columns:
+        #     self.name_columns[number_column] = self.list_name_column[i_num]
+        #     number_column += 1
+        # model = TableModel(df[:], self.name_columns)
+        # print(self.name_columns)
+        #######################
+
+        self.last_data = self.data
         model = TableModel(self.data, self.name_columns)
         self.data_table.setModel(model)
         self.data_table.resizeColumnsToContents()
@@ -216,6 +234,22 @@ class TableData(MainWindowModified):
                                       args=(data, list(self.name_columns.values()), file_name))
         file_saving_process.start()
 
+    def sorted_data_table(self, index: int):
+        """
+        Функция сортирующая данные по выбранному столбцу
+        Args:
+            index: номер столбца по которому ведется сортировка
+        Returns: None
+        """
+        new_data: List[List[str]] = list()
+        data = sorted(self.last_data[:], key=lambda x: x[index])
+        for i_line in data:
+            new_data.append(i_line)
+        model = TableModel(new_data, self.name_columns)
+        self.data_table.setModel(model)
+        self.last_data = new_data[:]
+        self.data_table.resizeColumnsToContents()
+
     def message_empty_database(self):
         """Функция выводящая окно с предупреждением """
         QMessageBox.warning(self, 'Нечего сохранять',
@@ -232,7 +266,7 @@ class TableData(MainWindowModified):
 
 
 class TableModel(QAbstractTableModel):
-    def __init__(self, data, name_columns):
+    def __init__(self, data: List[List[str]], name_columns: Dict[int, str]):
         super(TableModel, self).__init__()
         self._data = data
         self.name_columns = name_columns
@@ -244,6 +278,7 @@ class TableModel(QAbstractTableModel):
         if not index.isValid():
             return
         if role == Qt.ItemDataRole.DisplayRole:
+            # return self._data.iloc[index.row(), index.column()]
             return self._data[index.row()][index.column()]
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = None) -> Any:
@@ -268,6 +303,10 @@ class TableModel(QAbstractTableModel):
         Работает только если одинаковое количество столбцов
         """
         try:
+            # return self._data.shape[1]
             return len(self._data[0])
         except IndexError:
             return 0
+
+
+#  ↑ ↓ 🠉 🠋  🢁  🢃

@@ -16,7 +16,7 @@ style_window = (
 
 
 style_window_black = (
-    "QWidget{background: #2b2b2b;border: 2px; border-radius: 10px;font-size: 14px;color: #A9B7C6;}"
+    "QWidget{background: #2b2b2b;border: 2px; font-size: 14px;color: #A9B7C6;}"
     "QMainWindow{background: #2b2b2b;border-radius: 10px;font-size: 14px;color: #A9B7C6;}"
     "QPushButton{background-color:#2b2d30;border: 1px outset #43454a;border-radius: 10px;font-size: 16px;color: #A9B7C6;}"
     "QPushButton:hover{background-color:#4e5157;border: 2px outset #43454a;border-radius: 10px;font-size: 16px;color: #A9B7C6;}"
@@ -28,4 +28,7 @@ style_window_black = (
     "QLabel{font-size: 15px}"
     "QVBoxLayout{background: white;}"
     "QHeaderView::section { background-color: #A9B7C6; color: #2b2b2b; font-weight: bold;}"
+    "QCheckBox::indicator {width: 70px; height: 30px; border: 0px;}"
+    "QCheckBox::indicator:checked {background-color: #32CD32;}"
+    "QCheckBox::indicator:unchecked {background-color: #FF0000;}"
     )
