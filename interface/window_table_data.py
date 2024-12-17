@@ -67,10 +67,10 @@ class TableData(MainWindowModified):
 
         horizontal_layout = QHBoxLayout()
         horizontal_layout.addWidget(QPushButtonModified(func_pressed=self.save_data_to_xlsx_file,
-                                                        text=' Импорт в Excel',
+                                                        text=' Экспорт в Excel',
                                                         path_icon=path.join('icon', 'excel.svg')))
         horizontal_layout.addWidget(QPushButtonModified(func_pressed=self.save_data_to_text_file,
-                                                        text=' Импорт в TXT',
+                                                        text=' Экспорт в TXT',
                                                         path_icon=path.join('icon', 'txt.svg')))
 
         self.layout.addLayout(horizontal_layout)
@@ -93,7 +93,7 @@ class TableData(MainWindowModified):
             return True
         return False
 
-    def filter_data(self, text) -> List[List[str]]:
+    def filter_data(self, text: str) -> List[List[str]]:
         """
         Функция фильтрации данных в таблице согласно поисковому запросу
         """

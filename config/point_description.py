@@ -617,6 +617,9 @@ class AnchorPoint:
             if 'dm_color' in i_line:
                 kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
                 self.signal_description.append({'KKS': kks, 'text_kks': kks})
+            elif 'Frame_' in i_line:
+                kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
+                self.signal_description.append({'KKS': kks, 'text_kks': kks})
 
     def search_kks_svg_in_obj_button_icon(self):
         """Поиск KKS видеокадра на подмодели obj_Button_icon.svg"""

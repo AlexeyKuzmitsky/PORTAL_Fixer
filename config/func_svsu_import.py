@@ -260,14 +260,15 @@ async def check_all_files(print_log, name_system: str):
 
 async def renaming_old_file_svsu_import(print_log, name_system: str):
     """Функция переименовывает файл SVSU_IMPORT.txt в SVSU_IMPORT_bck.txt"""
-    if check_file(path_directory=name_system, name_file='SVSU_IMPORT.txt'):
-        if check_file(path_directory=name_system, name_file='SVSU_IMPORT_bck.txt'):
-            remove(path.join(name_system, 'SVSU_IMPORT_bck.txt'))
-        rename(path.join(name_system, 'SVSU_IMPORT.txt'), path.join(name_system, 'SVSU_IMPORT_bck.txt'))
-        await print_log(text=f'Файл {name_system}/SVSU_IMPORT.txt переименован в '
-                             f'{name_system}/SVSU_IMPORT_bck.txt', color='green')
+    if check_file(path_directory=path.join(name_system, 'Исходники'), name_file='SVSU_IMPORT.txt'):
+        if check_file(path_directory=path.join(name_system, 'Исходники'), name_file='SVSU_IMPORT_bck.txt'):
+            remove(path.join(name_system, 'Исходники', 'SVSU_IMPORT_bck.txt'))
+        rename(path.join(name_system, 'Исходники', 'SVSU_IMPORT.txt'),
+               path.join(name_system, 'Исходники', 'SVSU_IMPORT_bck.txt'))
+        await print_log(text=f'Файл {name_system}/Исходники/SVSU_IMPORT.txt переименован в '
+                             f'{name_system}/Исходники/SVSU_IMPORT_bck.txt', color='green')
     else:
-        await print_log(text=f'Файл {name_system}/SVSU_IMPORT.txt не найден', color='red')
+        await print_log(text=f'Файл {name_system}/Исходники/SVSU_IMPORT.txt не найден', color='red')
 
 
 async def writing_signals_to_a_file(print_log, name_system: str,
@@ -275,7 +276,7 @@ async def writing_signals_to_a_file(print_log, name_system: str,
                                     set_bin_signal: Set[str],
                                     set_nary_signal: Set[str]):
     """Функция записывающая в файл SVSU_import.txt найденные сигналы"""
-    with open(path.join(name_system, 'SVSU_IMPORT.txt'), 'w', encoding='utf-8') as file_import:
+    with open(path.join(name_system, 'Исходники', 'SVSU_IMPORT.txt'), 'w', encoding='utf-8') as file_import:
         file_import.write('signum\ttype\tfunction\tcycle\n')
         await print_log(text=f'KKS записано в файл SVSU_IMPORT.txt:')
         for i_kks in sorted(set_ana_signal):
@@ -292,7 +293,7 @@ async def writing_signals_to_a_file(print_log, name_system: str,
 async def file_comparison(print_log, name_system: str) -> None:
     """Функция спрашивает у пользователя сравнивать ли старый файл SVSU_IMPORT с новым. Если получает положительный
     ответ, запускает функцию сравнения и вывода всех отличий пользователю"""
-    if check_file(path_directory=name_system, name_file='SVSU_IMPORT_bck.txt'):
+    if check_file(path_directory=path.join(name_system, 'Исходники'), name_file='SVSU_IMPORT_bck.txt'):
         msg = QMessageBox.question(QMainWindow(), 'Вывод внесенных изменений',
                                    'Произвести сравнение старого файла SVSU_IMPORT с новым?')
         if msg == QMessageBox.StandardButton.Yes:
@@ -303,11 +304,11 @@ async def file_svsu_import_comparison(print_log, name_system: str):
     """Функция сравнения двух файлов SVSU_IMPORT.txt и SVSU_IMPORT_bck.txt и вывода отчета"""
     list_kks_svsu_import: Set[str] = set()
     list_kks_svsu_import_bck: Set[str] = set()
-    with open(path.join(name_system, 'SVSU_IMPORT.txt'), encoding='UTF-8') as file_svsu:
+    with open(path.join(name_system, 'Исходники', 'SVSU_IMPORT.txt'), encoding='UTF-8') as file_svsu:
         for i_line in file_svsu:
             list_kks_svsu_import.add(i_line[:-1])
 
-    with open(path.join(name_system, 'SVSU_IMPORT_bck.txt'), encoding='UTF-8') as file_svsu_bck:
+    with open(path.join(name_system, 'Исходники', 'SVSU_IMPORT_bck.txt'), encoding='UTF-8') as file_svsu_bck:
         for i_line in file_svsu_bck:
             list_kks_svsu_import_bck.add(i_line[:-1])
 

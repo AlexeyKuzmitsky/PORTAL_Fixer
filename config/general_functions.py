@@ -213,8 +213,8 @@ async def loading_data_kks_nary(name_system: str, print_log) -> Set[str]:
                 full_kks = i_line[42]
                 if i_line[18] == '16':
                     set_kks_nary_date.add(full_kks)
-                else:
-                    set_kks_nary_date.add(full_kks)
+                # else:
+                #     set_kks_nary_date.add(full_kks)
             except IndexError:
                 ...
     await print_log(text='\tsuccessfully', color='green', a_new_line=False)

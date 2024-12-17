@@ -1,6 +1,6 @@
 name_program = 'PORTAL_Fixer'
-version_program = '2.7.7'
-program_compilation_date = '2024.09.26'
+version_program = '2.8.0'
+program_compilation_date = '2024.12.17'
 
 program_directory_map = {
     'logs': None,
@@ -16,7 +16,8 @@ program_directory_map = {
         'screen_with_numbering': None,
         'TcpGate': None,
         'Замечания по видеокадрам': None,
-        'Ошибки в уставках': None
+        'Ошибки в уставках': None,
+        'Исходники': None
     },
     'SVBU_2': {
         'data': {
@@ -30,7 +31,8 @@ program_directory_map = {
         'screen_with_numbering': None,
         'TcpGate': None,
         'Замечания по видеокадрам': None,
-        'Ошибки в уставках': None
+        'Ошибки в уставках': None,
+        'Исходники': None
     },
     'SVSU': {
         'data': {
@@ -44,7 +46,8 @@ program_directory_map = {
         'screen_with_numbering': None,
         'TcpGate': None,
         'Замечания по видеокадрам': None,
-        'Ошибки в уставках': None
+        'Ошибки в уставках': None,
+        'Исходники': None
     },
     'SKU_VP_1': {
         'data': None,
@@ -56,7 +59,8 @@ program_directory_map = {
         'screen_with_numbering': None,
         'TcpGate': None,
         'Замечания по видеокадрам': None,
-        'Ошибки в уставках': None
+        'Ошибки в уставках': None,
+        'Исходники': None
     },
     'SKU_VP_2': {
         'data': None,
@@ -68,7 +72,8 @@ program_directory_map = {
         'screen_with_numbering': None,
         'TcpGate': None,
         'Замечания по видеокадрам': None,
-        'Ошибки в уставках': None
+        'Ошибки в уставках': None,
+        'Исходники': None
     }
 }
 

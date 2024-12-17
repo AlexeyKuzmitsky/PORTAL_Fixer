@@ -1,6 +1,7 @@
 # from config.general_functions import new_file_data_ana_bin_nary
 from config.func_checking_sources import (search_for_comments_in_a_ana_file_1, search_for_comments_in_a_bin_file_1,
-                                          searching_for_comments_in_files_bin, new_start_parsing_svg_files)
+                                          searching_for_comments_in_files_bin, new_start_parsing_svg_files,
+                                          creating_new_file_ana, creating_new_file_skuvp_bin)
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from PyQt6.QtGui import QColor
@@ -20,6 +21,15 @@ class CheckingSources(MainWindowModified):
 
         self.layout.addWidget(QPushButtonModified(text='Создание файла AltStation',
                                                   func_pressed=self.creating_file_alt_station_system))
+
+        self.layout.addWidget(QPushButtonModified(text='Создание файла SKUVP_ANA.txt',
+                                                  func_pressed=self.creating_file_ana))
+
+        self.layout.addWidget(QPushButtonModified(text='Создание файла SKUVP_BIN.txt',
+                                                  func_pressed=self.creating_file_bin))
+
+        self.layout.addWidget(QPushButtonModified(text='Создание исходников для заливки SVSU после обновления SVBU',
+                                                  func_pressed=self.generate_sources_for_svsu))
 
         self.layout.addWidget(QPushButtonModified(text='Проверить файл ana_file-1.txt',
                                                   func_pressed=self.checking_file_ana_1_system))
@@ -51,6 +61,24 @@ class CheckingSources(MainWindowModified):
             set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'}
         )
 
+        self.creating_file_ana = NameSystemWindow(
+            func=self.start_creating_new_file_ana,
+            text='Для какой системы создать файл описания аналоговых сигналов SKUVP_ANA.txt?',
+            set_name_system={'SVBU_1', 'SVBU_2'}
+        )
+
+        self.creating_file_bin = NameSystemWindow(
+            func=self.start_creating_new_file_bin,
+            text='Для какой системы создать файл описания бинарных и многобитовых сигналов SKUVP_BIN.txt?',
+            set_name_system={'SVBU_1', 'SVBU_2'}
+        )
+
+        self.generate_sources_for_svsu = NameSystemWindow(
+            func=self.start_generate_sources_for_svsu,
+            text='Из какой системы создать исходники для заливки SVSU',
+            set_name_system={'SVBU_1', 'SVBU_2'}
+        )
+
         self.checking_file_ana_1 = NameSystemWindow(func=self.start_checking_ana_file_1,
                                                     text='Файл какой системы проверить?',
                                                     set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'}
@@ -67,6 +95,15 @@ class CheckingSources(MainWindowModified):
 
     def creating_file_alt_station_system(self):
         self.creating_file_alt_station.show()
+
+    def creating_file_ana(self):
+        self.creating_file_ana.show()
+
+    def creating_file_bin(self):
+        self.creating_file_bin.show()
+
+    def generate_sources_for_svsu(self):
+        self.generate_sources_for_svsu.show()
 
     def checking_file_ana_1_system(self):
         self.checking_file_ana_1.show()
@@ -89,6 +126,104 @@ class CheckingSources(MainWindowModified):
         self.progress.reset()
         await new_start_parsing_svg_files(print_log=self.print_log, name_system=name_system, progress=self.progress)
         await self.print_log(text=f'Создание файла altstation {name_system} завершено\n')
+
+    @asyncSlot()
+    async def start_creating_new_file_ana(self, name_system: str) -> None:
+        """Функция запускающая создание файла описания импортируемых аналоговых сигналов ..._ANA.txt"""
+        if name_system == 'SVBU_1':
+            await self.print_log(f'Начало создания файла SKUVP_ANA.txt для {name_system}')
+            self.progress.setVisible(True)
+            self.progress.reset()
+            await creating_new_file_ana(print_log=self.print_log,
+                                        name_system=name_system,
+                                        source_system='SKU_VP_1',
+                                        name_file='SKUVP_ANA.txt',
+                                        progress=self.progress)
+            await self.print_log(text=f'Создание файла SKUVP_ANA.txt для {name_system} завершено\n')
+        elif name_system == 'SVBU_2':
+            await self.print_log(f'Начало создания файла SKUVP_ANA.txt для {name_system}')
+            self.progress.setVisible(True)
+            self.progress.reset()
+            await creating_new_file_ana(print_log=self.print_log,
+                                        name_system=name_system,
+                                        source_system='SKU_VP_2',
+                                        name_file='SKUVP_ANA.txt',
+                                        progress=self.progress)
+            await self.print_log(text=f'Создание файла SKUVP_ANA.txt для {name_system} завершено\n')
+
+    @asyncSlot()
+    async def start_creating_new_file_bin(self, name_system: str) -> None:
+        """Функция запускающая создание файла описания импортируемых бинарных и многобитовых сигналов ..._BIN.txt"""
+        if name_system == 'SVBU_1':
+            await self.print_log(f'Начало создания файла SKUVP_BIN.txt для {name_system}')
+            self.progress.setVisible(True)
+            self.progress.reset()
+            await creating_new_file_skuvp_bin(print_log=self.print_log,
+                                              name_system=name_system,
+                                              source_system='SKU_VP_1',
+                                              name_file='SKUVP_BIN.txt',
+                                              progress=self.progress)
+            await self.print_log(text=f'Создание файла SKUVP_BIN.txt для {name_system} завершено\n')
+        elif name_system == 'SVBU_2':
+            await self.print_log(f'Начало создания файла SKUVP_BIN.txt для {name_system}')
+            self.progress.setVisible(True)
+            self.progress.reset()
+            await creating_new_file_skuvp_bin(print_log=self.print_log,
+                                              name_system=name_system,
+                                              source_system='SKU_VP_2',
+                                              name_file='SKUVP_BIN.txt',
+                                              progress=self.progress)
+            await self.print_log(text=f'Создание файла SKUVP_BIN.txt для {name_system} завершено\n')
+        elif name_system == 'SVSU':
+            await self.print_log(f'Начало создания файла NK_SVBU1_BIN.txt для {name_system}')
+            self.progress.setVisible(True)
+            self.progress.reset()
+            await creating_new_file_skuvp_bin(print_log=self.print_log,
+                                              name_system=name_system,
+                                              source_system='SVBU_1',
+                                              name_file='NK_SVBU1_BIN.txt',
+                                              progress=self.progress)
+            await self.print_log(text=f'Создание файла NK_SVBU1_BIN.txt для {name_system} завершено\n')
+
+            await self.print_log(f'Начало создания файла NK_SVBU2_BIN.txt для {name_system}')
+            self.progress.setVisible(True)
+            self.progress.reset()
+            await creating_new_file_skuvp_bin(print_log=self.print_log,
+                                              name_system=name_system,
+                                              source_system='SVBU_2',
+                                              name_file='NK_SVBU2_BIN.txt',
+                                              progress=self.progress)
+            await self.print_log(text=f'Создание файла NK_SVBU2_BIN.txt для {name_system} завершено\n')
+
+    @asyncSlot()
+    async def start_generate_sources_for_svsu(self, name_system: str):
+        """
+        Функция запускает создание исходных файлов для заливки SVSU
+        """
+        name_file_bin = f'NK_SVBU{name_system[-1]}_BIN.txt'
+        await self.print_log(f'Начало создания файла {name_file_bin} для SVSU')
+        self.progress.setVisible(True)
+        self.progress.reset()
+        await creating_new_file_skuvp_bin(print_log=self.print_log,
+                                          name_system='SVSU',
+                                          source_system=name_system,
+                                          name_file=name_file_bin,
+                                          progress=self.progress,
+                                          end=40)
+        await self.print_log(text=f'Создание файла {name_file_bin} для SVSU завершено\n')
+
+        name_file_ana = f'NK_SVBU{name_system[-1]}_ANA.txt'
+        await self.print_log(f'Начало создания файла {name_file_ana} для SVSU')
+        await creating_new_file_ana(print_log=self.print_log,
+                                    name_system='SVSU',
+                                    source_system=name_system,
+                                    name_file=name_file_ana,
+                                    progress=self.progress,
+                                    start=40,
+                                    end=80)
+        await self.print_log(text=f'Создание файла {name_file_ana} для SVSU завершено\n')
+
+        self.progress.setValue(100)
 
     @asyncSlot()
     async def start_checking_ana_file_1(self, name_system: str) -> None:
@@ -158,5 +293,7 @@ class CheckingSources(MainWindowModified):
         self.creating_file_alt_station.close()
         self.checking_file_ana_1.close()
         self.checking_file_bin_1.close()
+        self.creating_file_ana.close()
+        self.creating_file_bin.close()
         self.checking_file_bin_rep.close()
         self.close()

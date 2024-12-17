@@ -1,4 +1,6 @@
 from csv import reader
+
+import pandas
 from PyQt6.QtWidgets import QProgressBar
 from config.general_functions import (check_directory, check_file, loading_data_kks_ana, loading_data_kks_bin,
                                       loading_data_kks_nary, creating_list_of_submodel,
@@ -9,6 +11,9 @@ from config.conf import dict_level_signale, dict_suffix_level_signale
 
 import re
 import csv
+import pandas as pd
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 
 async def parse_the_formula(text: str) -> List[str]:
@@ -391,7 +396,7 @@ async def recording_found_signals_to_a_file(name_system: str,
         dict_of_detected_signal_on_svg: KKS найденные на каждом видеокадре
     Returns: None
     """
-    with open(path.join(name_system, 'altStation.dic'), 'w', encoding='UTF-8') as file_alt_station:
+    with open(path.join(name_system, 'Исходники', 'altStation.dic'), 'w', encoding='UTF-8') as file_alt_station:
         for name_svg, list_signal in sorted(dict_of_detected_signal_on_svg.items()):
             for i_signal in sorted(list_signal):
                 file_alt_station.write(f'{i_signal}\t{name_svg}\n')
@@ -417,3 +422,467 @@ async def count_elements(my_dict):
     for list_number in my_dict.values():
         number_elements += len(list_number)
     return number_elements
+
+
+async def creating_new_file_skuvp_bin(print_log, name_system: str, source_system: str, name_file: str,
+                                      progress: QProgressBar, start: int = 0, end: int = 100) -> None:
+    """
+    Функция создает файл с описанием бинарных и многобитовых сигналов ..._BIN.txt на основе исходных данных
+    Args:
+        print_log: Функция вывода лога
+        name_system: Имя системы куда создается файл
+        source_system: Система из которой берутся файлы описания сигналов
+        name_file: Имя создаваемого файла
+        progress: Прогресс выполнения программы
+        start: Начальные проценты выполнения программы
+        end: Конечные проценты выполнения программы
+    Returns: None
+    """
+    progress.setValue(percentage_calculation(start=start, end=end, count=1))
+    if name_system == 'SVSU':
+        name_file_import = 'SVSU_IMPORT.txt'
+    else:
+        name_file_import = 'SVBU_IMPORT.txt'
+    if await check_file_for_bin(print_log=print_log, name_system=source_system, name_file_import=name_file_import):
+        progress.setValue(percentage_calculation(start=start, end=end, count=5))
+        df_bin = await preparing_data_for_the_file_bin(print_log=print_log,
+                                                       source_system=source_system,
+                                                       name_file_import=name_file_import,
+                                                       progress=progress,
+                                                       start=percentage_calculation(start=start, end=end, count=5),
+                                                       end=percentage_calculation(start=start, end=end, count=90))
+
+        await print_log(text=f'Запись полученных данных в файл {name_system}/Исходники/{name_file}')
+        df_bin.to_csv(path.join(name_system, 'Исходники', name_file), sep='\t', index=False)
+        await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    else:
+        await print_log(text='Выполнение задачи невозможно!', color='red')
+    progress.setValue(percentage_calculation(start=start, end=end, count=100))
+
+
+async def preparing_data_for_the_file_bin(print_log, source_system: str, name_file_import: str,
+                                          progress: QProgressBar, start: int = 0, end: int = 100):
+    """
+    Функция подготавливает данные для файла с описанием бинарных и многобитовых сигналов ..._BIN.txt
+    Args:
+        print_log: Функция вывода лога
+        source_system: Система из которой берутся исходники
+        name_file_import: Имя файла списка импорта сигналов
+        progress: Прогресс выполнения программы
+        start: Начальные проценты выполнения программы
+        end: Конечные проценты выполнения программы
+    Returns: None
+    """
+    df_bin = pd.DataFrame(columns=['RTM', 'function', 'NAME_RUS', 'NAME_RUS_FULL', 'z_verw', 'alarm', 'hist',
+                                   'signum', 'ITEMID_EXT', 'CategoryNR', 'Type'])
+    df_bin.set_index('function', drop=False, inplace=True)
+
+    await print_log(text=f'Загрузка {name_file_import}')
+    df_svbu_import = pd.read_csv(path.join(source_system, 'DbSrc', name_file_import), sep='\t')
+    df_svbu_import.set_index('function', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=6))
+
+    await print_log(text='Загрузка PLS_PROC_CATEGORIES.dmp')
+    df_pls_proc_categories = await async_load_data(path.join(source_system, 'DbDumps', 'PLS_PROC_CATEGORIES.dmp'))
+    df_pls_proc_categories.set_index('*#CATEGORYNR', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=7))
+
+    await print_log(text='Загрузка PLS_BIN_CONF.dmp')
+    df_plc_bin_conf = await async_load_data(file_path=path.join(source_system, 'DbDumps', 'PLS_BIN_CONF.dmp'))
+    df_plc_bin_conf.set_index('PVID', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=15))
+
+    list_kks_nary = df_svbu_import.loc[df_svbu_import['type'] == 'N', 'function'].tolist()
+
+    number_kks = len(list_kks_nary)
+    count = 0
+    for i_kks in list_kks_nary:
+        try:
+            await filling_data_on_signal_bin(kks=i_kks,
+                                             df_bin=df_bin,
+                                             df_plc_bin_conf=df_plc_bin_conf,
+                                             df_svbu_import=df_svbu_import,
+                                             df_pls_proc_categories=df_pls_proc_categories,
+                                             type_signal=3)
+        except KeyError:
+            df_bin.drop(axis=0, index=i_kks, inplace=True)
+            await print_log(text=f'В базе данных {source_system} нет многобитового сигнала {i_kks}. '
+                                 f'Он не будет добавлен',
+                            color='red')
+        count += 1
+        progress.setValue(percentage_calculation(start=percentage_calculation(start=start, end=end, count=15),
+                                                 end=percentage_calculation(start=start, end=end, count=75),
+                                                 count=count,
+                                                 number=number_kks))
+
+    list_kks_bin = df_svbu_import.loc[df_svbu_import['type'] == 'B', 'function'].tolist()
+    for i_kks in list_kks_bin:
+        try:
+            await filling_data_on_signal_bin(kks=i_kks,
+                                             df_bin=df_bin,
+                                             df_plc_bin_conf=df_plc_bin_conf,
+                                             df_svbu_import=df_svbu_import,
+                                             df_pls_proc_categories=df_pls_proc_categories,
+                                             type_signal=2)
+        except KeyError:
+            df_bin.drop(axis=0, index=i_kks, inplace=True)
+            await print_log(text=f'В базе данных {source_system} нет бинарного сигнала {i_kks}. Он не будет добавлен',
+                            color='red')
+        except ValueError:
+            df_bin.drop(axis=0, index=i_kks, inplace=True)
+            await print_log(text=f'В файле импорта найден дубликат сигнала {i_kks}. Он не будет добавлен',
+                            color='red')
+        count += 1
+        progress.setValue(percentage_calculation(start=percentage_calculation(start=start, end=end, count=75),
+                                                 end=percentage_calculation(start=start, end=end, count=95),
+                                                 count=count,
+                                                 number=number_kks))
+    return df_bin
+
+
+async def filling_data_on_signal_bin(kks: str, df_bin, df_plc_bin_conf, df_svbu_import, df_pls_proc_categories,
+                                     type_signal: int) -> None:
+    """
+    Функция заполняет данные по сигналу
+        Args:
+        kks: KKS сигнала
+        df_bin: База данных в которую будут ложиться данные сигнала
+        df_plc_bin_conf: База данных файла PLS_BIN_CONF
+        df_svbu_import: База данных файла SVBU_IMPORT
+        df_pls_proc_categories: База данных файла PLS_PROC_CATEGORIES
+        type_signal: тип сигнала (1 - аналоговый, 2 - бинарный, 3 - многобитовый)
+    Returns: None
+    """
+    df_bin.loc[kks, 'RTM'] = kks
+    df_bin.loc[kks, 'function'] = kks
+    df_bin.loc[kks, 'NAME_RUS'] = df_plc_bin_conf.loc[kks, 'PVTEXT']
+    df_bin.loc[kks, 'NAME_RUS_FULL'] = df_plc_bin_conf.loc[kks, 'PVDESCRIPTION']
+    df_bin.loc[kks, 'CategoryNR'] = df_plc_bin_conf.loc[kks, 'CATEGORYNR']
+    try:
+        df_bin.loc[kks, 'signum'] = df_svbu_import.loc[kks, 'signum']
+    except ValueError:
+        print(kks)
+    df_bin.loc[kks, 'Type'] = type_signal
+
+    id_proc_categories = df_plc_bin_conf.loc[kks, 'PROCCATNR']
+    if str(id_proc_categories) != 'nan':
+        description = df_pls_proc_categories.loc[id_proc_categories, 'DESCRIPTION']
+        df_bin.loc[kks, 'z_verw'] = description.split('PriorityLevel=')[1][0]
+
+        alarm_value_mask = df_pls_proc_categories.loc[id_proc_categories, 'ALARMVALUEMASK']
+        result = ''
+
+        if type_signal == 3:
+            for i in range(15, -1, -1):
+                if alarm_value_mask & 2 ** i:
+                    result += 'X'
+                else:
+                    result += '-'
+        elif type_signal == 2:
+            if alarm_value_mask == 0:
+                result = '--'
+            elif alarm_value_mask == 1:
+                result = 'X-'
+            elif alarm_value_mask == 2:
+                result = '-X'
+            elif alarm_value_mask == 3:
+                result = 'XX'
+        df_bin.loc[kks, 'alarm'] = result
+
+        if df_pls_proc_categories.loc[id_proc_categories, 'HISTORIANSUPPORTED']:
+            df_bin.loc[kks, 'hist'] = 1
+        else:
+            df_bin.loc[kks, 'hist'] = 0
+    else:
+        df_bin.loc[kks, 'hist'] = 1
+
+    text_plc_itemid = df_plc_bin_conf.loc[kks, 'PLC_ITEMID'].split(':')[-2]
+    if '=' not in text_plc_itemid:
+        df_bin.loc[kks, 'ITEMID_EXT'] = text_plc_itemid
+
+
+def percentage_calculation(start: int, end: int, count: int, number: int = 100) -> int:
+    """
+    Функция высчитывает настоящий процент выполнения программы по значениям
+    Args:
+        start: Начальный процент
+        end: Конечный процент
+        count: Счетчик, место на котором сейчас или проценты
+        number: Общее число
+    Returns: int
+    """
+    try:
+        difference = end - start
+        result = round(count / number * difference + start)
+        return result
+    except ZeroDivisionError:
+        print(start, end, count, number)
+        return 0
+
+
+async def check_file_existence(print_log, file_path: str, name_file: str) -> bool:
+    """
+    Функция проверяет наличие файлов PLS_BIN_CONF.dmp и SVBU_IMPORT.txt
+    Args:
+        print_log: Функция вывода лога
+        file_path: Путь к файлу
+        name_file: Имя проверяемого файла
+    Returns: bool
+    """
+    await print_log(text=f'Проверка наличия файла {file_path} {name_file}')
+    if path.isfile(path.join(file_path, name_file)):
+        await print_log(text=f'\tTrue', color='green', a_new_line=False)
+        return True
+    else:
+        await print_log(text=f'\tFalse', color='red', a_new_line=False)
+        return False
+
+
+async def check_file_for_bin(print_log, name_system: str, name_file_import: str) -> bool:
+    """
+    Функция проверяет наличие файлов PLS_BIN_CONF.dmp и SVBU_IMPORT.txt
+    Args:
+        print_log: Функция вывода лога
+        name_system: Система у которой проверяется наличие файла
+        name_file_import: Имя файла импорта
+    Returns: bool
+    """
+    file_check_flag = True
+
+    await print_log(text=f'Проверка наличия файла PLS_BIN_CONF.dmp в {name_system}/DbDumps')
+    if path.isfile(path.join(name_system, 'DbDumps', 'PLS_BIN_CONF.dmp')):
+        await print_log(text=f'\tTrue', color='green', a_new_line=False)
+    else:
+        await print_log(text=f'\tFalse', color='red', a_new_line=False)
+        file_check_flag = False
+
+    await print_log(text=f'Проверка наличия файла PLS_PROC_CATEGORIES.dmp в {name_system}/DbDumps')
+    if path.isfile(path.join(name_system, 'DbDumps', 'PLS_PROC_CATEGORIES.dmp')):
+        await print_log(text=f'\tTrue', color='green', a_new_line=False)
+    else:
+        await print_log(text=f'\tFalse', color='red', a_new_line=False)
+        file_check_flag = False
+
+    await print_log(text=f'Проверка наличия файла {name_file_import} в {name_system}/DbSrc')
+    if path.isfile(path.join(name_system, 'DbSrc', name_file_import)):
+        await print_log(text=f'\tTrue', color='green', a_new_line=False)
+    else:
+        await print_log(text=f'\tFalse', color='red', a_new_line=False)
+        file_check_flag = False
+    return file_check_flag
+
+
+async def creating_new_file_ana(print_log, name_system: str, source_system: str, name_file: str,
+                                progress: QProgressBar, start: int = 0, end: int = 100) -> None:
+    """
+    Функция создает файл _ANA.txt на основе исходных данных (файл SVBU_IMPORT.txt из DbSrc SKU_VP
+    и PLS_ANA_CONF.dmp из DbDumps SKU_VP
+    Args:
+        print_log: Функция вывода лога
+        name_system: Система для которой создается файл
+        source_system:  Система из которой берутся исходники
+        name_file: Имя создаваемого файла
+        progress: Прогресс выполнения программы
+        start: Начальные проценты выполнения программы
+        end: Конечные проценты выполнения программы
+    Returns: None
+    """
+    progress.setValue(percentage_calculation(start=start, end=end, count=1))
+    if name_system == 'SVSU':
+        name_file_import = 'SVSU_IMPORT.txt'
+    else:
+        name_file_import = 'SVBU_IMPORT.txt'
+
+    if await check_file_for_ana(print_log=print_log, name_system=source_system, name_file_import=name_file_import):
+        progress.setValue(percentage_calculation(start=start, end=end, count=5))
+        df_ana = await preparing_data_for_the_file_ana(print_log=print_log,
+                                                       name_system=source_system,
+                                                       name_file_import=name_file_import,
+                                                       progress=progress,
+                                                       start=percentage_calculation(start=start, end=end, count=5),
+                                                       end=percentage_calculation(start=start, end=end, count=95))
+
+        await print_log(text=f'Запись полученных данных в файл {name_system}/Исходники/{name_file}')
+        df_ana.to_csv(path.join(name_system, 'Исходники', name_file), sep='\t', index=False)
+        await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    else:
+        await print_log(text='Выполнение задачи невозможно!', color='red')
+    progress.setValue(percentage_calculation(start=start, end=end, count=100))
+
+
+async def preparing_data_for_the_file_ana(print_log, name_system: str, name_file_import: str,
+                                          progress: QProgressBar, start: int = 0, end: int = 100):
+    """
+    Функция подготавливает данные для файла SKUVP_ANA.txt
+    Args:
+        print_log: Функция вывода лога
+        name_system: Система из которой берутся исходники
+        name_file_import: Имя файла со списком импорта сигналов
+        progress: Прогресс выполнения программы
+        start: Начальные проценты выполнения программы
+        end: Конечные проценты выполнения программы
+    Returns: None
+    """
+    df_ana = pd.DataFrame(columns=['RTM', 'function', 'NAME_RUS', 'NAME_RUS_FULL',
+                                   'MAX', 'MIN', 'HA', 'HW', 'HT', 'LT', 'LW', 'LA',
+                                   'UNITSRUS', 'display', 'deadband',
+                                   'z_verw', 'hist', 'histdeadband',
+                                   'signum', 'ITEMID_EXT', 'CategoryNR', 'Type',
+                                   'Department', 'Channel', 'alarmSite'
+                                   ])
+    df_ana.set_index('function', drop=False, inplace=True)
+
+    await print_log(text=f'Загрузка {name_file_import}')
+    df_svbu_import = pd.read_csv(path.join(name_system, 'DbSrc', name_file_import), sep='\t')
+    df_svbu_import.set_index('function', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=6))
+
+    await print_log(text='Загрузка PLS_PROC_CATEGORIES.dmp')
+    df_pls_proc_categories = await async_load_data(path.join(name_system, 'DbDumps', 'PLS_PROC_CATEGORIES.dmp'))
+    df_pls_proc_categories.set_index('*#CATEGORYNR', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=7))
+
+    await print_log(text='Загрузка PLS_ANA_CONF.dmp')
+    df_plc_ana_conf = await async_load_data(file_path=path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp'))
+    df_plc_ana_conf.set_index('PVID', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=15))
+
+    await print_log(text='Загрузка PLS_DIMENSION_CONF.dmp')
+    df_pls_dimension_conf = await async_load_data(file_path=path.join(name_system, 'DbDumps', 'PLS_DIMENSION_CONF.dmp'))
+    df_pls_dimension_conf.set_index('*#DIMNR', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=16))
+
+    list_kks_ana = df_svbu_import.loc[df_svbu_import['type'] == 'A', 'function'].tolist()
+
+    number_kks = len(list_kks_ana)
+    count = 0
+    for i_kks in list_kks_ana:
+        try:
+            filling_data_on_signal_ana(kks=i_kks,
+                                       df_ana=df_ana,
+                                       df_plc_ana_conf=df_plc_ana_conf,
+                                       df_svbu_import=df_svbu_import,
+                                       df_pls_proc_categories=df_pls_proc_categories,
+                                       df_pls_dimension_conf=df_pls_dimension_conf)
+        except KeyError:
+            df_ana.drop(axis=0, index=i_kks, inplace=True)
+            await print_log(text=f'В базе данных {name_system} нет аналогово сигнала {i_kks}. Он не будет добавлен',
+                            color='red')
+        except ValueError:
+            df_ana.drop(axis=0, index=i_kks, inplace=True)
+            await print_log(text=f'В файле импорта найден дубликат сигнала {i_kks}. Он не будет добавлен',
+                            color='red')
+        count += 1
+        progress.setValue(percentage_calculation(start=percentage_calculation(start=start, end=end, count=16),
+                                                 end=percentage_calculation(start=start, end=end, count=95),
+                                                 count=count,
+                                                 number=number_kks))
+    return df_ana
+
+
+def filling_data_on_signal_ana(kks: str, df_ana, df_plc_ana_conf, df_svbu_import, df_pls_proc_categories,
+                               df_pls_dimension_conf) -> None:
+    """
+    Функция заполняет данные по сигналу
+        Args:
+        kks: KKS сигнала
+        df_ana: База данных в которую будут ложиться данные сигнала
+        df_plc_ana_conf: База данных файла PLS_ANA_CONF
+        df_svbu_import: База данных сингалов импорта
+        df_pls_proc_categories: База данных файла PLS_PROC_CATEGORIES
+        df_pls_dimension_conf: База данных единиц измерения из файла PLS_DIMENSION_CONF
+    Returns: None
+    """
+    df_ana.loc[kks, 'RTM'] = kks
+    df_ana.loc[kks, 'function'] = kks
+    df_ana.loc[kks, 'Type'] = 1
+    df_ana.loc[kks, 'NAME_RUS'] = df_plc_ana_conf.loc[kks, 'PVTEXT']
+    df_ana.loc[kks, 'NAME_RUS_FULL'] = df_plc_ana_conf.loc[kks, 'PVDESCRIPTION']
+    df_ana.loc[kks, 'MAX'] = df_plc_ana_conf.loc[kks, 'RANGEHIGH']
+    df_ana.loc[kks, 'MIN'] = df_plc_ana_conf.loc[kks, 'RANGELOW']
+
+    df_ana.loc[kks, 'LA'] = df_plc_ana_conf.loc[kks, 'BOUND_LOW3']
+    df_ana.loc[kks, 'LW'] = df_plc_ana_conf.loc[kks, 'BOUND_LOW2']
+    df_ana.loc[kks, 'LT'] = df_plc_ana_conf.loc[kks, 'BOUND_LOW1']
+    df_ana.loc[kks, 'HT'] = df_plc_ana_conf.loc[kks, 'BOUND_HIGH1']
+    df_ana.loc[kks, 'HW'] = df_plc_ana_conf.loc[kks, 'BOUND_HIGH2']
+    df_ana.loc[kks, 'HA'] = df_plc_ana_conf.loc[kks, 'BOUND_HIGH3']
+
+    number_pls_dimension_conf = df_plc_ana_conf.loc[kks, 'DIMNR']
+    if number_pls_dimension_conf != -1:
+        df_ana.loc[kks, 'UNITSRUS'] = df_pls_dimension_conf.loc[number_pls_dimension_conf, 'DIMSTRING']
+    df_ana.loc[kks, 'display'] = df_plc_ana_conf.loc[kks, 'ROUNDDIGITS']
+    df_ana.loc[kks, 'deadband'] = df_plc_ana_conf.loc[kks, 'DEADBAND']
+    df_ana.loc[kks, 'histdeadband'] = df_plc_ana_conf.loc[kks, 'HIST_DEADBAND']
+    df_ana.loc[kks, 'CategoryNR'] = df_plc_ana_conf.loc[kks, 'CATEGORYNR']
+    df_ana.loc[kks, 'alarmSite'] = df_plc_ana_conf.loc[kks, 'CATEGORYMAP3']
+
+    id_proc_categories = df_plc_ana_conf.loc[kks, 'PROCCATNR']
+    if str(id_proc_categories) != 'nan':
+        description = df_pls_proc_categories.loc[id_proc_categories, 'DESCRIPTION']
+        df_ana.loc[kks, 'z_verw'] = description.split('PriorityLevel=')[1][0]
+
+        if df_pls_proc_categories.loc[id_proc_categories, 'HISTORIANSUPPORTED']:
+            df_ana.loc[kks, 'hist'] = 1
+        else:
+            df_ana.loc[kks, 'hist'] = 0
+
+    df_ana.loc[kks, 'signum'] = df_svbu_import.loc[kks, 'signum']
+
+    text_plc_itemid = df_plc_ana_conf.loc[kks, 'PLC_ITEMID'].split(':')[-2]
+    if '=' not in text_plc_itemid:
+        df_ana.loc[kks, 'ITEMID_EXT'] = text_plc_itemid
+    # (Department, Channel) оставляем пустыми
+
+
+async def check_file_for_ana(print_log, name_system: str, name_file_import: str) -> bool:
+    """
+    Функция проверяет наличие файлов PLS_ANA_CONF.dmp и SVBU_IMPORT.txt|SVSU_IMPORT.txt
+    Args:
+        print_log: Функция вывода лога
+        name_system: Система у которой проверяется наличие файла
+        name_file_import: Имя файла импорта
+    Returns: bool
+    """
+    file_check_flag = True
+
+    await print_log(text=f'Проверка наличия файла PLS_ANA_CONF.dmp в {name_system}/DbDumps')
+    if path.isfile(path.join(name_system, 'DbDumps', 'PLS_ANA_CONF.dmp')):
+        await print_log(text=f'\tTrue', color='green', a_new_line=False)
+    else:
+        await print_log(text=f'\tFalse', color='red', a_new_line=False)
+        file_check_flag = False
+
+    await print_log(text=f'Проверка наличия файла PLS_PROC_CATEGORIES.dmp в {name_system}/DbDumps')
+    if path.isfile(path.join(name_system, 'DbDumps', 'PLS_PROC_CATEGORIES.dmp')):
+        await print_log(text=f'\tTrue', color='green', a_new_line=False)
+    else:
+        await print_log(text=f'\tFalse', color='red', a_new_line=False)
+        file_check_flag = False
+
+    await print_log(text=f'Проверка наличия файла {name_file_import} в {name_system}/DbSrc')
+    if path.isfile(path.join(name_system, 'DbSrc', name_file_import)):
+        await print_log(text=f'\tTrue', color='green', a_new_line=False)
+    else:
+        await print_log(text=f'\tFalse', color='red', a_new_line=False)
+        file_check_flag = False
+    return file_check_flag
+
+
+def load_data(file_path):
+    df = pd.read_csv(file_path, sep='|', encoding='windows-1251', header=3, skipfooter=1, engine='python')
+    return df
+
+
+async def async_load_data(file_path) -> pd.DataFrame:
+    loop = asyncio.get_event_loop()
+    with ThreadPoolExecutor() as executor:
+        df = await loop.run_in_executor(executor, load_data, file_path)
+    return df
