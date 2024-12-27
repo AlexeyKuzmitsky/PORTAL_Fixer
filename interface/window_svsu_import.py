@@ -13,7 +13,7 @@ from config.get_logger import log_info
 class SvsuImport(MainWindowModified):
     def __init__(self, main_menu):  # изменим начальные настройки
         super().__init__()  # получим доступ к изменениям настроек
-        self.setting_window_size(width=750, height=650)
+        self.setting_window_size(width=850, height=650)
         self.instruction_window = Instruction()
         self.main_menu = main_menu
 
@@ -76,6 +76,8 @@ class SvsuImport(MainWindowModified):
         self.progress.reset()
         await actualizations_vk(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
         await self.print_log(text=f'Обновление видеокадров {name_directory} завершено\n')
+        self.information_message(title='Завершение программы',
+                                 text=f'Видеокадры СВБУ {name_directory[-1]} обновлены')
 
     @asyncSlot()
     async def start_actualizations_vk_svsu(self, name_directory: str) -> None:
@@ -85,6 +87,8 @@ class SvsuImport(MainWindowModified):
         self.progress.reset()
         await actualizations_vk_svsu(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
         await self.print_log(text=f'Обновление видеокадров SVSU из {name_directory} завершено\n')
+        self.information_message(title='Завершение программы',
+                                 text='Видеокадры СВСУ обновлены')
 
     @asyncSlot()
     async def start_bloc_button(self) -> None:
@@ -94,6 +98,8 @@ class SvsuImport(MainWindowModified):
         self.progress.reset()
         await enumeration_of_svg(print_log=self.print_log, progress=self.progress)
         await self.print_log(text=f'Блокировка кнопок завершена\n')
+        self.information_message(title='Завершение программы',
+                                 text=f'На видеокадрах СВСУ были заблокированы кнопки не имеющие перехода')
 
     @asyncSlot()
     async def start_add_file_svsu_import(self, name_directory: str) -> None:
@@ -103,6 +109,8 @@ class SvsuImport(MainWindowModified):
         self.progress.reset()
         await add_file_svsu_import(print_log=self.print_log, name_system=name_directory, progress=self.progress)
         await self.print_log(text=f'Создание файла SVSU_IMPORT.txt для {name_directory} завершено\n')
+        self.information_message(title='Завершение программы',
+                                 text=f'Создан файл SVSU_IMPORT.txt для СВБУ {name_directory[-1]}')
 
     @asyncSlot()
     async def print_log(self, text: str, color: str = 'white', level: str = 'INFO', a_new_line: bool = True) -> None:

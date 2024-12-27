@@ -43,13 +43,13 @@ async def actualizations_vk_svsu(print_log, name_directory: str, progress: QProg
         if i_vis in renaming_kks:
             await overwriting_a_file(number=number, name_svg=renaming_kks[i_vis], name_svg_new=i_vis,
                                      name_system=name_directory, kks_dict_new=kks_dict_new)
-            await print_log(text='\t+++обновлен+++', color='green', a_new_line=False)
+            await print_log(text='\tsuccessfully', color='green', a_new_line=False)
         elif i_vis in set_vis_bloc:
             await overwriting_a_file(number=number, name_svg=i_vis, name_svg_new=i_vis,
                                      name_system=name_directory, kks_dict_new=kks_dict_new)
-            await print_log(text='\t+++обновлен+++', color='green', a_new_line=False)
+            await print_log(text='\tsuccessfully', color='green', a_new_line=False)
         else:
-            await print_log(text=f'\t---Видеокадра нет в папке {name_directory}\\NPP_models---',
+            await print_log(text=f'\tВидеокадра нет в папке {name_directory}\\NPP_models',
                             color='red', a_new_line=False)
         num += 1
 

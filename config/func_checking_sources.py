@@ -497,6 +497,7 @@ async def preparing_data_for_the_file_bin(print_log, source_system: str, name_fi
 
     list_kks_nary = df_svbu_import.loc[df_svbu_import['type'] == 'N', 'function'].tolist()
 
+    await print_log(text='Сбор данных')
     number_kks = len(list_kks_nary)
     count = 0
     for i_kks in list_kks_nary:
@@ -886,3 +887,134 @@ async def async_load_data(file_path) -> pd.DataFrame:
     with ThreadPoolExecutor() as executor:
         df = await loop.run_in_executor(executor, load_data, file_path)
     return df
+
+
+async def creating_new_file_nary_conf(print_log, name_system: str, source_system: str, name_file: str,
+                                      progress: QProgressBar, start: int = 0, end: int = 100) -> None:
+    """
+    Функция создает файл с описанием многобитовых сигналов PLS_BIN_NARY_CONF0(1/2).txt на основе исходных данных
+    Args:
+        print_log: Функция вывода лога
+        name_system: Имя системы куда создается файл
+        source_system: Система из которой берутся файлы описания сигналов
+        name_file: Имя создаваемого файла
+        progress: Прогресс выполнения программы
+        start: Начальные проценты выполнения программы
+        end: Конечные проценты выполнения программы
+    Returns: None
+    """
+
+    await print_log(text=f'Загрузка SVSU_IMPORT.txt')
+    df_svbu_import = pd.read_csv(path.join(source_system, 'DbSrc', 'SVSU_IMPORT.txt'), sep='\t')
+    df_svbu_import.set_index('function', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=6))
+
+    await print_log(text='Загрузка PLS_BIN_CONF.dmp')
+    df_plc_bin_conf = await async_load_data(file_path=path.join(source_system, 'DbDumps', 'PLS_BIN_CONF.dmp'))
+    df_plc_bin_conf.set_index('PVID', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=15))
+
+    set_category_nr = set()
+
+    await print_log(text='Составление списка CATEGORYNR (описания многобитовых сигналов передаваемых на SVSU) ')
+    list_kks_nary = df_svbu_import.loc[df_svbu_import['type'] == 'N', 'function'].tolist()
+    progress.setValue(percentage_calculation(start=start, end=end, count=20))
+
+    number_kks = len(list_kks_nary)
+    count = 0
+    for i_kks in list_kks_nary:
+        set_category_nr.add(int(df_plc_bin_conf.loc[i_kks, 'NARYCATNR']))
+        progress.setValue(percentage_calculation(start=percentage_calculation(start=start, end=end, count=20),
+                                                 end=percentage_calculation(start=start, end=end, count=75),
+                                                 count=count,
+                                                 number=number_kks))
+
+    await print_log(text=f'\tSuccessfully.\t Будет добавлено {len(set_category_nr)} описаний',
+                    color='green', a_new_line=False)
+
+    await print_log(text='Загрузка PLS_BIN_NARY_CONF.dmp')
+    df_pls_bin_nary_conf = await async_load_data(path.join(source_system, 'DbDumps', 'PLS_BIN_NARY_CONF.dmp'))
+    df_pls_bin_nary_conf.rename(columns={'*#CATEGORYNR': 'CATEGORYNR'}, inplace=True)
+    df_pls_bin_nary_conf.set_index('CATEGORYNR', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=85))
+
+    await print_log(text=f'Запись файла {name_file}')
+    await writing_data_nary_conf_to_a_file(path_file=path.join(name_system, 'Исходники', name_file),
+                                           set_category_nr=set_category_nr,
+                                           df_pls_bin_nary_conf=df_pls_bin_nary_conf)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+
+
+async def writing_data_nary_conf_to_a_file(path_file, set_category_nr, df_pls_bin_nary_conf):
+    """
+    Переписывание нужных строчек из файла PLS_BIN_NARY_CONF для обновления базы SVSU
+    """
+    list_columns = df_pls_bin_nary_conf.columns.tolist()
+    df_data_file = pd.DataFrame(columns=list_columns)
+    df_data_file.set_index('CATEGORYNR', drop=False, inplace=True)
+
+    for i in sorted(set_category_nr):
+        if i == -1:
+            continue
+        df_data_file.loc[i] = df_pls_bin_nary_conf.loc[i]
+
+    df_data_file.to_csv(path_file, sep='\t', index=False)
+
+
+async def creating_new_file_portal_kks(print_log, name_system: str, source_system: str, name_file: str,
+                                       progress: QProgressBar, start: int = 0, end: int = 100) -> None:
+    """
+    Функция создает файл PORTAL_KKS0(1/2).dmp на основе исходных данных для обновления РБД СВСУ
+    Args:
+        print_log: Функция вывода лога
+        name_system: Имя системы куда создается файл
+        source_system: Система из которой берутся файлы описания сигналов
+        name_file: Имя создаваемого файла
+        progress: Прогресс выполнения программы
+        start: Начальные проценты выполнения программы
+        end: Конечные проценты выполнения программы
+    Returns: None
+    """
+    await print_log(text=f'Загрузка SVSU_IMPORT.txt')
+    df_svsu_import = pd.read_csv(path.join(source_system, 'DbSrc', 'SVSU_IMPORT.txt'), sep='\t')
+    # df_svsu_import.set_index('function', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=6))
+
+    await print_log(text=f'Составляется список передаваемых многобитовых сигналов')
+    list_kks_nary = df_svsu_import.loc[df_svsu_import['type'] == 'N', 'function'].tolist()
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=10))
+
+    await print_log(text='Загрузка PORTAL_KKS.dmp')
+    df_portal_kks = await async_load_data(file_path=path.join(source_system, 'DbDumps', 'PORTAL_KKS.dmp'))
+    df_portal_kks.set_index('*#KKS', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=10))
+
+    await print_log(text=f'Создание новых данных для файла {name_file}')
+    new_df_portal_kks = pd.DataFrame(columns=df_portal_kks.columns.tolist())
+    list_index = df_portal_kks.index.tolist()
+    path_file = path.join(name_system, 'Исходники', name_file)
+    progress.setValue(percentage_calculation(start=start, end=end, count=20))
+    for i_kks in list_kks_nary:
+        kks = i_kks.split('_')[0]
+        if kks in list_index:
+            new_df_portal_kks.loc[kks] = df_portal_kks.loc[kks]
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=70))
+
+    await print_log(text=f'Сохранение данных в файл {name_file}')
+    with open(path_file, 'w') as new_file_portal_kks:
+        new_file_portal_kks.write('*************************************************************************\n'
+                                  '* RtDb ASCII PERSISTENCE file of table: PORTAL_KKS\n'
+                                  '*************************************************************************\n')
+    new_df_portal_kks.to_csv(path_file, mode='a', sep='|', index=False)
+    with open(path_file, 'a') as new_file_portal_kks:
+        new_file_portal_kks.write('* end of file\n')
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+
+    progress.setValue(percentage_calculation(start=start, end=end, count=100))

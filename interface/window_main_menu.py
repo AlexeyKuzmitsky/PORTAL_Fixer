@@ -4,7 +4,6 @@ from interface.window_instruction import Instruction
 from interface.window_generation_tcp_gate import GenerationTcpGate
 from interface.window_checking_sources import CheckingSources
 from interface.window_working_data import WorkingData
-from PyQt6.QtWidgets import QMessageBox
 from modernization_objects.push_button import QPushButtonModified, QPushButtonInstruction
 
 from modernization_objects.q_widget import MainWindowModified
@@ -31,7 +30,7 @@ class MainWindow(MainWindowModified):  # создаем класс на осно
                                                   func_pressed=self.start_parsing_svg_window))
 
         self.layout.addWidget(QPushButtonModified(text='Создание новых паспортов для видеокадров',
-                                                  func_pressed=self.development_warning))
+                                                  func_pressed=self.start_creation_passport))
 
         self.layout.addWidget(QPushButtonModified(text='Создание файлов для TcpGate',
                                                   func_pressed=self.start_generation_tcp_gate_window))
@@ -57,6 +56,12 @@ class MainWindow(MainWindowModified):  # создаем класс на осно
         self.parsing_svg.show()
         self.close()
 
+    def start_creation_passport(self):
+        self.information_message(title='Программа в разработке',
+                                 text='На данный момент данная программа находится в разработке и не готова '
+                                      'к выполнению каких либо функций.\n'
+                                      'Следите за обновлениями, она скоро заработает!')
+
     def start_generation_tcp_gate_window(self):
         self.generation_tcp_gate.show()
         self.close()
@@ -68,12 +73,6 @@ class MainWindow(MainWindowModified):  # создаем класс на осно
     def start_working_data_window(self):
         self.working_data.show()
         self.close()
-
-    def development_warning(self):
-        QMessageBox.warning(self, 'Программа в разработке',
-                            'На данный момент данная программа находится в разработке и не готова к выполнению '
-                            'каких либо функций.\n'
-                            'Следите за обновлениями, она скоро заработает!')
 
     def close_program(self):
         """Функция закрытия программы"""

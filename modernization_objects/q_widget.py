@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QWidget, QSpacerItem
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QIcon, QPixmap, QPen, QColor, QPainter
-from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QToolBar, QFrame, QSizePolicy
+from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QToolBar, QFrame, QSizePolicy, QMessageBox
 from modernization_objects.push_button import QPushButtonModified, QPushButtonMinimize, QPushButtonExit
 from config.style import style_window_black
 from os import path
@@ -175,6 +175,12 @@ class MainWindowModified(QWidget):
                 self.window().y() + delta.y(),
             )
         event.accept()
+
+    def information_message(self, title: str, text: str = 'Информационное сообщение'):
+        QMessageBox.information(self, title, text)
+
+    def error_message(self, title: str, text: str = 'Сообщение об ошибке'):
+        QMessageBox.warning(self, title, text)
 
     def change_to_non_full_screen_mode(self):
         """При выходе из полноэкранного режима меняет местами кнопку режима, если она есть"""

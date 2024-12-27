@@ -67,9 +67,13 @@ class GenerationTcpGate(MainWindowModified):
         await self.print_log(text=f'Старт создания файла ZPUPD.cfg для {name_directory}')
         if await generation_tcp_gate(name_system=name_directory, print_log=self.print_log, progress=self.progress):
             await self.print_log(text='\nСоздание файла ZPUPD.cfg завершено успешно\n', color='green')
+            self.information_message(title='Завершение выполнения программы',
+                                     text=f'Создан файл ZPUPD.cfg')
         else:
             await self.print_log(text='Создание файла ZPUPD.cfg прекращено. Устраните все недочеты и повторите\n',
                                  color='red', level='ERROR')
+            self.information_message(title='Завершение выполнения программы',
+                                     text=f'Файл ZPUPD.cfg не был создан')
         self.progress.setVisible(False)
 
     @asyncSlot()
@@ -108,6 +112,8 @@ class GenerationTcpGate(MainWindowModified):
         self.progress.reset()
         await actualizations_vk(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
         await self.print_log(text=f'Обновление видеокадров {name_directory} завершено\n')
+        self.information_message(title='Завершение выполнения программы',
+                                 text=f'Видеокадры {name_directory} обновлены')
 
     def start_instruction_window(self):
         self.instruction_window.add_text_instruction()

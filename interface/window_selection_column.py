@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QLabel, QMessageBox, QCheckBox, QTableWidget, QTableWidgetItem
+from PyQt6.QtWidgets import QCheckBox, QTableWidget, QTableWidgetItem
 from config.conf import column_descriptions_ana, column_descriptions_bin
 from modernization_objects.push_button import QPushButtonModified
 from modernization_objects.q_widget import MainWindowModified
@@ -74,12 +74,6 @@ class SelectionColumn(MainWindowModified):
                 data.append(row)
         self.func(data)
         self.close_program()
-
-    def development_warning(self):
-        QMessageBox.warning(self, 'Программа в разработке',
-                            'На данный момент данная программа находится в разработке и не готова к выполнению '
-                            'каких либо функций.\n'
-                            'Следите за обновлениями, она скоро заработает!')
 
     def close_program(self):
         """Функция закрытия программы"""

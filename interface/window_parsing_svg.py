@@ -77,6 +77,8 @@ class ParsingSvg(MainWindowModified):
         self.progress.reset()
         await actualizations_vk(print_log=self.print_log, name_directory=name_directory, progress=self.progress)
         await self.print_log(text=f'Выполнение программы обновления видеокадров {name_directory} завершено\n')
+        self.information_message(title='Завершение выполнения программы',
+                                 text=f'Видеокадры {name_directory} были обновлены')
         self.progress.setVisible(False)
 
     @asyncSlot()
@@ -92,9 +94,13 @@ class ParsingSvg(MainWindowModified):
         if await new_start_parsing_svg_files(print_log=self.print_log, svg=set_svg, directory=name_directory,
                                              progress=self.progress):
             await self.print_log(text='Поиск замечаний завершен\n', color='green')
+            self.information_message(title='Завершение выполнения программы',
+                                     text=f'Завершен поиск замечаний для видеокадров {name_directory}')
         else:
             await self.print_log(text='Выполнение поиска замечаний прервано пользователем\n',
                                  color='red', level='ERROR')
+            self.information_message(title='Завершение выполнения программы',
+                                     text='Выполнение поиска замечаний прервано пользователем')
         self.progress.setVisible(False)
 
     @asyncSlot()
@@ -110,8 +116,12 @@ class ParsingSvg(MainWindowModified):
         if len(vis_groups):
             await sort_files_into_groups(number_bloc=name_directory, group_svg=vis_groups, progress=self.progress)
             await self.print_log(text='\tsuccessfully', color='green', a_new_line=False)
+            self.information_message(title='Завершение выполнения программы',
+                                     text=f'Замечания для {name_directory} распределены по группам')
         else:
             await self.print_log(text='Распределение невозможно!\n', color='red', level='ERROR')
+            self.information_message(title='Завершение выполнения программы',
+                                     text='Распределение замечаний к видеокадрам невозможно')
         self.progress.setVisible(False)
 
     @asyncSlot()

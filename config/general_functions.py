@@ -303,8 +303,8 @@ async def actualizations_vk(print_log, name_directory: str, progress: QProgressB
         if i_vis in set_vis_new:
             shutil.copy2(path.join(name_directory, 'NPP_models_new', i_vis),
                          path.join(name_directory, 'NPP_models', i_vis))
-            await print_log(text='\t+++обновлен+++', a_new_line=False, color='green')
+            await print_log(text='\tsuccessfully', a_new_line=False, color='green')
         else:
-            await print_log(text=f'\t---Нет в {name_directory}/NPP_models_new---',
+            await print_log(text=f'\tНет в {name_directory}/NPP_models_new',
                             a_new_line=False, color='red')
         number += 1

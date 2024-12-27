@@ -31,7 +31,8 @@ class TableData(MainWindowModified):
         self.list_name_column: Dict[int, str] = dict()
         self.window_choice_system = NameSystemWindow(func=self.start_generation_data,
                                                      text='Файл какой системы загрузить?',
-                                                     set_name_system={'SVBU_1', 'SVBU_2', 'SVSU', 'SKU_VP_1', 'SKU_VP_2'}
+                                                     set_name_system={'SVBU_1', 'SVBU_2', 'SVSU',
+                                                                      'SKU_VP_1', 'SKU_VP_2'}
                                                      )
 
         self.window_selection_name_file = NameFileWindow(func=self.loading_the_database,
@@ -194,12 +195,6 @@ class TableData(MainWindowModified):
         self.instruction_window.add_text_instruction()
         self.instruction_window.show()
 
-    def development_warning(self):
-        QMessageBox.warning(self, 'Функция в разработке',
-                            'На данный момент данная функция находится в разработке и не готова к выполнению '
-                            'каких либо задачи.\n'
-                            'Следите за обновлениями, она скоро заработает!')
-
     def save_data_to_text_file(self):
         """Функция сохраняющая последнюю базу из таблицы в текстовый файл"""
         if self.last_data:
@@ -255,10 +250,6 @@ class TableData(MainWindowModified):
         QMessageBox.warning(self, 'Нечего сохранять',
                             'В данный момент таблица пуста. Для добавления данных нажмите "Загрузить данные из файла"')
 
-    def error_message(self, title: str, text: str):
-        """Сообщение с текстом"""
-        QMessageBox.warning(self, title, text)
-
     def close_program(self):
         """Функция закрытия программы"""
         self.instruction_window.close()
@@ -278,7 +269,6 @@ class TableModel(QAbstractTableModel):
         if not index.isValid():
             return
         if role == Qt.ItemDataRole.DisplayRole:
-            # return self._data.iloc[index.row(), index.column()]
             return self._data[index.row()][index.column()]
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = None) -> Any:
@@ -303,7 +293,6 @@ class TableModel(QAbstractTableModel):
         Работает только если одинаковое количество столбцов
         """
         try:
-            # return self._data.shape[1]
             return len(self._data[0])
         except IndexError:
             return 0

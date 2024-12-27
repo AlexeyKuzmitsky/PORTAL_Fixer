@@ -1,11 +1,12 @@
 # from config.general_functions import new_file_data_ana_bin_nary
 from config.func_checking_sources import (search_for_comments_in_a_ana_file_1, search_for_comments_in_a_bin_file_1,
                                           searching_for_comments_in_files_bin, new_start_parsing_svg_files,
-                                          creating_new_file_ana, creating_new_file_skuvp_bin)
+                                          creating_new_file_ana, creating_new_file_skuvp_bin,
+                                          creating_new_file_nary_conf, creating_new_file_portal_kks)
 from interface.window_name_system import NameSystemWindow
 from interface.window_instruction import Instruction
 from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import QHBoxLayout, QTextBrowser, QProgressBar
+from PyQt6.QtWidgets import QHBoxLayout, QTextBrowser, QProgressBar, QMessageBox
 from qasync import asyncSlot
 from modernization_objects.push_button import QPushButtonModified, QPushButtonInstruction, QPushButtonMenu
 from modernization_objects.q_widget import MainWindowModified
@@ -150,6 +151,8 @@ class CheckingSources(MainWindowModified):
                                         name_file='SKUVP_ANA.txt',
                                         progress=self.progress)
             await self.print_log(text=f'Создание файла SKUVP_ANA.txt для {name_system} завершено\n')
+        self.information_message(title='Завершение программы',
+                                 text=f'Создание файла SKUVP_ANA.txt для {name_system} завершено')
 
     @asyncSlot()
     async def start_creating_new_file_bin(self, name_system: str) -> None:
@@ -194,6 +197,9 @@ class CheckingSources(MainWindowModified):
                                               name_file='NK_SVBU2_BIN.txt',
                                               progress=self.progress)
             await self.print_log(text=f'Создание файла NK_SVBU2_BIN.txt для {name_system} завершено\n')
+        self.information_message(title='Завершение программы',
+                                 text=f'Выполнение программы завершено по созданию файлов для '
+                                      f'{name_system} завершено')
 
     @asyncSlot()
     async def start_generate_sources_for_svsu(self, name_system: str):
@@ -223,7 +229,29 @@ class CheckingSources(MainWindowModified):
                                     end=80)
         await self.print_log(text=f'Создание файла {name_file_ana} для SVSU завершено\n')
 
+        name_file_nary_conf = f'PLS_BIN_NARY_CONF0{name_system[-1]}.dmp'
+        await creating_new_file_nary_conf(print_log=self.print_log,
+                                          name_system='SVSU',
+                                          source_system=name_system,
+                                          name_file=name_file_nary_conf,
+                                          progress=self.progress,
+                                          start=80,
+                                          end=90)
+
+        name_file_portal_kks = f'PORTAL_KKS0{name_system[-1]}.dmp'
+        await creating_new_file_portal_kks(print_log=self.print_log,
+                                           name_system='SVSU',
+                                           source_system=name_system,
+                                           name_file=name_file_portal_kks,
+                                           progress=self.progress,
+                                           start=90,
+                                           end=100)
+        await self.print_log('Выполнение завершено', color='green')
+
         self.progress.setValue(100)
+        self.information_message(title='Завершение программы',
+                                 text=f'Завершено выполнение программы по подготовке исходных файлов от '
+                                      f'СВБУ{name_system[-1]} для СВСУ')
 
     @asyncSlot()
     async def start_checking_ana_file_1(self, name_system: str) -> None:
@@ -234,6 +262,9 @@ class CheckingSources(MainWindowModified):
         await search_for_comments_in_a_ana_file_1(print_log=self.print_log, name_system=name_system,
                                                   progress=self.progress)
         await self.print_log(text=f'Поиск отсутствующих KKS в {name_system}/DbSrc/file_ana-1.txt завершен\n')
+        self.information_message(title='Завершение программы',
+                                 text=f'Завершено выполнение программы по поиску отсутствующих KKS в '
+                                      f'{name_system}/DbSrc/file_ana-1.txt')
 
     @asyncSlot()
     async def start_checking_bin_file(self, name_system: str) -> None:
@@ -244,6 +275,9 @@ class CheckingSources(MainWindowModified):
         await searching_for_comments_in_files_bin(print_log=self.print_log, name_system=name_system,
                                                   progress=self.progress)
         await self.print_log(text=f'Поиск замечаний в {name_system}/DbSrc/file_bin завершен\n')
+        self.information_message(title='Завершение программы',
+                                 text=f'Завершено выполнение программы по поиску замечаний в '
+                                      f'{name_system}/DbSrc/file_bin')
 
     @asyncSlot()
     async def start_checking_bin_file_1(self, name_system: str) -> None:
@@ -254,6 +288,9 @@ class CheckingSources(MainWindowModified):
         await search_for_comments_in_a_bin_file_1(print_log=self.print_log, name_system=name_system,
                                                   progress=self.progress)
         await self.print_log(text=f'Поиск отсутствующих KKS в {name_system}/DbSrc/file_bin-1.txt завершен\n')
+        self.information_message(title='Завершение программы',
+                                 text=f'Завершено выполнение программы по поиску отсутствующих KKS в '
+                                      f'{name_system}/DbSrc/file_bin-1.txt')
 
     @asyncSlot()
     async def print_log(self, text: str, color: str = 'white', level: str = 'INFO', a_new_line: bool = True) -> None:
