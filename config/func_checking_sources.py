@@ -453,7 +453,7 @@ async def creating_new_file_skuvp_bin(print_log, name_system: str, source_system
                                                        end=percentage_calculation(start=start, end=end, count=90))
 
         await print_log(text=f'Запись полученных данных в файл {name_system}/Исходники/{name_file}')
-        df_bin.to_csv(path.join(name_system, 'Исходники', name_file), sep='\t', index=False)
+        df_bin.to_csv(path.join(name_system, 'Исходники', name_file), encoding='windows-1251', sep='\t', index=False)
         await print_log(text='\tSuccessfully', color='green', a_new_line=False)
     else:
         await print_log(text='Выполнение задачи невозможно!', color='red')
@@ -707,7 +707,7 @@ async def creating_new_file_ana(print_log, name_system: str, source_system: str,
                                                        end=percentage_calculation(start=start, end=end, count=95))
 
         await print_log(text=f'Запись полученных данных в файл {name_system}/Исходники/{name_file}')
-        df_ana.to_csv(path.join(name_system, 'Исходники', name_file), sep='\t', index=False)
+        df_ana.to_csv(path.join(name_system, 'Исходники', name_file), encoding='windows-1251', sep='\t', index=False)
         await print_log(text='\tSuccessfully', color='green', a_new_line=False)
     else:
         await print_log(text='Выполнение задачи невозможно!', color='red')
@@ -732,7 +732,7 @@ async def preparing_data_for_the_file_ana(print_log, name_system: str, name_file
                                    'UNITSRUS', 'display', 'deadband',
                                    'z_verw', 'hist', 'histdeadband',
                                    'signum', 'ITEMID_EXT', 'CategoryNR', 'Type',
-                                   'Department', 'Channel', 'alarmSite'
+                                   'Department', 'Channel', 'alarmSite', 'AnaFilterExpr'
                                    ])
     df_ana.set_index('function', drop=False, inplace=True)
 
@@ -760,6 +760,12 @@ async def preparing_data_for_the_file_ana(print_log, name_system: str, name_file
     await print_log(text='\tSuccessfully', color='green', a_new_line=False)
     progress.setValue(percentage_calculation(start=start, end=end, count=16))
 
+    await print_log(text='Загрузка PLS_ANA_FILTER.dmp')
+    df_pls_ana_filter = await async_load_data(file_path=path.join(name_system, 'DbDumps', 'PLS_ANA_FILTER.dmp'))
+    df_pls_ana_filter.set_index('*#PVNR', drop=False, inplace=True)
+    await print_log(text='\tSuccessfully', color='green', a_new_line=False)
+    progress.setValue(percentage_calculation(start=start, end=end, count=18))
+
     list_kks_ana = df_svbu_import.loc[df_svbu_import['type'] == 'A', 'function'].tolist()
 
     number_kks = len(list_kks_ana)
@@ -771,7 +777,8 @@ async def preparing_data_for_the_file_ana(print_log, name_system: str, name_file
                                        df_plc_ana_conf=df_plc_ana_conf,
                                        df_svbu_import=df_svbu_import,
                                        df_pls_proc_categories=df_pls_proc_categories,
-                                       df_pls_dimension_conf=df_pls_dimension_conf)
+                                       df_pls_dimension_conf=df_pls_dimension_conf,
+                                       df_pls_ana_filter=df_pls_ana_filter)
         except KeyError:
             df_ana.drop(axis=0, index=i_kks, inplace=True)
             await print_log(text=f'В базе данных {name_system} нет аналогово сигнала {i_kks}. Он не будет добавлен',
@@ -781,15 +788,34 @@ async def preparing_data_for_the_file_ana(print_log, name_system: str, name_file
             await print_log(text=f'В файле импорта найден дубликат сигнала {i_kks}. Он не будет добавлен',
                             color='red')
         count += 1
-        progress.setValue(percentage_calculation(start=percentage_calculation(start=start, end=end, count=16),
+        progress.setValue(percentage_calculation(start=percentage_calculation(start=start, end=end, count=18),
                                                  end=percentage_calculation(start=start, end=end, count=95),
                                                  count=count,
                                                  number=number_kks))
+    editing_data(df_ana=df_ana)
     return df_ana
 
 
+def editing_data(df_ana):
+    """
+    MAX	MIN	HA	HW	HT	LT	LW	LA deadband histdeadband
+    """
+    df_ana['MAX'] = df_ana['MAX'].apply(lambda x: f'' if not pd.notna(x) else f'{int(x)}' if x.is_integer() else f'{x}')
+    df_ana['MIN'] = df_ana['MIN'].apply(lambda x: f'' if not pd.notna(x) else f'{int(x)}' if x.is_integer() else f'{x}')
+    df_ana['HA'] = df_ana['HA'].apply(lambda x: f'' if not pd.notna(x) else f'{int(x)}' if x.is_integer() else f'{x}')
+    df_ana['HW'] = df_ana['HW'].apply(lambda x: f'' if not pd.notna(x) else f'{int(x)}' if x.is_integer() else f'{x}')
+    df_ana['HT'] = df_ana['HT'].apply(lambda x: f'' if not pd.notna(x) else f'{int(x)}' if x.is_integer() else f'{x}')
+    df_ana['LT'] = df_ana['LT'].apply(lambda x: f'' if not pd.notna(x) else f'{int(x)}' if x.is_integer() else f'{x}')
+    df_ana['LW'] = df_ana['LW'].apply(lambda x: f'' if not pd.notna(x) else f'{int(x)}' if x.is_integer() else f'{x}')
+    df_ana['LA'] = df_ana['LA'].apply(lambda x: f'' if not pd.notna(x) else f'{int(x)}' if x.is_integer() else f'{x}')
+    df_ana['histdeadband'] = df_ana['histdeadband'].apply(
+        lambda x: f'' if not pd.notna(x) else f'{int(x)}' if x.is_integer() else f'{x}')
+    df_ana['deadband'] = df_ana['deadband'].apply(
+        lambda x: f'' if not pd.notna(x) else f'{int(x)}' if x.is_integer() else f'{x}')
+
+
 def filling_data_on_signal_ana(kks: str, df_ana, df_plc_ana_conf, df_svbu_import, df_pls_proc_categories,
-                               df_pls_dimension_conf) -> None:
+                               df_pls_dimension_conf, df_pls_ana_filter) -> None:
     """
     Функция заполняет данные по сигналу
         Args:
@@ -799,9 +825,10 @@ def filling_data_on_signal_ana(kks: str, df_ana, df_plc_ana_conf, df_svbu_import
         df_svbu_import: База данных сингалов импорта
         df_pls_proc_categories: База данных файла PLS_PROC_CATEGORIES
         df_pls_dimension_conf: База данных единиц измерения из файла PLS_DIMENSION_CONF
+        df_pls_ana_filter: База данных изменения единиц измерения по аналоговым сигналам из файла PLS_ANA_FILTER
     Returns: None
     """
-    df_ana.loc[kks, 'RTM'] = kks
+    df_ana.loc[kks, 'RTM'] = kks.split('_')[0]
     df_ana.loc[kks, 'function'] = kks
     df_ana.loc[kks, 'Type'] = 1
     df_ana.loc[kks, 'NAME_RUS'] = df_plc_ana_conf.loc[kks, 'PVTEXT']
@@ -840,6 +867,10 @@ def filling_data_on_signal_ana(kks: str, df_ana, df_plc_ana_conf, df_svbu_import
     text_plc_itemid = df_plc_ana_conf.loc[kks, 'PLC_ITEMID'].split(':')[-2]
     if '=' not in text_plc_itemid:
         df_ana.loc[kks, 'ITEMID_EXT'] = text_plc_itemid
+
+    pvnr = df_plc_ana_conf.loc[kks, '*#PVNR']
+    if pvnr in df_pls_ana_filter.index:
+        df_ana.loc[kks, 'AnaFilterExpr'] = f'$SCALE({df_pls_ana_filter.loc[pvnr, 'SCALE_FACTOR']}, 0)'
     # (Department, Channel) оставляем пустыми
 
 
@@ -980,7 +1011,6 @@ async def creating_new_file_portal_kks(print_log, name_system: str, source_syste
     """
     await print_log(text=f'Загрузка SVSU_IMPORT.txt')
     df_svsu_import = pd.read_csv(path.join(source_system, 'DbSrc', 'SVSU_IMPORT.txt'), sep='\t')
-    # df_svsu_import.set_index('function', drop=False, inplace=True)
     await print_log(text='\tSuccessfully', color='green', a_new_line=False)
     progress.setValue(percentage_calculation(start=start, end=end, count=6))
 
