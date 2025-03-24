@@ -17,27 +17,38 @@ async def actualizations_vk_svsu(print_log, name_directory: str, progress: QProg
     else:
         return
 
-    kks_dict_new: Dict[str, str] = {'MKA01': f'{number}0MKA01',
-                                    'MKA02': f'{number}0MKA02',
-                                    'MKA03': f'{number}0MKA03',
-                                    'mkc': f'{number}0mkc',
-                                    'ALL_STKTG': f'{number}0ALL_STKTG',
-                                    'AKNP_RD2': f'{number}0AKNP_RD2'}
+    source_files = path.join(name_directory, 'NPP_models')
+    destination_files = path.join('SVSU', 'NPP_models')
+    kks_dict_new: Dict[str, str] = {}
+    renaming_kks: Dict[str, str] = {}
 
-    renaming_kks: Dict[str, str] = {f'{number}0ALL_STKTG.svg': 'ALL_STKTG.svg',
-                                    f'{number}0MKA01.svg': 'MKA01.svg',
-                                    f'{number}0MKA02.svg': 'MKA02.svg',
-                                    f'{number}0MKA03.svg': 'MKA03.svg',
-                                    f'{number}0mkc.svg': 'mkc.svg',
-                                    f'{number}0AKNP_RD2.svg': 'AKNP_RD2.svg'}
+    set_vis_svsu: Set[str] = set()
+    list_vis_svsu: List[str] = listdir(destination_files)
+    if number == '1':
+        for i_name in list_vis_svsu:
+            if i_name.startswith('20'):
+                continue
+            else:
+                set_vis_svsu.add(i_name)
+    elif number == '2':
+        for i_name in list_vis_svsu:
+            if i_name.startswith('10'):
+                continue
+            else:
+                set_vis_svsu.add(i_name)
+    set_vis_svsu.discard('diag_PPD.svg')
+    set_vis_bloc: Set[str] = set(listdir(source_files))
+    for i_name in set_vis_svsu:
+        if i_name in set_vis_bloc:
+            continue
+        if i_name[2:] in set_vis_bloc:
+            kks_dict_new[i_name[2:]] = i_name
+            renaming_kks[i_name] = i_name[2:]
 
-    set_vis: Set[str] = set(listdir(path.join('SVSU', 'NPP_models')))
-    set_vis.discard('diag_PPD.svg')
-    set_vis_bloc: Set[str] = set(listdir(path.join(name_directory, 'NPP_models')))
     num = 1
-    numbers_vis = len(set_vis)
+    numbers_vis = len(set_vis_svsu)
 
-    for i_vis in sorted(set_vis):
+    for i_vis in sorted(set_vis_svsu):
         await print_log(text=f'[{num}/{numbers_vis}]\tобновление {i_vis}')
         progress.setValue(round(num / numbers_vis * 100))
         if i_vis in renaming_kks:

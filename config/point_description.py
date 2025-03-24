@@ -751,6 +751,9 @@ class AnchorPoint:
             if 'KKS' in i_line:
                 kks = re.findall(r'value="&quot;(.*)&quot;"', i_line)[0]
                 self.signal_description.append({'KKS': f'{kks}TE0_Z0', 'text_kks': kks})
+                self.signal_description.append({'KKS': f'{kks}VL0_Z0', 'text_kks': kks})
+                self.signal_description.append({'KKS': f'{kks}TE0_VB7', 'text_kks': kks})
+                self.signal_description.append({'KKS': f'{kks}VL0_VB6', 'text_kks': kks})
                 return
         else:
             self.static_element()
