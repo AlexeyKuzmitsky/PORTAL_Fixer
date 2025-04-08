@@ -501,13 +501,15 @@ async def preparing_data_for_the_file_bin(print_log, source_system: str, name_fi
     number_kks = len(list_kks_nary)
     count = 0
     for i_kks in list_kks_nary:
+        new_kks = check_kks(kks=i_kks)
         try:
             await filling_data_on_signal_bin(kks=i_kks,
                                              df_bin=df_bin,
                                              df_plc_bin_conf=df_plc_bin_conf,
                                              df_svbu_import=df_svbu_import,
                                              df_pls_proc_categories=df_pls_proc_categories,
-                                             type_signal=3)
+                                             type_signal=3,
+                                             new_kks=new_kks)
         except KeyError:
             df_bin.drop(axis=0, index=i_kks, inplace=True)
             await print_log(text=f'В базе данных {source_system} нет многобитового сигнала {i_kks}. '
@@ -545,7 +547,7 @@ async def preparing_data_for_the_file_bin(print_log, source_system: str, name_fi
 
 
 async def filling_data_on_signal_bin(kks: str, df_bin, df_plc_bin_conf, df_svbu_import, df_pls_proc_categories,
-                                     type_signal: int) -> None:
+                                     type_signal: int, new_kks: str = None) -> None:
     """
     Функция заполняет данные по сигналу
         Args:
@@ -555,10 +557,15 @@ async def filling_data_on_signal_bin(kks: str, df_bin, df_plc_bin_conf, df_svbu_
         df_svbu_import: База данных файла SVBU_IMPORT
         df_pls_proc_categories: База данных файла PLS_PROC_CATEGORIES
         type_signal: тип сигнала (1 - аналоговый, 2 - бинарный, 3 - многобитовый)
+        new_kks: KKS который будет записан в новом файле
     Returns: None
     """
-    df_bin.loc[kks, 'RTM'] = kks
-    df_bin.loc[kks, 'function'] = kks
+    if new_kks:
+        df_bin.loc[kks, 'RTM'] = new_kks
+        df_bin.loc[kks, 'function'] = new_kks
+    else:
+        df_bin.loc[kks, 'RTM'] = kks
+        df_bin.loc[kks, 'function'] = kks
     df_bin.loc[kks, 'NAME_RUS'] = df_plc_bin_conf.loc[kks, 'PVTEXT']
     df_bin.loc[kks, 'NAME_RUS_FULL'] = df_plc_bin_conf.loc[kks, 'PVDESCRIPTION']
     df_bin.loc[kks, 'CategoryNR'] = df_plc_bin_conf.loc[kks, 'CATEGORYNR']
@@ -794,6 +801,31 @@ async def preparing_data_for_the_file_ana(print_log, name_system: str, name_file
                                                  number=number_kks))
     editing_data(df_ana=df_ana)
     return df_ana
+
+
+def check_kks(kks: str) -> str:
+    """Функция заменяет определённые сигналы на другие (для избежания дублирования)"""
+    dict_kks = {'DS00SRV_PR1': 'DS00VPSRVVP_PR1',
+                'DS00SRV_PR2': 'DS00VPSRVVP_PR2',
+                'DS00CLU_PRI': 'DS00VPCLUVP_PRI',
+                'DS00WDG_PRI': 'DS00VPWDGVP_PRI',
+                'DT00E01_ST01': 'DT00E01VP_ST01',
+                'DT00E01_ER01': 'DT00E01VP_ER01',
+                'DT00E01_ST02': 'DT00E01VP_ST02',
+                'DT00E01_ER02': 'DT00E01VP_ER02',
+                'DT01E01_ST01': 'DT01E01VP_ST01',
+                'DT01E01_ER01': 'DT01E01VP_ER01',
+                'DT01E01_ST02': 'DT01E01VP_ST02',
+                'DT01E01_ER02': 'DT01E01VP_ER02',
+                'DT02E01_ST01': 'DT02E01VP_ST01',
+                'DT02E01_ER01': 'DT02E01VP_ER01',
+                'DT02E01_ST02': 'DT02E01VP_ST02',
+                'DT02E01_ER02': 'DT02E01VP_ER02'
+                }
+    if kks[1:] in dict_kks:
+        return f'{kks[0]}{dict_kks[kks[1:]]}'
+    else:
+        return kks
 
 
 def editing_data(df_ana):
