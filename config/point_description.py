@@ -202,7 +202,7 @@ class AnchorPoint:
         self.x = x
 
     def set_width_and_height(self):
-        """Нахождение высоты и ширины подмодели"""
+        """Нахождение высоту и ширину подмодели"""
         try:
             width = re.findall(r'width="([\d/.]*)"', self.full_description_of_the_submodel[0])[0]
             height = re.findall(r'height="([\d/.]*)"', self.full_description_of_the_submodel[0])[0]
