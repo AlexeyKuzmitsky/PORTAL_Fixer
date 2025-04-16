@@ -182,8 +182,6 @@ async def add_file_svsu_import(print_log, name_system: str, progress: QProgressB
     """Функция подготовки файла SVSU_IMPORT.txt"""
     check_directory(path_directory='SVSU', name_directory='NPP_models')
     await save_old_file(print_log=print_log, name_system=name_system)
-    if not await check_all_files(print_log=print_log, name_system=name_system):
-        return
 
     list_name_svg_svsu = listdir(path.join('SVSU', 'NPP_models'))
 
@@ -229,44 +227,6 @@ async def save_old_file(print_log, name_system: str):
                                '(файл SVSU_IMPORT.txt будет переименован в SVSU_IMPORT_bck.txt)')
     if msg == QMessageBox.StandardButton.Yes:
         await renaming_old_file_svsu_import(print_log=print_log, name_system=name_system)
-
-
-async def check_all_files(print_log, name_system: str):
-    """Функция проверяет наличие всех файлов (ANA_list_kks.txt, BIN_list_kks.txt, NARY_list_kks.txt)
-     для работы программы по созданию файла SVSU_IMPORT.txt"""
-    if not check_file(path_directory=path.join(name_system, 'data'), name_file='ANA_list_kks.txt'):
-        msg = QMessageBox.question(QMainWindow(), 'Нет файла ANA_list_kks.txt',
-                                   f'Не найден файл {name_system}/data/ANA_list_kks.txt\n '
-                                   f'Для создания файла ANA_list_kks.txt выберите пункт "Обновление базы данных"'
-                                   f' и систему {name_system}.\n'
-                                   f'Продолжить выполнение программы без файла ANA_list_kks.txt?')
-        if msg == QMessageBox.StandardButton.No:
-            await print_log(text=f'Программа создания файла SVSU_IMPORT.txt прервана пользователем\n',
-                            color='red')
-            return False
-
-    if not check_file(path_directory=path.join(name_system, 'data'), name_file='BIN_list_kks.txt'):
-        msg = QMessageBox.question(QMainWindow(), 'Нет файла BIN_list_kks.txt',
-                                   f'Не найден файл {name_system}/data/BIN_list_kks.txt\n '
-                                   f'Для создания файла BIN_list_kks.txt выберите пункт "Обновление базы данных"'
-                                   f' и систему {name_system}.\n'
-                                   f'Продолжить выполнение программы без файла BIN_list_kks.txt?')
-        if msg == QMessageBox.StandardButton.No:
-            await print_log(text=f'Программа создания файла SVSU_IMPORT.txt прервана пользователем\n',
-                            color='red')
-            return False
-
-    if not check_file(path_directory=path.join(name_system, 'data'), name_file='NARY_list_kks.txt'):
-        msg = QMessageBox.question(QMainWindow(), 'Нет файла NARY_list_kks.txt',
-                                   f'Не найден файл {name_system}/data/NARY_list_kks.txt\n '
-                                   f'Для создания файла NARY_list_kks.txt выберите пункт "Обновление базы данных"'
-                                   f' и систему {name_system}.\n'
-                                   f'Продолжить выполнение программы без файла NARY_list_kks.txt?')
-        if msg == QMessageBox.StandardButton.No:
-            await print_log(text=f'Программа создания файла SVSU_IMPORT.txt прервана пользователем\n',
-                            color='red')
-            return False
-    return True
 
 
 async def renaming_old_file_svsu_import(print_log, name_system: str):
